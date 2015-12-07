@@ -18,9 +18,9 @@ namespace WorkComPort.ConnectionFP
             _serial.DataRead += ReceiveData;
         }
 
-        public void ExchangeData(byte[] outputbyte)
+        public async void ExchangeData(byte[] outputbyte)
         {
-            _serial.Write(outputbyte);
+            await _serial.Write(outputbyte);
         }
 
 
