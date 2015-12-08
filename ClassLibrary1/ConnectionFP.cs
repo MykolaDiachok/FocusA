@@ -81,7 +81,7 @@ namespace WorkComPort.ConnectionFP
 
         private async void ReadLoop()
         {
-            while ((_port != null)&&(_port.IsOpen))
+            while (_port != null)
             {
                 byte[] result = new byte[1024];
                 try

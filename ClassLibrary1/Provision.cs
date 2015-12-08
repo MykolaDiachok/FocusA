@@ -21,6 +21,7 @@ namespace WorkComPort.ConnectionFP
         public async void ExchangeData(byte[] outputbyte)
         {
             await _serial.Write(outputbyte);
+            
         }
 
 

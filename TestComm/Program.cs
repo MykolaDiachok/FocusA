@@ -21,6 +21,7 @@ namespace TestComm
 
 
             proConn.ExchangeData(new byte[] { 16, 2, 0, 27, 1, 1, 97, 130, 16, 3, 28, 170 });
+            
             proConn.Dispose();
             connFP.Close();
             
