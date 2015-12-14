@@ -50,9 +50,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ClassLibrary1\WorkComPort.csproj">
+    <ProjectReference Include="..\ClassLibrary1\CentralLib.csproj">
       <Project>{abac24c1-e800-4f1c-a77c-c5a4e17a1468}</Project>
-      <Name>WorkComPort</Name>
+      <Name>CentralLib</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

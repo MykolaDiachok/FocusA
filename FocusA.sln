@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkComPort", "ClassLibrary1\WorkComPort.csproj", "{ABAC24C1-E800-4F1C-A77C-C5A4E17A1468}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CentralLib", "ClassLibrary1\CentralLib.csproj", "{ABAC24C1-E800-4F1C-A77C-C5A4E17A1468}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestComm", "TestComm\TestComm.csproj", "{D3A2AB48-1363-404C-A8C3-A9CBA5302115}"
 EndProject

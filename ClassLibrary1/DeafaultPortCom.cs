@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO.Ports;
 
-namespace WorkComPort.DefaultPortCom
+namespace CentralLib.DefaultPortCom
 {
     public class DefaultPortCom
     {

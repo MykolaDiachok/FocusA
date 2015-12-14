@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WorkComPort.ConnectionFP
+namespace CentralLib.ConnectionFP
 {
     public class Provision : IDisposable
     {

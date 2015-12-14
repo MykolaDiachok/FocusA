@@ -40,7 +40,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConnectionFP.cs" />
+    <Compile Include="absExchange.cs" />
+    <Compile Include="ConnectionFP.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="DeafaultPortCom.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Provision.cs" />
