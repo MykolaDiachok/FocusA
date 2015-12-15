@@ -6,38 +6,38 @@ using System.Threading.Tasks;
 
 namespace CentralLib.ConnectionFP
 {
-    public class Provision : IDisposable
-    {
-        private ConnectionFP _serial;
-        private Queue<byte[]> _recvBuffer;
+    //public class Provision : IDisposable
+    //{
+        //private ConnectionFP _serial;
+        //private Queue<byte[]> _recvBuffer;
 
-        public Provision(ConnectionFP connection)
-        {
-            _recvBuffer = new Queue<byte[]>();
-            _serial = connection;
-            _serial.DataRead += ReceiveData;
-        }
+        //public Provision(ConnectionFP connection)
+        //{
+        //    _recvBuffer = new Queue<byte[]>();
+        //    _serial = new ConnectionFP();
+        //    _serial.DataRead += ReceiveData;
+        //}
 
-        public async void ExchangeData(byte[] outputbyte)
-        {
-            await _serial.Write(outputbyte);
+        //public async void ExchangeData(byte[] outputbyte)
+        //{
+        //    await _serial.Write(outputbyte);
             
-        }
+        //}
 
 
-        private void ReceiveData(object sender, ConnectionFP.SerialReadEventArgs e)
-        {
-            _recvBuffer.Enqueue(e.ReadBytes);
-        }
+        //private void ReceiveData(object sender, ConnectionFP.SerialReadEventArgs e)
+        //{
+        //    _recvBuffer.Enqueue(e.ReadBytes);
+        //}
 
-        public void Dispose()
-        {
-            if (_serial != null)
-            {
-                _serial.DataRead -= ReceiveData;
-            }
-        }
+        //public void Dispose()
+        //{
+        //    if (_serial != null)
+        //    {
+        //        _serial.DataRead -= ReceiveData;
+        //    }
+        //}
 
 
-    }
+   // }
 }

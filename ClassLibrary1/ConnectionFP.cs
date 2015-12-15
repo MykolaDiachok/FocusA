@@ -23,32 +23,12 @@ namespace CentralLib.ConnectionFP
 
         private byte[] bytebegin = { DLE, STX };
         private byte[] byteend = { DLE, ETX };
+        public byte[] forsend { get; protected set; }
+        public byte[] output { get; protected set; }
+        private byte[] buffered;
+        public DateTimeOffset timeSend { get; protected set; }
+        public DateTimeOffset timeGet { get; protected set; }
 
-        //public EventHandler<SerialReadEventArgs> DataRead;
-        //public EventHandler<SerialErrorEventArgs> PortError;
-        //private SerialPort _port = null;
-
-        //public class SerialReadEventArgs : EventArgs
-        //{
-        //    public SerialReadEventArgs(byte[] readBytes)
-        //    {
-        //        ReadBytes = readBytes;
-        //    }
-        //    public byte[] ReadBytes { get; private set; }
-        //}
-        //public class SerialErrorEventArgs : EventArgs
-        //{
-        //    public SerialErrorEventArgs(IOException ex)
-        //    {
-        //        Exception = ex;
-        //    }
-        //    public IOException Exception { get; private set; }
-        //}
-
-        //public static string[] GetPorts()
-        //{
-        //    return SerialPort.GetPortNames();
-        //}
 
         public ConnectionFP(DefaultPortCom.DefaultPortCom defPortCom):base()
         {
@@ -59,53 +39,66 @@ namespace CentralLib.ConnectionFP
             base.StopBits = defPortCom.stopBits;
             base.WriteTimeout = defPortCom.writeTimeOut;
             base.ReadTimeout = defPortCom.readTimeOut;
-            base.DataReceived += ConnectionFP_DataReceived;
-            //_port = new SerialPort(defPortCom.sPortNumber, defPortCom.baudRate,defPortCom.parity,defPortCom.dataBits,defPortCom.stopBits);
-            //_port.WriteTimeout = defPortCom.writeTimeOut;
-            //_port.ReadTimeout = defPortCom.readTimeOut;
+            base.DataReceived += ConnectionFP_DataReceived;            
         }
 
-        private void ConnectionFP_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        private async void ConnectionFP_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             var port = (SerialPort)sender;
-            try
+            if ((port != null) && (port.IsOpen))
             {
-                //  узнаем сколько байт пришло
+                
                 int buferSize = port.BytesToRead;
-                for (int i = 0; i < buferSize; ++i)
+                byte[] result = new byte[buferSize];
+                int read = await base.BaseStream.ReadAsync(result, 0, buferSize);
+                byte[] withoutDDLE = returnWithOutDublicateDLE(result);
+                var searchBegin = PatternAt(withoutDDLE, bytebegin);
+
+
+            }
+            //
+            //var searchEnd = PatternAt(result, byteend);
+            
+        }
+
+        byte[] returnWithOutDublicateDLE(byte[] source)
+        {
+            return returnWithOutDublicate(source, new byte[] { DLE, DLE });
+        }
+
+        byte[] returnWithOutDublicate(byte[] source, byte[] pattern)
+        {
+
+            List<byte> tReturn = new List<byte>();
+            int sLenght = source.Length;
+            for (int i = 0; i < sLenght; i++)
+            {
+                if (source.Skip(i).Take(pattern.Length).SequenceEqual(pattern))
                 {
-                    //  читаем по одному байту
-                    byte bt = (byte)port.ReadByte();
-                    //  если встретили начало кадра (0xFF) - начинаем запись в _bufer
-                    if (0xFF == bt)
-                    {
-                        _stepIndex = 0;
-                        _startRead = true;
-                        //  раскоментировать если надо сохранять этот байт
-                        //_bufer[_stepIndex] = bt;
-                        //++_stepIndex;
-                    }
-                    //  дописываем в буфер все остальное
-                    if (_startRead)
-                    {
-                        _bufer[_stepIndex] = bt;
-                        ++_stepIndex;
-                    }
-                    //  когда буфер наполнлся данными
-                    if (_stepIndex == DataSize && _startRead)
-                    {
-                        //  по идее тут должны быть все ваши данные.
-
-                        //  .. что то делаем ...
-                        //  var item = _bufer[7];
-
-                        _startRead = false;
-                    }
+                    tReturn.Add(source[i]);
+                    i++;
+                }
+                else
+                {
+                    tReturn.Add(source[i]);
                 }
             }
-            catch { }
+            return (byte[])tReturn.ToArray();
         }
-    }
+
+
+        int? PatternAt(byte[] source, byte[] pattern)
+        {
+            for (int i = 0; i < source.Length; i++)
+            {
+                if (source.Skip(i).Take(pattern.Length).SequenceEqual(pattern))
+                {
+                    return i;
+                }
+            }
+            return null;
+        }
+
 
         public void Open()
         {
@@ -119,13 +112,13 @@ namespace CentralLib.ConnectionFP
 
         public async Task WriteAsync(byte[] content)
         {
-            byte[] buffer = new byte[64];
+            byte[] buffer = new byte[1024];
             var toWriteLength = content.Length;
             var offset = 0;
-
+            forsend = content;
             while (offset < toWriteLength)
             {
-                var currentLength = Math.Min(toWriteLength - offset, 64);
+                var currentLength = Math.Min(toWriteLength - offset, 1024);
 
                 Buffer.BlockCopy(content, offset, buffer, 0, currentLength);
 
@@ -136,19 +129,11 @@ namespace CentralLib.ConnectionFP
 
                 //System.Threading.Thread.Sleep(100); // sleep 100 ms
             }
+            this.timeSend = DateTimeOffset.UtcNow;
+            this.timeGet = new DateTimeOffset();
         }
 
-        int? PatternAt(byte[] source, byte[] pattern)
-        {
-            for (int i = 0; i < source.Length; i++)
-            {
-                if (source.Skip(i).Take(pattern.Length).SequenceEqual(pattern))
-                {
-                    return i;
-                }
-            }
-            return null;
-        }
+
 
         private byte[] Combine(byte[] a, byte[] b)
         {

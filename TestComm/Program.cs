@@ -16,14 +16,14 @@ namespace TestComm
             DefaultPortCom initialPort = new DefaultPortCom(4);
             ConnectionFP connFP = new ConnectionFP(initialPort);
             connFP.Open();
-            Provision proConn = new Provision(connFP);
+            //Provision proConn = new Provision(connFP);
 
 
-
-            proConn.ExchangeData(new byte[] { 16, 2, 0, 27, 1, 1, 97, 130, 16, 3, 28, 170 });
+            connFP.WriteAsync(new byte[] { 16, 2, 0, 27, 1, 1, 97, 130, 16, 3, 28, 170 });
+            //proConn.ExchangeData(new byte[] { 16, 2, 0, 27, 1, 1, 97, 130, 16, 3, 28, 170 });
             Console.ReadKey();
             
-            proConn.Dispose();
+            //proConn.Dispose();
             connFP.Close();
             
         }
