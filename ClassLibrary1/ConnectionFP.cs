@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.IO.Ports;
 using System.Linq;
@@ -11,7 +12,8 @@ using System.Threading.Tasks;
 
 namespace CentralLib.ConnectionFP
 {
-    public class ConnectionFP : SerialPort
+    public class ConnectionFP : SerialPort,INotifyPropertyChanged
+
     {
         const byte DLE = 0x10;
         const byte STX = 0x02;
@@ -21,14 +23,39 @@ namespace CentralLib.ConnectionFP
         const byte SYN = 0x16;
         const byte ENQ = 0x05;
 
-        private byte[] bytebegin = { DLE, STX };
-        private byte[] byteend = { DLE, ETX };
-        public byte[] forsend { get; protected set; }
-        public byte[] output { get; protected set; }
-        private byte[] buffered;
+        private byte[] bytesBegin = { DLE, STX };
+        private byte[] bytesEnd = { DLE, ETX };
+        public byte[] bytesForSend { get; protected set; }
+        private byte[] bytesOutput;
+        public byte[] bytesResponse
+        {
+            get { return bytesOutput; }
+            set
+            {
+                if (value != bytesResponse)
+                {
+                    OnResponseChange(bytesResponse);
+                }
+            }
+        }
+
+
+        private void OnResponseChange(byte[] bytesResponse)
+        {
+            
+            if (responseLevelChanged != null)
+                responseLevelChanged(new responseEventArgs(bytesResponse)); 
+        }
+
+        private byte[] bytesBuffered;
+
+
         public DateTimeOffset timeSend { get; protected set; }
         public DateTimeOffset timeGet { get; protected set; }
 
+        public delegate void responseEventHandler(responseEventArgs arg);
+        public event responseEventHandler responseLevelChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public ConnectionFP(DefaultPortCom.DefaultPortCom defPortCom):base()
         {
@@ -51,8 +78,48 @@ namespace CentralLib.ConnectionFP
                 int buferSize = port.BytesToRead;
                 byte[] result = new byte[buferSize];
                 int read = await base.BaseStream.ReadAsync(result, 0, buferSize);
-                byte[] withoutDDLE = returnWithOutDublicateDLE(result);
-                var searchBegin = PatternAt(withoutDDLE, bytebegin);
+
+                bytesBuffered = Combine(bytesBuffered, result);
+
+                int positionPacketBegin = ByteSearch(bytesBuffered, bytesBegin) -1;
+                if (positionPacketBegin < 0)
+                {
+                    Thread.Sleep(40);                  
+                    return; // waiting begin string
+                }
+                int positionPacketEnd = 0;
+                int tCurrentPos = positionPacketBegin;
+                int tPostEnd = -1;
+                do
+                {
+                    tCurrentPos++;
+                    tPostEnd = ByteSearch(bytesBuffered, bytesEnd, tCurrentPos);
+                    if (tPostEnd != -1)
+                    {
+                        tCurrentPos = tPostEnd;
+
+                        if (bytesBuffered[tPostEnd - 1] != DLE)
+                        {
+                            positionPacketEnd = tPostEnd;
+                            break;
+                        }
+                        else if ((bytesBuffered[tPostEnd - 1] == DLE) && (bytesBuffered[tPostEnd - 2] == DLE))
+                        {
+                            positionPacketEnd = tPostEnd;
+                            // break; 
+                        }
+                    }
+                } while (tCurrentPos < bytesBuffered.Length);
+                if (positionPacketEnd < 0)
+                {
+                    Thread.Sleep(40);                   
+                    return; //waiting end postion
+                }
+                byte[] unsigned = new byte[positionPacketEnd - positionPacketBegin + 4];
+                Buffer.BlockCopy(bytesBuffered, positionPacketBegin, unsigned, 0, positionPacketEnd - positionPacketBegin + 4);
+                this.bytesOutput = unsigned;
+                this.bytesResponse = unsigned;
+                this.timeGet = DateTimeOffset.UtcNow;
 
 
             }
@@ -100,7 +167,7 @@ namespace CentralLib.ConnectionFP
         }
 
 
-        public void Open()
+        public new void Open()
         {
             if (base.IsOpen)
             {
@@ -112,10 +179,13 @@ namespace CentralLib.ConnectionFP
 
         public async Task WriteAsync(byte[] content)
         {
+            this.bytesBuffered = new byte[] { };
+            this.bytesForSend = new byte[] { };
+            this.bytesOutput = new byte[] { };
             byte[] buffer = new byte[1024];
             var toWriteLength = content.Length;
             var offset = 0;
-            forsend = content;
+            this.bytesForSend = content;
             while (offset < toWriteLength)
             {
                 var currentLength = Math.Min(toWriteLength - offset, 1024);
@@ -133,8 +203,6 @@ namespace CentralLib.ConnectionFP
             this.timeGet = new DateTimeOffset();
         }
 
-
-
         private byte[] Combine(byte[] a, byte[] b)
         {
             byte[] c = new byte[a.Length + b.Length];
@@ -142,6 +210,54 @@ namespace CentralLib.ConnectionFP
             System.Buffer.BlockCopy(b, 0, c, a.Length, b.Length);
             return c;
         }
+
+        int ByteSearch(byte[] searchIn, byte[] searchBytes, int start = 0)
+        {
+            int found = -1;
+            bool matched = false;
+            //only look at this if we have a populated search array and search bytes with a sensible start 
+            if (searchIn.Length > 0 && searchBytes.Length > 0 && start <= (searchIn.Length - searchBytes.Length) && searchIn.Length >= searchBytes.Length)
+            {
+                //iterate through the array to be searched 
+                for (int i = start; i <= searchIn.Length - searchBytes.Length; i++)
+                {
+                    //if the start bytes match we will start comparing all other bytes 
+                    if (searchIn[i] == searchBytes[0])
+                    {
+                        if (searchIn.Length > 1)
+                        {
+                            //multiple bytes to be searched we have to compare byte by byte 
+                            matched = true;
+                            for (int y = 1; y <= searchBytes.Length - 1; y++)
+                            {
+                                if (searchIn[i + y] != searchBytes[y])
+                                {
+                                    matched = false;
+                                    break;
+                                }
+                            }
+                            //everything matched up 
+                            if (matched)
+                            {
+                                found = i;
+                                break;
+                            }
+
+                        }
+                        else
+                        {
+                            //search byte is only one bit nothing else to do 
+                            found = i;
+                            break; //stop the loop 
+                        }
+
+                    }
+                }
+
+            }
+            return found;
+        }
+
 
         //private async void ReadLoop()
         //{
@@ -155,10 +271,10 @@ namespace CentralLib.ConnectionFP
         //            int read = await _port.BaseStream.ReadAsync(result, 0, result.Length);
         //            allresult = Combine(allresult, result);
         //            var searchBegin = PatternAt(allresult, bytebegin);
-                  
+
 
         //            var searchEnd = PatternAt(allresult, byteend);
-                    
+
 
         //            if ((searchBegin != null)&& (searchEnd != null))
         //            {

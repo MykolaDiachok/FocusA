@@ -20,12 +20,18 @@ namespace TestComm
 
 
             connFP.WriteAsync(new byte[] { 16, 2, 0, 27, 1, 1, 97, 130, 16, 3, 28, 170 });
+            connFP.responseLevelChanged += new ConnectionFP.responseEventHandler(showInfo);
             //proConn.ExchangeData(new byte[] { 16, 2, 0, 27, 1, 1, 97, 130, 16, 3, 28, 170 });
             Console.ReadKey();
             
             //proConn.Dispose();
             connFP.Close();
             
+        }
+
+        private static void showInfo(responseEventArgs arg)
+        {
+            Console.WriteLine(arg.BytesResponse);
         }
     }
 }
