@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace CentralLib.ConnectionFP
 {
-    public class ConnectionFP : SerialPort,INotifyPropertyChanged
+    public class ConnectionFP : SerialPort
 
     {
         const byte DLE = 0x10;
@@ -26,27 +26,8 @@ namespace CentralLib.ConnectionFP
         private byte[] bytesBegin = { DLE, STX };
         private byte[] bytesEnd = { DLE, ETX };
         public byte[] bytesForSend { get; protected set; }
-        private byte[] bytesOutput;
-        public byte[] bytesResponse
-        {
-            get { return bytesOutput; }
-            set
-            {
-                if (value != bytesResponse)
-                {
-                    OnResponseChange(bytesResponse);
-                }
-            }
-        }
-
-
-        private void OnResponseChange(byte[] bytesResponse)
-        {
-            
-            if (responseLevelChanged != null)
-                responseLevelChanged(new responseEventArgs(bytesResponse)); 
-        }
-
+        //private byte[] bytesOutput;
+        public byte[] bytesResponse {get; protected set; }
         private byte[] bytesBuffered;
 
 
@@ -84,7 +65,8 @@ namespace CentralLib.ConnectionFP
                 int positionPacketBegin = ByteSearch(bytesBuffered, bytesBegin) -1;
                 if (positionPacketBegin < 0)
                 {
-                    Thread.Sleep(40);                  
+                    Thread.Sleep(40);
+                    // для проверки возможно вызывать еще раз ConnectionFP_DataReceived если все закончилось
                     return; // waiting begin string
                 }
                 int positionPacketEnd = 0;
@@ -117,7 +99,7 @@ namespace CentralLib.ConnectionFP
                 }
                 byte[] unsigned = new byte[positionPacketEnd - positionPacketBegin + 4];
                 Buffer.BlockCopy(bytesBuffered, positionPacketBegin, unsigned, 0, positionPacketEnd - positionPacketBegin + 4);
-                this.bytesOutput = unsigned;
+                //this.bytesOutput = unsigned;
                 this.bytesResponse = unsigned;
                 this.timeGet = DateTimeOffset.UtcNow;
 
@@ -181,7 +163,7 @@ namespace CentralLib.ConnectionFP
         {
             this.bytesBuffered = new byte[] { };
             this.bytesForSend = new byte[] { };
-            this.bytesOutput = new byte[] { };
+            this.bytesResponse = new byte[] { };
             byte[] buffer = new byte[1024];
             var toWriteLength = content.Length;
             var offset = 0;
