@@ -41,13 +41,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="absExchange.cs" />
+    <Compile Include="Enum.cs" />
     <Compile Include="ConnectionFP.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="DeafaultPortCom.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Provision.cs" />
-    <Compile Include="responseEventArgs.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

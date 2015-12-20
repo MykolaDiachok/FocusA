@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.IO;
 using System.IO.Ports;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,31 +13,34 @@ using System.Threading.Tasks;
 
 namespace CentralLib.ConnectionFP
 {
-    public class ConnectionFP : SerialPort
+    public class ConnectionFP : SerialPort, INotifyPropertyChanged
 
     {
-        const byte DLE = 0x10;
-        const byte STX = 0x02;
-        const byte ETX = 0x03;
-        const byte ACK = 0x06;
-        const byte NAK = 0x15;
-        const byte SYN = 0x16;
-        const byte ENQ = 0x05;
 
-        private byte[] bytesBegin = { DLE, STX };
-        private byte[] bytesEnd = { DLE, ETX };
+        public EventHandler<SerialReadEventArgs> DataRead;
+        public EventHandler<SerialErrorEventArgs> PortError;
+
+
+        private byte[] bytesBegin = { (byte)WorkByte.DLE, (byte)WorkByte.STX };
+        private byte[] bytesEnd = { (byte)WorkByte.DLE, (byte)WorkByte.ETX };
         public byte[] bytesForSend { get; protected set; }
-        //private byte[] bytesOutput;
-        public byte[] bytesResponse {get; protected set; }
+        private byte[] bytesResponse;
+       
         private byte[] bytesBuffered;
 
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public DateTimeOffset timeSend { get; protected set; }
         public DateTimeOffset timeGet { get; protected set; }
 
-        public delegate void responseEventHandler(responseEventArgs arg);
-        public event responseEventHandler responseLevelChanged;
-        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
 
         public ConnectionFP(DefaultPortCom.DefaultPortCom defPortCom):base()
         {
@@ -69,7 +73,7 @@ namespace CentralLib.ConnectionFP
                     // для проверки возможно вызывать еще раз ConnectionFP_DataReceived если все закончилось
                     return; // waiting begin string
                 }
-                int positionPacketEnd = 0;
+                int positionPacketEnd = -1;
                 int tCurrentPos = positionPacketBegin;
                 int tPostEnd = -1;
                 do
@@ -80,12 +84,12 @@ namespace CentralLib.ConnectionFP
                     {
                         tCurrentPos = tPostEnd;
 
-                        if (bytesBuffered[tPostEnd - 1] != DLE)
+                        if (bytesBuffered[tPostEnd - 1] != (byte)WorkByte.DLE)
                         {
                             positionPacketEnd = tPostEnd;
                             break;
                         }
-                        else if ((bytesBuffered[tPostEnd - 1] == DLE) && (bytesBuffered[tPostEnd - 2] == DLE))
+                        else if ((bytesBuffered[tPostEnd - 1] == (byte)WorkByte.DLE) && (bytesBuffered[tPostEnd - 2] == (byte)WorkByte.DLE))
                         {
                             positionPacketEnd = tPostEnd;
                             // break; 
@@ -101,6 +105,12 @@ namespace CentralLib.ConnectionFP
                 Buffer.BlockCopy(bytesBuffered, positionPacketBegin, unsigned, 0, positionPacketEnd - positionPacketBegin + 4);
                 //this.bytesOutput = unsigned;
                 this.bytesResponse = unsigned;
+
+                if (DataRead != null)
+                {
+                    DataRead(this, new SerialReadEventArgs(unsigned));
+                }
+
                 this.timeGet = DateTimeOffset.UtcNow;
 
 
@@ -112,7 +122,7 @@ namespace CentralLib.ConnectionFP
 
         byte[] returnWithOutDublicateDLE(byte[] source)
         {
-            return returnWithOutDublicate(source, new byte[] { DLE, DLE });
+            return returnWithOutDublicate(source, new byte[] { (byte)WorkByte.DLE, (byte)WorkByte.DLE });
         }
 
         byte[] returnWithOutDublicate(byte[] source, byte[] pattern)
@@ -273,5 +283,24 @@ namespace CentralLib.ConnectionFP
         //        Thread.Sleep(40);
         //    }
         //}
+
+
+        public class SerialReadEventArgs : EventArgs
+        {
+            public SerialReadEventArgs(byte[] readBytes)
+            {
+                ReadBytes = readBytes;
+            }
+            public byte[] ReadBytes { get; private set; }
+        }
+        public class SerialErrorEventArgs : EventArgs
+        {
+            public SerialErrorEventArgs(IOException ex)
+            {
+                Exception = ex;
+            }
+            public IOException Exception { get; private set; }
+        }
+
     }
 }
