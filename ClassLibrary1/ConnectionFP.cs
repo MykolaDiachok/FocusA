@@ -16,7 +16,9 @@ namespace CentralLib.ConnectionFP
     public class ConnectionFP : SerialPort, INotifyPropertyChanged
 
     {
-
+        //https://github.com/cyungmann/telem/blob/58f96c34f67edf5c0a0a82682ed5afdd5e7d5bca/NUSolarTelemetry_Car/Program.cs - like serila port realisation
+        //https://github.com/brianzinn/marineNavigation/blob/1e45347b763bdf5dfcdce7379281bfe9cf399742/Communication/SerialPort.cs - good serial
+        //https://github.com/chrispyduck/sharpberry/blob/d0e7311303b7656f67813420bb59f3bdd37a5a72/sharpberry.obd/SerialPort.cs - raspery p serail
         public EventHandler<SerialReadEventArgs> DataRead;
         public EventHandler<SerialErrorEventArgs> PortError;
 

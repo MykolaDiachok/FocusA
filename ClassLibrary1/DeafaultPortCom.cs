@@ -32,8 +32,8 @@ namespace CentralLib.DefaultPortCom
             this.baudRate = 9600;
             this.parity = Parity.None;
             this.stopBits = StopBits.One;
-            this.readTimeOut = 500;
-            this.writeTimeOut = 500;
+            this.readTimeOut = 1000;
+            this.writeTimeOut = 1000;
             this.dataBits = 8;
 
         }
