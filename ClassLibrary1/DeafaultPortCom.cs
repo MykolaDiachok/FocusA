@@ -10,13 +10,14 @@ namespace CentralLib.DefaultPortCom
     public class DefaultPortCom
     {
         
-        public byte portNumber;
-        public int baudRate;
-        public int readTimeOut;
-        public int writeTimeOut;
-        public StopBits stopBits;
-        public Parity parity;
-        public int dataBits;
+        public byte portNumber { get; protected set; }
+        public int baudRate { get; protected set; }
+        public int readTimeOut { get; protected set; }
+        public int writeTimeOut { get; protected set; }
+        public StopBits stopBits { get; protected set; }
+        public Parity parity { get; protected set; }
+        public int dataBits { get; protected set; }
+        public int waiting { get; protected set; }
 
         public string sPortNumber
         {
@@ -24,6 +25,7 @@ namespace CentralLib.DefaultPortCom
             {
                 return "Com" + portNumber.ToString();
             }
+            
         }
 
         public DefaultPortCom(byte portNumber)
@@ -35,6 +37,7 @@ namespace CentralLib.DefaultPortCom
             this.readTimeOut = 1000;
             this.writeTimeOut = 1000;
             this.dataBits = 8;
+            this.waiting = 200;
 
         }
     }
