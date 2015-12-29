@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+
 using System.Threading.Tasks;
 using CentralLib;
 using CentralLib.ConnectionFP;
@@ -22,6 +23,7 @@ namespace CentralLib.Protocols
         private ConnectionFP.ConnectionFP connFP = null;
         private bool killConnFP = false;
         public string errorInfo { get; protected set; }
+        public Status status;
 
 
         public Protocols(ConnectionFP.ConnectionFP connFP)
@@ -58,30 +60,131 @@ namespace CentralLib.Protocols
             }
         }
 
-        public struct Status
+        
+
+        
+
+
+        public bool getStatus()
         {
-            public bool usingCollection { get; private set; } //используются сборы
-            public bool modeOfRegistrationsOfPayments { get; private set; } //режим регистраций оплат в чеке(запрещены все регистрации  кроме оплат и комментариев)
-            public bool cashDrawerIsOpened { get; private set; } //закрыт денежный ящик
-            public bool receiptSaleOrPayout { get; private set; } //чек: продажи/выплаты(0/1)
-            public bool VATembeddedOrVATaddon { get; private set; } //НДС вложенный/НДС добавляемый(0/1)
-            public bool sessionIsOpened { get; private set; } //смена открыта(были закрытые чеки; запрещены команды режима программирования)
-            public bool receiptIsOpened { get; private set; } //открыт чек
-            public bool usedFontB { get; private set; } //используется шрифт B
-            public bool printingOfEndUserLogo { get; private set; } //печать логотипа торговой точки
-            public bool paperCuttingForbidden { get; private set; } //запрет обрезчика бумаги
-            public bool modeOfPrintingOfReceiptOfServiceReport { get; private set; } //режим печати чека служебного отчета
-            public bool printerIsFiscalized { get; private set; } //принтер фискализирован
-            public bool emergentFinishingOfLastCommand { get; private set; } //аварийное завершение последней команды
-            public bool modeOnLineOfRegistrations { get; private set; } //режим OnLine регистраций
-            public string serialNumber;
-            public DateTime manufacturingDate;
-            public DateTime DateTimeregistration;
-            public string fiscalNumber;
+            byte[] forsending = new byte[] { 0 };
+            byte[] answer = connFP.dataExchange(forsending);
 
+            if (connFP.statusOperation)
+            {
+                string hexday = answer[21].ToString("X");
+                int _day = Math.Min(Math.Max((int)Convert.ToInt16(hexday), 1), 31);
 
+                string hexmonth = answer[22].ToString("X");
+                int _month = Math.Min(Math.Max((int)Convert.ToInt16(hexmonth), 1), 12);
 
+                string hexyear = answer[23].ToString("X");
+                int _year = Convert.ToInt16(hexyear);
+
+                string hexhour = answer[24].ToString("X");
+                int _hour = Math.Min(Math.Max((int)Convert.ToInt16(hexhour), 0), 23);
+
+                string hexmin = answer[25].ToString("X");
+                int _min = Math.Min(Math.Max((int)Convert.ToInt16(hexmin), 0), 59);
+
+                int len1 = answer[25];
+                string str1 = "";
+
+                int len2 = 0;
+                string str2 = "";
+
+                int len3 = 0;
+                string str3 = "";
+
+                int len4 = 0;
+                string str4 = "";
+
+                string ver = EncodingBytes(answer.Skip(answer.Length-6).Take(5).ToArray());
+                status = new Status(answer.Take(2).ToArray()
+                    , EncodingBytes(answer.Skip(2).Take(19).ToArray())
+                    , new DateTime(2000 + _year, _month, _day, _hour, _min, 0)
+                    , EncodingBytes(answer.Skip(26).Take(10).ToArray())
+                    , len1, str1
+                    , len2, str2
+                    , len3, str3
+                    , len4, str4
+                    , ver
+                    , connFP.ConsecutiveNumber
+                    );
+            }
+            this.ByteStatus = connFP.ByteStatus;
+            this.ByteResult = connFP.ByteResult;
+            this.ByteReserv = connFP.ByteReserv;
+            this.errorInfo = connFP.errorInfo;
+            this.statusOperation = connFP.statusOperation;
+            return connFP.statusOperation;
         }
+
+        #region DateTime
+        public DateTime fpDateTime
+        {
+            get
+            {
+                
+                byte[] answer = connFP.dataExchange(new byte[] { 1 });
+
+                if (connFP.statusOperation)
+                {
+                    string hexday = answer[0].ToString("X");
+                    int _day = Math.Min(Math.Max((int)Convert.ToInt16(hexday), 1), 31);
+
+                    string hexmonth = answer[1].ToString("X");
+                    int _month = Math.Min(Math.Max((int)Convert.ToInt16(hexmonth), 1), 12);
+
+                    string hexyear = answer[2].ToString("X");
+                    int _year = Convert.ToInt16(hexyear);
+
+                    
+                    byte[] answerTime = connFP.dataExchange(new byte[] { 3 });
+                    if (connFP.statusOperation)
+                    {
+
+                        string hexhour = answerTime[0].ToString("X");
+                        int _hour = Math.Min(Math.Max((int)Convert.ToInt16(hexhour),0),23);
+
+                        string hexminute = answerTime[1].ToString("X");
+                        int _minute = Math.Min(Math.Max((int)Convert.ToInt16(hexminute),0),59);
+
+                        string hexsecond = answerTime[2].ToString("X");
+                        int _second = Math.Min(Math.Max((int)Convert.ToInt16(hexsecond),0),59);
+
+                        return new DateTime(2000 + _year, _month, _day, _hour, _minute, _second);
+                    }
+                }
+                this.ByteStatus = connFP.ByteStatus;
+                this.ByteResult = connFP.ByteResult;
+                this.ByteReserv = connFP.ByteReserv;
+                this.errorInfo = connFP.errorInfo;
+                this.statusOperation = connFP.statusOperation;
+                return new DateTime();
+            }
+            set
+            {
+                byte dd = Convert.ToByte(Convert.ToInt32(value.ToString("dd"), 16));
+                byte MM = Convert.ToByte(Convert.ToInt32(value.ToString("MM"), 16));
+                byte yy = Convert.ToByte(Convert.ToInt32(value.ToString("yy"), 16));
+                byte[] answer = connFP.dataExchange(new byte[] { 2, dd, MM, yy });
+                if (connFP.statusOperation)
+                {
+                   byte hh = Convert.ToByte(Convert.ToInt32(value.ToString("HH"), 16));
+                   byte mm = Convert.ToByte(Convert.ToInt32(value.ToString("mm"), 16));
+                   byte ss = Convert.ToByte(Convert.ToInt32(value.ToString("ss"), 16));
+                   byte[] answerTime = connFP.dataExchange(new byte[] { 4, hh, mm, ss });
+                }
+                this.ByteStatus = connFP.ByteStatus;
+                this.ByteResult = connFP.ByteResult;
+                this.ByteReserv = connFP.ByteReserv;
+                this.errorInfo = connFP.errorInfo;
+                this.statusOperation = connFP.statusOperation;
+            }
+        }
+        #endregion
+
 
         #region customer display
         public bool showTopString(string Info)
@@ -114,6 +217,14 @@ namespace CentralLib.Protocols
 
         #region helper
         #region byte
+
+
+        public string EncodingBytes(byte[] inputBytes)
+        {
+            Encoding cp866 = Encoding.GetEncoding(866);
+            return cp866.GetString(inputBytes);
+        }
+
         private byte[] Combine(byte[] a, byte[] b)
         {
             byte[] c = new byte[a.Length + b.Length];

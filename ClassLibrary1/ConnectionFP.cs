@@ -92,7 +92,7 @@ namespace CentralLib.ConnectionFP
             this.errorInfo = errorInfo;
         }
 
-        private async Task<byte[]> ExchangeFP(byte[] inputbyte)
+        private async Task<byte[]> ExchangeFP(byte[] inputbyte, bool useCRC16=true)
         {
 
             this.ByteStatus = 0;
@@ -194,8 +194,17 @@ namespace CentralLib.ConnectionFP
             this.ByteResult = unsigned[5];
             this.ByteReserv = unsigned[6];
             this.errorInfo = "";
-            return unsigned;
+            //Console.WriteLine(PrintByteArray(unsigned));
+            //Console.WriteLine(PrintByteArray(unsigned.Skip(8).Take(unsigned.Length - 7 - 3 - ((useCRC16) ? 2 : 0)).ToArray()));
+            return unsigned;//.Skip(8).Take(unsigned.Length-7-3- ((useCRC16)?2:0) ).ToArray();
         }
+
+        private byte[] returnBytesWithoutSufixAndPrefix(byte[] inputbytes)
+        {
+
+            return inputbytes;
+        }
+
 
         public byte[] dataExchange(byte[] input, bool useCRC16 = true)
         {
@@ -209,7 +218,7 @@ namespace CentralLib.ConnectionFP
             //return await answer;
             try
             {
-                return answer.Result;
+                return returnBytesWithoutSufixAndPrefix(answer.Result);
             }
             catch(AggregateException e)
             {
@@ -224,10 +233,7 @@ namespace CentralLib.ConnectionFP
             return null;
         }
 
-        private Task<byte[]> async(byte[] arg1, bool arg2)
-        {
-            throw new NotImplementedException();
-        }
+
 
         //private async void ConnectionFP_DataReceived(object sender, SerialDataReceivedEventArgs e)
         //{

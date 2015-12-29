@@ -21,24 +21,27 @@ namespace TestComm
 
             Protocols pr = new Protocols(4);
             bool op;
+
+            op = pr.getStatus();
             for (int x = 0; x < 100000; x++)
             {
                 
                 if ((x % 2) == 0)
                 {
-                    op = pr.showBottomString("Hello!!!!" + x.ToString());
+                    op = pr.showBottomString("" + x.ToString());
                 }
                 else
                 {
-                    op = pr.showTopString("Hello!!!!" + x.ToString());
+                    op = pr.showTopString("" + x.ToString());
                 }
                 if (!op)
-                {
-                    
-                        Console.WriteLine("Status:{0}, Result:{1}, Reserv:{2}, Error:{3}", pr.ByteStatus, pr.ByteResult, pr.ByteReserv, pr.errorInfo);
-                    
+                {                    
+                        Console.WriteLine("Status:{0}, Result:{1}, Reserv:{2}, Error:{3}", pr.ByteStatus, pr.ByteResult, pr.ByteReserv, pr.errorInfo);                    
                     x--;
-                }
+               }
+                op = pr.getStatus();
+                pr.showBottomString(pr.status.VersionOfSWOfECR);
+                pr.showTopString(pr.fpDateTime.ToString());
             }
             pr.Dispose();
 
@@ -49,48 +52,48 @@ namespace TestComm
 
         }
 
-        static async Task MainAsync()
-        {
-            DefaultPortCom initialPort = new DefaultPortCom(4);
-            ConnectionFP connFP = new ConnectionFP(initialPort);
-            connFP.Open();
-            ////Provision proConn = new Provision(connFP);
-            //Console.WriteLine(PrintByteArray(new byte[] { 16, 2, 0, 27, 1, 1, 97, 130, 16, 3, 28, 170 }));
-            //Console.WriteLine(PrintByteArray(connFP.prepareForSend(new byte[] { 27, 1, 1, 97})));
-            //new byte[] { 16, 2, 59, 27, 0, 8, 72, 101, 108, 108, 111, 51, 55, 52, 16, 16, 3, 13, 8, } - тут остановка
-            Task<byte[]> otvet;
-            byte[] ot;
-            for (int x = 0; x < 100000;x++)
-            {
-                try {
-                    connFP.dataExchange(showTopString("Hello" + x.ToString()));
-                    //otvet = connFP.ExchangeFP(connFP.prepareForSend(showTopString("Hello" + x.ToString())));
-                    //otvet = connFP.dataExchange(showTopString("Hello" + x.ToString()));
-                    //ot = await otvet;
-                    //Console.Write("Текущая операция: {0} ответ аппарата:{1}", connFP.ConsecutiveNumber, PrintByteArray(ot));
-                    //Console.WriteLine("Статус:{0}, Результат:{1}, Резевр:{2}", connFP.ByteStatus, connFP.ByteResult, connFP.ByteReserv);
-                }
-                catch(Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            }
-            //otvet = connFP.ExchangeFP(connFP.prepareForSend(new byte[] {14}));
-            //ot = await otvet;
-            //Console.WriteLine(PrintByteArray(ot));
-            //otvet = connFP.ExchangeFP(connFP.prepareForSend(new byte[] { 48 }));
-            //ot = await otvet;
-            //Task<byte[]> otvet = connFP.ExchangeFP(new byte[] { 16, 2, 0, 27, 1, 1, 97, 130, 16, 3, 28, 170 });
-            //byte[] ot = await otvet;
-            //Console.WriteLine(PrintByteArray(ot));
-            //connFP.WriteAsync(new byte[] { 16, 2, 0, 27, 1, 1, 97, 130, 16, 3, 28, 170 });
+        //static async Task MainAsync()
+        //{
+        //    DefaultPortCom initialPort = new DefaultPortCom(4);
+        //    ConnectionFP connFP = new ConnectionFP(initialPort);
+        //    connFP.Open();
+        //    ////Provision proConn = new Provision(connFP);
+        //    //Console.WriteLine(PrintByteArray(new byte[] { 16, 2, 0, 27, 1, 1, 97, 130, 16, 3, 28, 170 }));
+        //    //Console.WriteLine(PrintByteArray(connFP.prepareForSend(new byte[] { 27, 1, 1, 97})));
+        //    //new byte[] { 16, 2, 59, 27, 0, 8, 72, 101, 108, 108, 111, 51, 55, 52, 16, 16, 3, 13, 8, } - тут остановка
+        //    Task<byte[]> otvet;
+        //    byte[] ot;
+        //    for (int x = 0; x < 100000;x++)
+        //    {
+        //        try {
+        //            connFP.dataExchange(showTopString("Hello" + x.ToString()));
+        //            //otvet = connFP.ExchangeFP(connFP.prepareForSend(showTopString("Hello" + x.ToString())));
+        //            //otvet = connFP.dataExchange(showTopString("Hello" + x.ToString()));
+        //            //ot = await otvet;
+        //            //Console.Write("Текущая операция: {0} ответ аппарата:{1}", connFP.ConsecutiveNumber, PrintByteArray(ot));
+        //            //Console.WriteLine("Статус:{0}, Результат:{1}, Резевр:{2}", connFP.ByteStatus, connFP.ByteResult, connFP.ByteReserv);
+        //        }
+        //        catch(Exception ex)
+        //        {
+        //            Console.WriteLine(ex.Message);
+        //        }
+        //    }
+        //    //otvet = connFP.ExchangeFP(connFP.prepareForSend(new byte[] {14}));
+        //    //ot = await otvet;
+        //    //Console.WriteLine(PrintByteArray(ot));
+        //    //otvet = connFP.ExchangeFP(connFP.prepareForSend(new byte[] { 48 }));
+        //    //ot = await otvet;
+        //    //Task<byte[]> otvet = connFP.ExchangeFP(new byte[] { 16, 2, 0, 27, 1, 1, 97, 130, 16, 3, 28, 170 });
+        //    //byte[] ot = await otvet;
+        //    //Console.WriteLine(PrintByteArray(ot));
+        //    //connFP.WriteAsync(new byte[] { 16, 2, 0, 27, 1, 1, 97, 130, 16, 3, 28, 170 });
 
-            ////proConn.ExchangeData(new byte[] { 16, 2, 0, 27, 1, 1, 97, 130, 16, 3, 28, 170 });
+        //    ////proConn.ExchangeData(new byte[] { 16, 2, 0, 27, 1, 1, 97, 130, 16, 3, 28, 170 });
 
 
-            ////proConn.Dispose();
-            connFP.Close();
-        }
+        //    ////proConn.Dispose();
+        //    connFP.Close();
+        //}
 
 
         static byte[] showTopString(string Info)
