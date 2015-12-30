@@ -92,7 +92,7 @@ namespace CentralLib.ConnectionFP
             this.errorInfo = errorInfo;
         }
 
-        private async Task<byte[]> ExchangeFP(byte[] inputbyte, bool useCRC16=true)
+        private async Task<byte[]> ExchangeFP(byte[] inputbyte, bool useCRC16 = true)
         {
 
             this.ByteStatus = 0;
@@ -102,44 +102,44 @@ namespace CentralLib.ConnectionFP
             this.errorInfo = "";
 
             this.ConsecutiveNumber++;
-            this.glbytesForSend = inputbyte;            
+            this.glbytesForSend = inputbyte;
 
             if (!base.IsOpen)
                 base.Open();
             if (!base.IsOpen)
             {
-                setError("Не возможно подключиться к порту:"+base.PortName.ToString());
+                setError("Не возможно подключиться к порту:" + base.PortName.ToString());
                 throw new ArgumentException(this.errorInfo);
             }
-            #if Debug
+#if Debug
             Console.WriteLine("подготовка к отправке:{0}", PrintByteArray(inputbyte));         
-            #endif
+#endif
             await base.BaseStream.WriteAsync(inputbyte, 0, inputbyte.Length);
-            #if Debug
+#if Debug
             Console.WriteLine("отправлено");
-            #endif
+#endif
             Thread.Sleep(this.waiting);
             int buferSize = base.BytesToRead;
             byte[] result = new byte[buferSize];
             if (buferSize == 0)
             {
-                setError("Нулевой ответ с порта:"+ base.PortName.ToString());
+                setError("Нулевой ответ с порта:" + base.PortName.ToString());
                 throw new ArgumentException(this.errorInfo);
             }
-            #if Debug
+#if Debug
             Console.WriteLine("подготовка к к получению");
-            #endif
+#endif
             int x = await base.BaseStream.ReadAsync(result, 0, buferSize);
-            #if Debug
+#if Debug
             Console.WriteLine("получено:{0}", PrintByteArray(result));
-            #endif
+#endif
             byte[] BytesBegin = new byte[4];
-            Buffer.BlockCopy(inputbyte,0,BytesBegin,0,4);
+            Buffer.BlockCopy(inputbyte, 0, BytesBegin, 0, 4);
 
-           int positionPacketBegin = ByteSearch(result, BytesBegin) - 1;
+            int positionPacketBegin = ByteSearch(result, BytesBegin);
             if (positionPacketBegin < 0)
             {
-                Thread.Sleep(2*this.waiting);
+                Thread.Sleep(2 * this.waiting);
                 buferSize = base.BytesToRead;
                 if (buferSize == 0)
                 {
@@ -151,13 +151,27 @@ namespace CentralLib.ConnectionFP
                 positionPacketBegin = ByteSearch(result, BytesBegin) - 1;
                 if (positionPacketBegin < 0)
                 {
+                    Thread.Sleep(4 * this.waiting);
+                    buferSize = base.BytesToRead;
+                    if (buferSize == 0)
+                    {
+                        setError("Нулевой ответ(вторая попытка) с порта:" + base.PortName.ToString());
+                        throw new ArgumentNullException();
+                    }
+                    result = new byte[buferSize];
+                    x = await base.BaseStream.ReadAsync(result, 0, buferSize);
+                    positionPacketBegin = ByteSearch(result, BytesBegin) - 1;
+
+                }
+                    if (positionPacketBegin < 0)
+                {
                     setError("В байтах ответа не найдено начало, порт:" + base.PortName.ToString());
                     throw new ArgumentException(this.errorInfo);
                     // return null;
                 }
             }
             int positionPacketEnd = -1;
-            int tCurrentPos = positionPacketBegin+7;
+            int tCurrentPos = positionPacketBegin + 7;
             int tPostEnd = -1;
             do
             {
@@ -184,8 +198,16 @@ namespace CentralLib.ConnectionFP
                 setError("В байтах ответа не найдено конец, порт:" + base.PortName.ToString());
                 throw new ArgumentException(this.errorInfo);
             }
-            byte[] unsigned = new byte[positionPacketEnd - positionPacketBegin + 4];
-            Buffer.BlockCopy(result, positionPacketBegin, unsigned, 0, positionPacketEnd - positionPacketBegin + 4);
+            byte[] unsigned = null;
+            if (useCRC16)
+            {
+                unsigned = new byte[positionPacketEnd - positionPacketBegin + 4];
+                Buffer.BlockCopy(result, positionPacketBegin, unsigned, 0, positionPacketEnd - positionPacketBegin + 4); }
+            else
+            {
+                unsigned = new byte[positionPacketEnd - positionPacketBegin + 2];
+                Buffer.BlockCopy(result, positionPacketBegin, unsigned, 0, positionPacketEnd - positionPacketBegin + 2);
+            }
             //this.bytesOutput = unsigned;
             unsigned = returnWithOutDublicateDLE(unsigned);
             this.glbytesResponse = unsigned;
@@ -199,10 +221,12 @@ namespace CentralLib.ConnectionFP
             return unsigned;//.Skip(8).Take(unsigned.Length-7-3- ((useCRC16)?2:0) ).ToArray();
         }
 
-        private byte[] returnBytesWithoutSufixAndPrefix(byte[] inputbytes)
+        private byte[] returnBytesWithoutSufixAndPrefix(byte[] inputbytes,bool useCRC16 = true)
         {
-
-            return inputbytes;
+            int lenght = inputbytes.Length-7-3 -((useCRC16)?2:0);
+            byte[] outputBytes = new byte[lenght];
+            System.Buffer.BlockCopy(inputbytes, 7, outputBytes, 0, lenght);
+            return outputBytes;
         }
 
 

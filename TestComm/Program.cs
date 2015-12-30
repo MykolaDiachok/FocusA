@@ -21,28 +21,31 @@ namespace TestComm
 
             Protocols pr = new Protocols(4);
             bool op;
+            //op = pr.showBottomString("Begin");
+            //op = pr.getStatus();
+            //op = pr.showBottomString(pr.fpDateTime.ToString());
+            pr.fpDateTime = DateTime.Now;
+            op = pr.showTopString(pr.fpDateTime.ToString());
+            //for (int x = 0; x < 100000; x++)
+            //{
 
-            op = pr.getStatus();
-            for (int x = 0; x < 100000; x++)
-            {
-                
-                if ((x % 2) == 0)
-                {
-                    op = pr.showBottomString("" + x.ToString());
-                }
-                else
-                {
-                    op = pr.showTopString("" + x.ToString());
-                }
-                if (!op)
-                {                    
-                        Console.WriteLine("Status:{0}, Result:{1}, Reserv:{2}, Error:{3}", pr.ByteStatus, pr.ByteResult, pr.ByteReserv, pr.errorInfo);                    
-                    x--;
-               }
-                op = pr.getStatus();
-                pr.showBottomString(pr.status.VersionOfSWOfECR);
-                pr.showTopString(pr.fpDateTime.ToString());
-            }
+            //    if ((x % 2) == 0)
+            //    {
+            //        op = pr.showBottomString("" + x.ToString());
+            //    }
+            //    else
+            //    {
+            //        op = pr.showTopString("" + x.ToString());
+            //    }
+            //    if (!op)
+            //    {                    
+            //            Console.WriteLine("Status:{0}, Result:{1}, Reserv:{2}, Error:{3}", pr.ByteStatus, pr.ByteResult, pr.ByteReserv, pr.errorInfo);                    
+            //        x--;
+            //   }
+            //    op = pr.getStatus();
+            //    pr.showBottomString(pr.status.VersionOfSWOfECR);
+            //    pr.showTopString(pr.fpDateTime.ToString());
+            //}
             pr.Dispose();
 
             //MainAsync();

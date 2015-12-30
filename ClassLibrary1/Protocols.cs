@@ -99,7 +99,10 @@ namespace CentralLib.Protocols
                 int len4 = 0;
                 string str4 = "";
 
-                string ver = EncodingBytes(answer.Skip(answer.Length-6).Take(5).ToArray());
+                //string ver = EncodingBytes(answer.Skip(answer.Length-6).Take(5).ToArray());
+                byte[] verBytes = new byte[5];
+                System.Buffer.BlockCopy(answer, answer.Length - 5, verBytes, 0, 5);
+                string ver = EncodingBytes(verBytes);
                 status = new Status(answer.Take(2).ToArray()
                     , EncodingBytes(answer.Skip(2).Take(19).ToArray())
                     , new DateTime(2000 + _year, _month, _day, _hour, _min, 0)
