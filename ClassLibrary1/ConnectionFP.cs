@@ -89,7 +89,7 @@ namespace CentralLib.ConnectionFP
             this.ByteResult = 255;
             this.ByteReserv = 255;
             this.statusOperation = false;
-            this.errorInfo = errorInfo;
+            this.errorInfo += errorInfo+"; ";
         }
 
         private async Task<byte[]> ExchangeFP(byte[] inputbyte, bool useCRC16 = true)
@@ -118,86 +118,90 @@ namespace CentralLib.ConnectionFP
 #if Debug
             Console.WriteLine("отправлено");
 #endif
-            Thread.Sleep(this.waiting);
-            int buferSize = base.BytesToRead;
-            byte[] result = new byte[buferSize];
-            if (buferSize == 0)
+            do
             {
-                setError("Нулевой ответ с порта:" + base.PortName.ToString());
-                throw new ArgumentException(this.errorInfo);
-            }
+                Thread.Sleep(this.waiting);
+                int buferSize = base.BytesToRead;
+                byte[] result = new byte[buferSize];
+                if (buferSize == 0)
+                {
+                    setError("Нулевой ответ с порта:" + base.PortName.ToString());
+                    // throw new ArgumentException(this.errorInfo);
+                }
 #if Debug
             Console.WriteLine("подготовка к к получению");
 #endif
-            int x = await base.BaseStream.ReadAsync(result, 0, buferSize);
+                int x = await base.BaseStream.ReadAsync(result, 0, buferSize);
 #if Debug
             Console.WriteLine("получено:{0}", PrintByteArray(result));
 #endif
-            byte[] BytesBegin = new byte[4];
-            Buffer.BlockCopy(inputbyte, 0, BytesBegin, 0, 4);
+                byte[] BytesBegin = new byte[4];
+                Buffer.BlockCopy(inputbyte, 0, BytesBegin, 0, 4);
 
-            int positionPacketBegin = ByteSearch(result, BytesBegin);
-            if (positionPacketBegin < 0)
-            {
-                Thread.Sleep(2 * this.waiting);
-                buferSize = base.BytesToRead;
-                if (buferSize == 0)
-                {
-                    setError("Нулевой ответ(вторая попытка) с порта:" + base.PortName.ToString());
-                    throw new ArgumentNullException();
-                }
-                result = new byte[buferSize];
-                x = await base.BaseStream.ReadAsync(result, 0, buferSize);
-                positionPacketBegin = ByteSearch(result, BytesBegin) - 1;
+                int positionPacketBegin = ByteSearch(result, BytesBegin);
                 if (positionPacketBegin < 0)
                 {
-                    Thread.Sleep(4 * this.waiting);
+                    Thread.Sleep(2 * this.waiting);
                     buferSize = base.BytesToRead;
                     if (buferSize == 0)
                     {
                         setError("Нулевой ответ(вторая попытка) с порта:" + base.PortName.ToString());
-                        throw new ArgumentNullException();
+                        ///throw new ArgumentNullException();
                     }
                     result = new byte[buferSize];
                     x = await base.BaseStream.ReadAsync(result, 0, buferSize);
                     positionPacketBegin = ByteSearch(result, BytesBegin) - 1;
-
-                }
                     if (positionPacketBegin < 0)
-                {
-                    setError("В байтах ответа не найдено начало, порт:" + base.PortName.ToString());
-                    throw new ArgumentException(this.errorInfo);
-                    // return null;
-                }
-            }
-            int positionPacketEnd = -1;
-            int tCurrentPos = positionPacketBegin + 7;
-            int tPostEnd = -1;
-            do
-            {
-                tCurrentPos++;
-                tPostEnd = ByteSearch(result, bytesEnd, tCurrentPos);
-                if (tPostEnd != -1)
-                {
-                    tCurrentPos = tPostEnd;
+                    {
+                        Thread.Sleep(4 * this.waiting);
+                        buferSize = base.BytesToRead;
+                        if (buferSize == 0)
+                        {
+                            setError("Нулевой ответ(вторая попытка) с порта:" + base.PortName.ToString());
+                            throw new ArgumentNullException();
+                        }
+                        result = new byte[buferSize];
+                        x = await base.BaseStream.ReadAsync(result, 0, buferSize);
+                        positionPacketBegin = ByteSearch(result, BytesBegin) - 1;
 
-                    if (result[tPostEnd - 1] != (byte)WorkByte.DLE)
-                    {
-                        positionPacketEnd = tPostEnd;
-                        break;
                     }
-                    else if ((result[tPostEnd - 1] == (byte)WorkByte.DLE) && (result[tPostEnd - 2] == (byte)WorkByte.DLE))
+                    if (positionPacketBegin < 0)
                     {
-                        positionPacketEnd = tPostEnd;
-                        // break; 
+                        setError("В байтах ответа не найдено начало, порт:" + base.PortName.ToString());
+                        throw new ArgumentException(this.errorInfo);
+                        // return null;
                     }
                 }
-            } while (tCurrentPos < result.Length);
-            if (positionPacketEnd < 0)
-            {
-                setError("В байтах ответа не найдено конец, порт:" + base.PortName.ToString());
-                throw new ArgumentException(this.errorInfo);
-            }
+                int positionPacketEnd = -1;
+                int tCurrentPos = positionPacketBegin + 7;
+                int tPostEnd = -1;
+                do
+                {
+                    tCurrentPos++;
+                    tPostEnd = ByteSearch(result, bytesEnd, tCurrentPos);
+                    if (tPostEnd != -1)
+                    {
+                        tCurrentPos = tPostEnd;
+
+                        if (result[tPostEnd - 1] != (byte)WorkByte.DLE)
+                        {
+                            positionPacketEnd = tPostEnd;
+                            break;
+                        }
+                        else if ((result[tPostEnd - 1] == (byte)WorkByte.DLE) && (result[tPostEnd - 2] == (byte)WorkByte.DLE))
+                        {
+                            positionPacketEnd = tPostEnd;
+                            // break; 
+                        }
+                    }
+                } while (tCurrentPos < result.Length);
+                if (positionPacketEnd < 0)
+                {
+                    setError("В байтах ответа не найдено конец, порт:" + base.PortName.ToString());
+                    throw new ArgumentException(this.errorInfo);
+                }
+            } while (base.BytesToRead>0);
+
             byte[] unsigned = null;
             if (useCRC16)
             {
