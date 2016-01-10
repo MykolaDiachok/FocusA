@@ -1,4 +1,4 @@
-﻿//#define Debug
+﻿#define Debug
 
 
 using System;
@@ -57,9 +57,13 @@ namespace CentralLib.ConnectionFP
             ConsecutiveNumber = 0;
         }
 
-        private byte[] prepareForSend(byte[] BytesForSend, bool useCRC16=true) // тут передают только код и параметры, получают готовую строку для отправки
+        private byte[] prepareForSend(byte[] BytesForSend, bool useCRC16=true, bool repeatError=false) // тут передают только код и параметры, получают готовую строку для отправки
         {
             this.glbytesPrepare = BytesForSend;
+            if (repeatError)
+            {
+                ConsecutiveNumber--;
+            }
             byte[] prBytes = Combine(new byte[] { (byte)WorkByte.DLE, (byte)WorkByte.STX,(byte)ConsecutiveNumber}, BytesForSend);
             prBytes = Combine(prBytes, new byte[] {0x00, (byte)WorkByte.DLE, (byte)WorkByte.ETX });
             prBytes[prBytes.Length - 3] = getchecksum(prBytes);
@@ -83,16 +87,16 @@ namespace CentralLib.ConnectionFP
             
         }
 
-        private void setError(string errorInfo="Unknown error")
+        private void setError(string errorInfo="Unknown error", byte ByteStatus=255, byte ByteResult=255, byte ByteReserv=255)
         {
-            this.ByteStatus = 255;
-            this.ByteResult = 255;
-            this.ByteReserv = 255;
+            this.ByteStatus = ByteStatus;
+            this.ByteResult = ByteResult;
+            this.ByteReserv = ByteReserv;
             this.statusOperation = false;
             this.errorInfo += errorInfo+"; ";
         }
 
-        private async Task<byte[]> ExchangeFP(byte[] inputbyte, bool useCRC16 = true)
+        private async Task<byte[]> ExchangeFP(byte[] inputbyte, bool useCRC16 = true,bool repeatError=false)
         {
 
             this.ByteStatus = 0;
@@ -100,8 +104,10 @@ namespace CentralLib.ConnectionFP
             this.ByteReserv = 0;
             this.statusOperation = false;
             this.errorInfo = "";
-
-            this.ConsecutiveNumber++;
+            if (!repeatError)
+            {
+                this.ConsecutiveNumber++;
+            }
             this.glbytesForSend = inputbyte;
 
             if (!base.IsOpen)
@@ -112,66 +118,92 @@ namespace CentralLib.ConnectionFP
                 throw new ArgumentException(this.errorInfo);
             }
 #if Debug
+            Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("подготовка к отправке:{0}", PrintByteArray(inputbyte));         
 #endif
             await base.BaseStream.WriteAsync(inputbyte, 0, inputbyte.Length);
 #if Debug
+            Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("отправлено");
 #endif
+            byte[] result = new byte[] { };
+            Thread.Sleep(this.waiting);
+            int bufferSize = base.BytesToRead;
+            int twait = 0;
             do
-            {
-                Thread.Sleep(this.waiting);
-                int buferSize = base.BytesToRead;
-                byte[] result = new byte[buferSize];
-                if (buferSize == 0)
+            {                                
+                byte[] result_fromPort = new byte[bufferSize];
+ 
+#if Debug
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("подготовка к к получению {0}", bufferSize);
+#endif
+                if (bufferSize == 0)
                 {
-                    setError("Нулевой ответ с порта:" + base.PortName.ToString());
-                    // throw new ArgumentException(this.errorInfo);
+#if Debug
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("bufferSize == 0;время ожидания:{0}", 600);
+#endif
+                    Thread.Sleep(600);
+                    bufferSize = base.BytesToRead;
+                    if (bufferSize == 0)
+                    {
+                        break;
+                    }
                 }
+                int x = await base.BaseStream.ReadAsync(result_fromPort, 0, bufferSize);
 #if Debug
-            Console.WriteLine("подготовка к к получению");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("получено:{0}", PrintByteArray(result_fromPort));
 #endif
-                int x = await base.BaseStream.ReadAsync(result, 0, buferSize);
+                int count_wait = 0;
+                for(int tByte = 0; tByte < bufferSize; tByte++)
+                {
+                    if ((result_fromPort[tByte] == (byte)WorkByte.ACK)||(result_fromPort[tByte] == (byte)WorkByte.SYN))
+                    {
+                        count_wait++;
+                    }
+                }
+                if (bufferSize==1 && result_fromPort[0]== (byte)WorkByte.ACK)
+                {
 #if Debug
-            Console.WriteLine("получено:{0}", PrintByteArray(result));
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("bufferSize==1&&ACK Ждем:{0}", 1000);
 #endif
+                    Thread.Sleep(1000);
+                }
+                else if ((bufferSize<10) ||(bufferSize == count_wait)||((count_wait>0) && (bufferSize / count_wait < 2)))
+                {
+#if Debug
+                    //Console.ForegroundColor = ConsoleColor.Green;
+                    //Console.WriteLine("коефициент байтов ожидания:{0}", bufferSize / count_wait);
+#endif  
+                    twait++;
+
+#if Debug
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("время ожидания:{0}", twait * 300);
+#endif
+                    Thread.Sleep(twait*300);
+                }
+                if (twait > 10) break;
+                result = Combine(result, result_fromPort);
+
+                bufferSize = base.BytesToRead;
+            } while (bufferSize>0);
+
                 byte[] BytesBegin = new byte[4];
                 Buffer.BlockCopy(inputbyte, 0, BytesBegin, 0, 4);
 
                 int positionPacketBegin = ByteSearch(result, BytesBegin);
-                if (positionPacketBegin < 0)
-                {
-                    Thread.Sleep(2 * this.waiting);
-                    buferSize = base.BytesToRead;
-                    if (buferSize == 0)
-                    {
-                        setError("Нулевой ответ(вторая попытка) с порта:" + base.PortName.ToString());
-                        ///throw new ArgumentNullException();
-                    }
-                    result = new byte[buferSize];
-                    x = await base.BaseStream.ReadAsync(result, 0, buferSize);
-                    positionPacketBegin = ByteSearch(result, BytesBegin) - 1;
-                    if (positionPacketBegin < 0)
-                    {
-                        Thread.Sleep(4 * this.waiting);
-                        buferSize = base.BytesToRead;
-                        if (buferSize == 0)
-                        {
-                            setError("Нулевой ответ(вторая попытка) с порта:" + base.PortName.ToString());
-                            throw new ArgumentNullException();
-                        }
-                        result = new byte[buferSize];
-                        x = await base.BaseStream.ReadAsync(result, 0, buferSize);
-                        positionPacketBegin = ByteSearch(result, BytesBegin) - 1;
-
-                    }
+ 
                     if (positionPacketBegin < 0)
                     {
                         setError("В байтах ответа не найдено начало, порт:" + base.PortName.ToString());
                         throw new ArgumentException(this.errorInfo);
                         // return null;
                     }
-                }
+                //}
                 int positionPacketEnd = -1;
                 int tCurrentPos = positionPacketBegin + 7;
                 int tPostEnd = -1;
@@ -200,7 +232,7 @@ namespace CentralLib.ConnectionFP
                     setError("В байтах ответа не найдено конец, порт:" + base.PortName.ToString());
                     throw new ArgumentException(this.errorInfo);
                 }
-            } while (base.BytesToRead>0);
+          //e  } while (base.BytesToRead>0);
 
             byte[] unsigned = null;
             if (useCRC16)
@@ -213,6 +245,7 @@ namespace CentralLib.ConnectionFP
                 Buffer.BlockCopy(result, positionPacketBegin, unsigned, 0, positionPacketEnd - positionPacketBegin + 2);
             }
             //this.bytesOutput = unsigned;
+            //TODO: доработать проверку CRC && CRC16
             unsigned = returnWithOutDublicateDLE(unsigned);
             this.glbytesResponse = unsigned;
             this.statusOperation = true;
@@ -234,11 +267,11 @@ namespace CentralLib.ConnectionFP
         }
 
 
-        public byte[] dataExchange(byte[] input, bool useCRC16 = true)
+        public byte[] dataExchange(byte[] input, bool useCRC16 = true, bool repeatError=false)
         {
             Func<byte[], Task<byte[]>> function = async (byte[] inByte) =>
              {
-                 return await ExchangeFP(prepareForSend(inByte, useCRC16));
+                 return await ExchangeFP(prepareForSend(inByte, useCRC16, repeatError));
              };
 
             Task<byte[]> answer = function(input);
@@ -254,9 +287,10 @@ namespace CentralLib.ConnectionFP
                 sb.AppendFormat("Caught {0}, exception: {1}", e.InnerExceptions.Count, string.Join(", ", e.InnerExceptions.Select(x=>x.Message)));
                 
                 setError(sb.ToString());
-                //#if Debug
+#if Debug
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Описание ошибки:{0}", this.errorInfo);
-                //#endif
+                #endif
             }
             return null;
         }
@@ -347,6 +381,7 @@ namespace CentralLib.ConnectionFP
 
                 setError(e.Message);
                 //#if Debug
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Описание ошибки:{0}", this.errorInfo);
                 //#endif
             }
@@ -357,9 +392,10 @@ namespace CentralLib.ConnectionFP
                 sb.AppendFormat("Caught {0}, exception: {1}", e.InnerExceptions.Count, string.Join(", ", e.InnerExceptions.Select(x => x.Message)));
 
                 setError(sb.ToString());
-                //#if Debug
+#if Debug
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Описание ошибки:{0}", this.errorInfo);
-                //#endif
+                #endif
             }
         }
 

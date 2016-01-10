@@ -24,32 +24,35 @@ namespace TestComm
             //op = pr.showBottomString("Begin");
             //op = pr.getStatus();
             //op = pr.showBottomString(pr.fpDateTime.ToString());
-            pr.fpDateTime = DateTime.Now;
-            op = pr.showTopString(pr.fpDateTime.ToString());
-            //for (int x = 0; x < 100000; x++)
-            //{
-
-            //    if ((x % 2) == 0)
-            //    {
-            //        op = pr.showBottomString("" + x.ToString());
-            //    }
-            //    else
-            //    {
-            //        op = pr.showTopString("" + x.ToString());
-            //    }
-            //    if (!op)
-            //    {                    
-            //            Console.WriteLine("Status:{0}, Result:{1}, Reserv:{2}, Error:{3}", pr.ByteStatus, pr.ByteResult, pr.ByteReserv, pr.errorInfo);                    
-            //        x--;
-            //   }
-            //    op = pr.getStatus();
-            //    pr.showBottomString(pr.status.VersionOfSWOfECR);
-            //    pr.showTopString(pr.fpDateTime.ToString());
-            //}
+            DateTime t= DateTime.Now.AddMinutes(1);
+            int count = 0;
+           while(DateTime.Now<t)
+            {
+                pr.fpDateTime = DateTime.Now;
+                count++;
+                op = pr.showTopString(pr.fpDateTime.ToString());
+                pr.showBottomString(count.ToString());
+                //    if ((x % 2) == 0)
+                //    {
+                //        op = pr.showBottomString("" + x.ToString());
+                //    }
+                //    else
+                //    {
+                //        op = pr.showTopString("" + x.ToString());
+                //    }
+                //    if (!op)
+                //    {                    
+                //            Console.WriteLine("Status:{0}, Result:{1}, Reserv:{2}, Error:{3}", pr.ByteStatus, pr.ByteResult, pr.ByteReserv, pr.errorInfo);                    
+                //        x--;
+                //   }
+                //    op = pr.getStatus();
+                //  pr.showBottomString(pr.status.VersionOfSWOfECR);
+                //                pr.showTopString(pr.fpDateTime.ToString());
+           }
             pr.Dispose();
 
             //MainAsync();
-            //Console.ReadKey();
+            Console.ReadKey();
             //  }
 
 

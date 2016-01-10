@@ -10,6 +10,7 @@ using CentralLib;
 using CentralLib.ConnectionFP;
 using CentralLib.DefaultPortCom;
 using System.Collections;
+using System.Threading;
 
 namespace CentralLib.Protocols
 {
@@ -24,11 +25,14 @@ namespace CentralLib.Protocols
         private bool killConnFP = false;
         public string errorInfo { get; protected set; }
         public Status status;
+        public byte lastByteCommand { get; private set; }
+        public bool useCRC16;
 
 
         public Protocols(ConnectionFP.ConnectionFP connFP)
         {
             this.connFP = connFP;
+            this.useCRC16 = true;
         }
 
         public Protocols(int serialPort)
@@ -49,6 +53,7 @@ namespace CentralLib.Protocols
                 //#endif
             }
             killConnFP = true;
+            this.useCRC16 = true;
         }
 
         public void Dispose()
@@ -60,7 +65,39 @@ namespace CentralLib.Protocols
             }
         }
 
-        
+        private byte[] ExchangeWithFP(byte[] inputByte)
+        {
+            byte[] answer;
+            this.lastByteCommand = inputByte[0];
+            answer = connFP.dataExchange(inputByte,useCRC16,false);
+            if (!connFP.statusOperation)
+            {
+                Thread.Sleep(800);
+#if Debug
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("ошибка первое ожидание");
+                ///Console.ReadKey();
+#endif
+                answer = connFP.dataExchange(inputByte,useCRC16,true);
+            }
+            if (!connFP.statusOperation)
+            {
+                //TODO: большая проблема искать в чем причина
+                Thread.Sleep(800);
+                answer = connFP.dataExchange(inputByte, useCRC16, true);
+#if Debug
+                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                Console.WriteLine("Вторая ошибка");
+                Console.ReadKey();
+#endif
+            }
+            this.ByteStatus = connFP.ByteStatus;
+            this.ByteResult = connFP.ByteResult;
+            this.ByteReserv = connFP.ByteReserv;
+            this.errorInfo = connFP.errorInfo;
+            this.statusOperation = connFP.statusOperation;
+            return answer;
+        }
 
         
 
@@ -68,7 +105,7 @@ namespace CentralLib.Protocols
         public bool getStatus()
         {
             byte[] forsending = new byte[] { 0 };
-            byte[] answer = connFP.dataExchange(forsending);
+            byte[] answer = ExchangeWithFP(forsending);
 
             if (connFP.statusOperation)
             {
@@ -114,12 +151,7 @@ namespace CentralLib.Protocols
                     , ver
                     , connFP.ConsecutiveNumber
                     );
-            }
-            this.ByteStatus = connFP.ByteStatus;
-            this.ByteResult = connFP.ByteResult;
-            this.ByteReserv = connFP.ByteReserv;
-            this.errorInfo = connFP.errorInfo;
-            this.statusOperation = connFP.statusOperation;
+            }            
             return connFP.statusOperation;
         }
 
@@ -129,7 +161,7 @@ namespace CentralLib.Protocols
             get
             {
                 
-                byte[] answer = connFP.dataExchange(new byte[] { 1 });
+                byte[] answer = ExchangeWithFP(new byte[] { 1 });
 
                 if (connFP.statusOperation)
                 {
@@ -143,7 +175,7 @@ namespace CentralLib.Protocols
                     int _year = Convert.ToInt16(hexyear);
 
                     
-                    byte[] answerTime = connFP.dataExchange(new byte[] { 3 });
+                    byte[] answerTime = ExchangeWithFP(new byte[] { 3 });
                     if (connFP.statusOperation)
                     {
 
@@ -158,12 +190,7 @@ namespace CentralLib.Protocols
 
                         return new DateTime(2000 + _year, _month, _day, _hour, _minute, _second);
                     }
-                }
-                this.ByteStatus = connFP.ByteStatus;
-                this.ByteResult = connFP.ByteResult;
-                this.ByteReserv = connFP.ByteReserv;
-                this.errorInfo = connFP.errorInfo;
-                this.statusOperation = connFP.statusOperation;
+                }      
                 return new DateTime();
             }
             set
@@ -171,19 +198,14 @@ namespace CentralLib.Protocols
                 byte dd = Convert.ToByte(Convert.ToInt32(value.ToString("dd"), 16));
                 byte MM = Convert.ToByte(Convert.ToInt32(value.ToString("MM"), 16));
                 byte yy = Convert.ToByte(Convert.ToInt32(value.ToString("yy"), 16));
-                byte[] answer = connFP.dataExchange(new byte[] { 2, dd, MM, yy });
+                byte[] answer = ExchangeWithFP(new byte[] { 2, dd, MM, yy });
                 if (connFP.statusOperation)
                 {
                    byte hh = Convert.ToByte(Convert.ToInt32(value.ToString("HH"), 16));
                    byte mm = Convert.ToByte(Convert.ToInt32(value.ToString("mm"), 16));
                    byte ss = Convert.ToByte(Convert.ToInt32(value.ToString("ss"), 16));
-                   byte[] answerTime = connFP.dataExchange(new byte[] { 4, hh, mm, ss });
-                }
-                this.ByteStatus = connFP.ByteStatus;
-                this.ByteResult = connFP.ByteResult;
-                this.ByteReserv = connFP.ByteReserv;
-                this.errorInfo = connFP.errorInfo;
-                this.statusOperation = connFP.statusOperation;
+                   byte[] answerTime = ExchangeWithFP(new byte[] { 4, hh, mm, ss });
+                }                
             }
         }
         #endregion
@@ -195,11 +217,7 @@ namespace CentralLib.Protocols
             Encoding cp866 = Encoding.GetEncoding(866);
             string tempStr = Info.Substring(0, Math.Min(20, Info.Length));
             byte[] forsending = Combine(new byte[] { 0x1b, 0x00, (byte)tempStr.Length }, cp866.GetBytes(tempStr));
-            var answer = connFP.dataExchange(forsending);
-            this.ByteStatus = connFP.ByteStatus;
-            this.ByteResult = connFP.ByteResult;
-            this.ByteReserv = connFP.ByteReserv;
-            this.errorInfo = connFP.errorInfo;
+            var answer = ExchangeWithFP(forsending);            
             return connFP.statusOperation;
         }
 
@@ -208,11 +226,7 @@ namespace CentralLib.Protocols
             Encoding cp866 = Encoding.GetEncoding(866);
             string tempStr = Info.Substring(0, Math.Min(20, Info.Length));
             byte[] forsending = Combine(new byte[] { 0x1b, 0x01, (byte)tempStr.Length }, cp866.GetBytes(tempStr));
-            var answer = connFP.dataExchange(forsending);
-            this.ByteStatus = connFP.ByteStatus;
-            this.ByteResult = connFP.ByteResult;
-            this.ByteReserv = connFP.ByteReserv;
-            this.errorInfo = connFP.errorInfo;
+            var answer = ExchangeWithFP(forsending);
             return connFP.statusOperation;
         }
         #endregion
