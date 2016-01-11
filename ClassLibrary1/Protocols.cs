@@ -70,7 +70,7 @@ namespace CentralLib.Protocols
             byte[] answer;
             this.lastByteCommand = inputByte[0];
             answer = connFP.dataExchange(inputByte,useCRC16,false);
-            if (!connFP.statusOperation)
+            if (!connFP.statusOperation) //repetition if error
             {
                 Thread.Sleep(800);
 #if Debug
@@ -80,7 +80,7 @@ namespace CentralLib.Protocols
 #endif
                 answer = connFP.dataExchange(inputByte,useCRC16,true);
             }
-            if (!connFP.statusOperation)
+            if (!connFP.statusOperation) //repetition if error
             {
                 //TODO: большая проблема искать в чем причина
                 Thread.Sleep(800);

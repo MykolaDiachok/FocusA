@@ -59,11 +59,7 @@ namespace CentralLib.ConnectionFP
 
         private byte[] prepareForSend(byte[] BytesForSend, bool useCRC16=true, bool repeatError=false) // тут передают только код и параметры, получают готовую строку для отправки
         {
-            this.glbytesPrepare = BytesForSend;
-            if (repeatError)
-            {
-                ConsecutiveNumber--;
-            }
+            this.glbytesPrepare = BytesForSend;                             
             byte[] prBytes = Combine(new byte[] { (byte)WorkByte.DLE, (byte)WorkByte.STX,(byte)ConsecutiveNumber}, BytesForSend);
             prBytes = Combine(prBytes, new byte[] {0x00, (byte)WorkByte.DLE, (byte)WorkByte.ETX });
             prBytes[prBytes.Length - 3] = getchecksum(prBytes);
@@ -271,7 +267,7 @@ namespace CentralLib.ConnectionFP
         {
             Func<byte[], Task<byte[]>> function = async (byte[] inByte) =>
              {
-                 return await ExchangeFP(prepareForSend(inByte, useCRC16, repeatError));
+                 return await ExchangeFP(prepareForSend(inByte, useCRC16, repeatError),useCRC16,repeatError);
              };
 
             Task<byte[]> answer = function(input);
