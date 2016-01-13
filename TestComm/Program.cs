@@ -21,34 +21,39 @@ namespace TestComm
 
             Protocols pr = new Protocols(4);
             bool op;
-            //op = pr.showBottomString("Begin");
-            //op = pr.getStatus();
-            //op = pr.showBottomString(pr.fpDateTime.ToString());
-            DateTime t= DateTime.Now.AddMinutes(1);
-            int count = 0;
-           while(DateTime.Now<t)
-            {
-                pr.fpDateTime = DateTime.Now;
-                count++;
-                op = pr.showTopString(pr.fpDateTime.ToString());
-                pr.showBottomString(count.ToString());
-                //    if ((x % 2) == 0)
-                //    {
-                //        op = pr.showBottomString("" + x.ToString());
-                //    }
-                //    else
-                //    {
-                //        op = pr.showTopString("" + x.ToString());
-                //    }
-                //    if (!op)
-                //    {                    
-                //            Console.WriteLine("Status:{0}, Result:{1}, Reserv:{2}, Error:{3}", pr.ByteStatus, pr.ByteResult, pr.ByteReserv, pr.errorInfo);                    
-                //        x--;
-                //   }
-                //    op = pr.getStatus();
-                //  pr.showBottomString(pr.status.VersionOfSWOfECR);
-                //                pr.showTopString(pr.fpDateTime.ToString());
-           }
+            Console.WriteLine("{0}", pr.status.fiscalNumber);
+            Console.WriteLine("{0}", pr.status.manufacturingDate);
+            Console.WriteLine("{0}", pr.status.paperCuttingForbidden);
+            Console.WriteLine("{0}", pr.status.printerIsFiscalized);
+            Console.WriteLine("{0}", pr.status.serialNumber);
+            // //op = pr.showBottomString("Begin");
+            // //op = pr.getStatus();
+            // //op = pr.showBottomString(pr.fpDateTime.ToString());
+            // DateTime t= DateTime.Now.AddMinutes(1);
+            // int count = 0;
+            //while(DateTime.Now<t)
+            // {
+            //     pr.fpDateTime = DateTime.Now;
+            //     count++;
+            //     op = pr.showTopString(pr.fpDateTime.ToString());
+            //     pr.showBottomString(count.ToString());
+            //     //    if ((x % 2) == 0)
+            //     //    {
+            //     //        op = pr.showBottomString("" + x.ToString());
+            //     //    }
+            //     //    else
+            //     //    {
+            //     //        op = pr.showTopString("" + x.ToString());
+            //     //    }
+            //     //    if (!op)
+            //     //    {                    
+            //     //            Console.WriteLine("Status:{0}, Result:{1}, Reserv:{2}, Error:{3}", pr.ByteStatus, pr.ByteResult, pr.ByteReserv, pr.errorInfo);                    
+            //     //        x--;
+            //     //   }
+            //     //    op = pr.getStatus();
+            //     //  pr.showBottomString(pr.status.VersionOfSWOfECR);
+            //     //                pr.showTopString(pr.fpDateTime.ToString());
+            //}
             pr.Dispose();
 
             //MainAsync();

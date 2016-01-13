@@ -24,20 +24,34 @@ namespace CentralLib.Protocols
         private ConnectionFP.ConnectionFP connFP = null;
         private bool killConnFP = false;
         public string errorInfo { get; protected set; }
-        public Status status;
-        public byte lastByteCommand { get; private set; }
-        public bool useCRC16;
+        private Status tStatus;
+        public Status status {
+            get {
+                if ((lastByteCommand !=0))
+                    getStatus();
+                return this.tStatus;
+            }
+            private set { }
+        }
+        private byte? lastByteCommand = null;
+        public bool useCRC16 { get; private set; }
+
+        private void initial()
+        {
+            getStatus();
+        }
 
 
         public Protocols(ConnectionFP.ConnectionFP connFP)
         {
             this.connFP = connFP;
             this.useCRC16 = true;
+            initial();
         }
 
         public Protocols(int serialPort)
         {
-            DefaultPortCom.DefaultPortCom initialPort = new DefaultPortCom.DefaultPortCom(4);
+            DefaultPortCom.DefaultPortCom initialPort = new DefaultPortCom.DefaultPortCom((byte)serialPort);
             this.connFP = new ConnectionFP.ConnectionFP(initialPort);
             try {
                 connFP.Open();
@@ -48,12 +62,13 @@ namespace CentralLib.Protocols
                 StringBuilder sb = new StringBuilder();
                 sb.AppendFormat("Caught {0}, exception: {1}", e.InnerExceptions.Count, string.Join(", ", e.InnerExceptions.Select(x => x.Message)));
                 
-                //#if Debug
+                #if Debug
                 Console.WriteLine("Описание ошибки:{0}", this.errorInfo);
-                //#endif
+                #endif
             }
             killConnFP = true;
             this.useCRC16 = true;
+            initial();
         }
 
         public void Dispose()
@@ -102,7 +117,7 @@ namespace CentralLib.Protocols
         
 
 
-        public bool getStatus()
+        private void getStatus()
         {
             byte[] forsending = new byte[] { 0 };
             byte[] answer = ExchangeWithFP(forsending);
@@ -140,7 +155,15 @@ namespace CentralLib.Protocols
                 byte[] verBytes = new byte[5];
                 System.Buffer.BlockCopy(answer, answer.Length - 5, verBytes, 0, 5);
                 string ver = EncodingBytes(verBytes);
-                status = new Status(answer.Take(2).ToArray()
+                switch(ver)
+                {
+                    case "ЕП-11":
+                        this.currentProtocol = WorkProtocol.EP11;
+                        this.useCRC16 = true;
+                        break;
+                };
+
+                this.tStatus = new Status(answer.Take(2).ToArray()
                     , EncodingBytes(answer.Skip(2).Take(19).ToArray())
                     , new DateTime(2000 + _year, _month, _day, _hour, _min, 0)
                     , EncodingBytes(answer.Skip(26).Take(10).ToArray())
@@ -151,8 +174,8 @@ namespace CentralLib.Protocols
                     , ver
                     , connFP.ConsecutiveNumber
                     );
-            }            
-            return connFP.statusOperation;
+            }
+            
         }
 
         #region DateTime
