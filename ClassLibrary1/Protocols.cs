@@ -178,6 +178,32 @@ namespace CentralLib.Protocols
             
         }
 
+
+        public void FPLineFeed()
+        {
+            byte[] forsending = new byte[] { 14 };
+            byte[] answer = ExchangeWithFP(forsending);
+        }
+
+        #region Отчеты
+        public void FPArtReport(ushort pass = 0,UInt64? CodeBeginning=null,UInt64? CodeFinishing=null)
+        {
+            byte[] forsending = new byte[] { 9 };
+            forsending = Combine(forsending, BitConverter.GetBytes(pass));
+            byte[] answer = ExchangeWithFP(forsending);
+        }
+
+
+        public void FPDayReport(ushort pass=0)
+        {
+            byte[] forsending = new byte[] { 9 };
+            forsending = Combine(forsending, BitConverter.GetBytes(pass));
+            byte[] answer = ExchangeWithFP(forsending);
+        }
+
+
+        #endregion
+
         #region DateTime
         public DateTime fpDateTime
         {

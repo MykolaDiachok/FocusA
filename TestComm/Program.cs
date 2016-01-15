@@ -18,14 +18,25 @@ namespace TestComm
         static void Main(string[] args)
         {
 
-
-            Protocols pr = new Protocols(4);
-            bool op;
-            Console.WriteLine("{0}", pr.status.fiscalNumber);
-            Console.WriteLine("{0}", pr.status.manufacturingDate);
-            Console.WriteLine("{0}", pr.status.paperCuttingForbidden);
-            Console.WriteLine("{0}", pr.status.printerIsFiscalized);
-            Console.WriteLine("{0}", pr.status.serialNumber);
+            UInt16 testa_ = UInt16.MaxValue;
+            byte[] testa = BitConverter.GetBytes(testa_);
+            UInt32 testb_ = UInt32.MaxValue;
+            byte[] testb = BitConverter.GetBytes(testb_);
+            UInt64 testc_ = UInt64.MaxValue;
+            byte[] testc = BitConverter.GetBytes(testc_);
+            byte[] testd = { 255, 255, 255, 255, 255, 255,0,0 };
+            Console.WriteLine("{0}", BitConverter.ToUInt64(testd,0));
+            Double teste = Double.MaxValue;
+            byte[] teste_ = BitConverter.GetBytes(teste);
+            //Protocols pr = new Protocols(4);
+            //bool op;
+            //Console.WriteLine("{0}", pr.status.fiscalNumber);
+            //Console.WriteLine("{0}", pr.status.manufacturingDate);
+            //Console.WriteLine("{0}", pr.status.paperCuttingForbidden);
+            //Console.WriteLine("{0}", pr.status.printerIsFiscalized);
+            //Console.WriteLine("{0}", pr.status.serialNumber);
+            //pr.FPLineFeed();
+            //pr.FPDayReport();
             // //op = pr.showBottomString("Begin");
             // //op = pr.getStatus();
             // //op = pr.showBottomString(pr.fpDateTime.ToString());
@@ -54,7 +65,7 @@ namespace TestComm
             //     //  pr.showBottomString(pr.status.VersionOfSWOfECR);
             //     //                pr.showTopString(pr.fpDateTime.ToString());
             //}
-            pr.Dispose();
+            //pr.Dispose();
 
             //MainAsync();
             Console.ReadKey();
