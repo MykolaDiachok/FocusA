@@ -20,12 +20,27 @@ namespace CentralLib.Protocols
     /// </summary>
     public class Protocols : IDisposable
     {
+        /// <summary>
+        /// Статус последней операцияя
+        /// </summary>
         public bool statusOperation { get; private set; }
+        /// <summary>
+        /// Байт статуса
+        /// </summary>
         public byte ByteStatus { get; private set; } // Возврат ФР статус
+        /// <summary>
+        /// Байт результат
+        /// </summary>
         public byte ByteResult { get; private set; } // Возврат ФР результат
+        /// <summary>
+        /// Байт резерва
+        /// </summary>
         public byte ByteReserv { get; private set; } // Возврат ФР результат
         public WorkProtocol currentProtocol { get; private set; }
         private ConnectionFP.ConnectionFP connFP = null;
+        /// <summary>
+        /// Заканчивать соединение при уничтожении
+        /// </summary>
         private bool killConnFP = false;
         public string errorInfo { get; protected set; }
         private Status tStatus;
@@ -428,15 +443,19 @@ namespace CentralLib.Protocols
 
         #region Чеки
 
-
-
-
+        /// <summary>
+        /// Код: 15. ResetOrder                обнуление чека
+        /// </summary>
         public void FPResetOrder() //обнуление чека
         {
             byte[] forsending = new byte[] { 15 };
             byte[] answer = ExchangeWithFP(forsending);
         }
 
+        /// <summary>
+        /// Печать нулевого чека
+        /// </summary>
+        /// <returns></returns>
         public UInt32 FPPrintZeroReceipt()
         {
             byte[] forsending = new byte[] { 11 };//Comment            
@@ -457,6 +476,15 @@ namespace CentralLib.Protocols
             return 0;
         }
 
+        /// <summary>
+        /// Код: 11. Comment                  регистрация комментария в фискальном чеке
+        /// Если  бит  7  длины  строки  равен  единице  (1)  при  первой  регистрации  в  чеке,  то  открывается  чек                                                      
+        ///  выплат, иначе будет открыт чек продаж.В остальных случаях бит 7 не устанавливать!  Открыв
+        /// чек комментарием(например, строкой   “НУЛЕВОЙ ЧЕК”)   и закрыв   его командой   20, можно
+        /// напечатать нулевой чек.
+        /// </summary>
+        /// <param name="CommentLine">Строка комментария</param>
+        /// <param name="OpenRefundReceipt">= 1 – открытие чека выплаты</param>
         public void FPCommentLine(string CommentLine, bool OpenRefundReceipt = false)
         {
             byte[] forsending = new byte[] { 11 };//Comment            
@@ -466,6 +494,76 @@ namespace CentralLib.Protocols
             forsending = Combine(forsending, new byte[] { length });
             forsending = Combine(forsending, stringBytes);
             byte[] answer = ExchangeWithFP(forsending);
+        }
+
+
+        /// <summary>
+        /// Код: 8. PayMoney                  регистрация выплаты 
+        /// Команда  запрещена,  если  не  зарегистрированы  налоговые  ставки.  Рассчитанная  стоимость  не  
+        /// должна превышать  999.999,99  грн.Сумма по  чеку не  должна превышать  21.474.836,47  грн.При
+        /// отрицательной цене(для скидки, отказа от  предыдущей регистрации  и пр.)  стоимость не  должна
+        /// превышать промежуточную сумму  по предыдущим  выплатам.После закрытия  чека в  параметрах
+        /// артикулов соответствующих кодов   меняются значения   статусов на   больший(с увеличением
+        /// разрядности меньшего),     увеличивается его    количество и   стоимость,      если артикулы
+        /// запрограммированы,  или полностью  заносится описание  артикула,  если не  запрограммированы.
+        /// ЭККР запрещает  изменение налоговой  группы,  название выплаты, а  в пределах  чека,  и цены.        
+        /// Группа Е – непрограммируемая необлагаемая группа.
+        /// </summary>
+        /// <param name="Amount">количество или вес</param>
+        /// <param name="Amount_Status">число десятичных разрядов в количестве</param>
+        /// <param name="IsOneQuant">количество 1 не печатается в чеке)</param>
+        /// <param name="Price">цена в коп (бит 31 = 1 – отрицательная цена)</param>
+        /// <param name="NalogGroup">налоговая группа</param>
+        /// <param name="MemoryGoodName">n=255 – название взять из памяти</param>
+        /// <param name="GoodName">название товара или услуги (для n # 255)</param>
+        /// <param name="StrCode">код товара</param>
+        /// <param name="PrintingOfBarCodesOfGoods">=1 – печать штрих-кода товара (EAN13)</param>
+        /// <returns></returns>
+        public ReceiptInfo FPPayMoneyEx(UInt16 Amount, byte Amount_Status, bool IsOneQuant, Int32 Price, ushort NalogGroup, bool MemoryGoodName, string GoodName, UInt64 StrCode, bool PrintingOfBarCodesOfGoods = false)
+        {
+            byte[] forsending = new byte[] { 8 };
+
+            forsending = Combine(forsending, ConvertUint32ToArrayByte3(Amount));
+            Amount_Status = SetBit(Amount_Status, 6, IsOneQuant);
+            Amount_Status = SetBit(Amount_Status, 7, PrintingOfBarCodesOfGoods);
+            forsending = Combine(forsending, new byte[] { Amount_Status });
+            Int32 _price = Price;
+            //BitArray b_price = new BitArray(BitConverter.GetBytes(_price));
+            if (Price < 0)
+            {
+                _price = -_price;
+                _price = _price ^ (1 << 31);
+            }
+            forsending = Combine(forsending, BitConverter.GetBytes(_price));
+            byte[] VAT = new byte[] { 0x80 }; ;
+            if (NalogGroup == 1)
+                VAT = new byte[] { 0x81 };
+            else if (NalogGroup == 2)
+                VAT = new byte[] { 0x82 };
+            else if (NalogGroup == 3)
+                VAT = new byte[] { 0x83 };
+            else if (NalogGroup == 4)
+                VAT = new byte[] { 0x84 };
+            else if (NalogGroup == 5)
+                VAT = new byte[] { 0x85 };
+            forsending = Combine(forsending, VAT);
+
+            if (MemoryGoodName)
+                forsending = Combine(forsending, new byte[] { 255 });
+            else
+            {
+                forsending = Combine(forsending, CodingStringToBytesWithLength(GoodName, 75));
+            }
+            forsending = Combine(forsending, ConvertUint64ToArrayByte6(StrCode));
+            byte[] answer = ExchangeWithFP(forsending);
+            if ((statusOperation) && (answer.Length == 8))
+            {
+                ReceiptInfo _checkinfo = new ReceiptInfo();
+                _checkinfo.CostOfGoodsOrService = BitConverter.ToInt32(answer, 0);
+                _checkinfo.SumAtReceipt = BitConverter.ToInt32(answer, 4);
+                return _checkinfo;
+            }
+            return new ReceiptInfo();
         }
 
 
