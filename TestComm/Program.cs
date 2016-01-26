@@ -21,62 +21,72 @@ namespace TestComm
             //UInt16 testa_ = UInt16.MaxValue;
             //byte[] testa = BitConverter.GetBytes(testa_);
             //UInt32 testb_ = UInt32.MaxValue;
+            //Int32 text32 = Int32.MinValue;
+            //byte[] test32 = BitConverter.GetBytes(text32);
             //byte[] testb = BitConverter.GetBytes(testb_);
             //UInt64 testc_ = UInt64.MaxValue;
             //byte[] testc = BitConverter.GetBytes(testc_);
-            //byte[] testd = { 255, 255, 255, 255, 255, 255,0,0 };
-            //Console.WriteLine("{0}", BitConverter.ToUInt64(testd,0));
+            //byte[] testd = { 255, 255, 255, 255, 255, 255, 0, 0 };
+            //Console.WriteLine("{0}", BitConverter.ToUInt64(testd, 0));
             //Double teste = Double.MaxValue;
             //byte[] teste_ = BitConverter.GetBytes(teste);
-            Protocols pr= new Protocols(4);
+
+
+            Protocols pr = new Protocols(4);
             bool op;
-            pr.FPCplOnline();
-            
-            //pr.FPGetTaxRate();
-            Taxes tax = new Taxes();
-            tax.MaxGroup = 4;
-            tax.quantityOfDecimalDigitsOfMoneySum = 2;
-            tax.ToProgramChargeRates = false;
-            tax.VAT = false;
+            pr.FPResetOrder();
+            pr.FPSaleEx(1, 0, false, 3000, 0, false, "X-fiter", 1,false);
+            //Console.WriteLine("{0}",pr.FPPayment(1, 1000, false, true));
+            //Console.WriteLine("{0}", pr.FPPayment(2, 1000, false, true));
+            Console.WriteLine("{0}", pr.FPPayment(3, 3000, true, true));
 
-            tax.DateSet = new DateTime();
-            tax.TaxA.TaxGroup = (byte)FPTaxgroup.A;
-            tax.TaxA.TaxNumber = 1;
-            tax.TaxA.TaxRate = 2000;
-            //tax.TaxA.ChargeRates = 500;            
-            //tax.TaxA.VATAtCharge = false;
-            //tax.TaxA.ChargeAtVAT = true;
+            //pr.FPCplOnline();
+
+            ////pr.FPGetTaxRate();
+            //Taxes tax = new Taxes();
+            //tax.MaxGroup = 4;
+            //tax.quantityOfDecimalDigitsOfMoneySum = 2;
+            //tax.ToProgramChargeRates = false;
+            //tax.VAT = false;
+
+            //tax.DateSet = new DateTime();
+            //tax.TaxA.TaxGroup = (byte)FPTaxgroup.A;
+            //tax.TaxA.TaxNumber = 1;
+            //tax.TaxA.TaxRate = 2000;
+            ////tax.TaxA.ChargeRates = 500;            
+            ////tax.TaxA.VATAtCharge = false;
+            ////tax.TaxA.ChargeAtVAT = true;
 
 
-            tax.TaxB.TaxGroup = (byte)FPTaxgroup.B;
-            tax.TaxB.TaxNumber = 2;
-            tax.TaxB.TaxRate = 0;
-            ////tax.TaxB.ChargeRates = 1;
-            ////tax.TaxB.VATAtCharge = true;
+            //tax.TaxB.TaxGroup = (byte)FPTaxgroup.B;
+            //tax.TaxB.TaxNumber = 2;
+            //tax.TaxB.TaxRate = 0;
+            //////tax.TaxB.ChargeRates = 1;
+            //////tax.TaxB.VATAtCharge = true;
 
-            tax.TaxC.TaxGroup = (byte)FPTaxgroup.C;
-            tax.TaxC.TaxNumber = 3;
-            tax.TaxC.TaxRate = 0;            
-            //tax.TaxC.ChargeRates = 101;
-            //tax.TaxC.VATAtCharge = true;
-            //tax.TaxC.ChargeAtVAT = false;
+            //tax.TaxC.TaxGroup = (byte)FPTaxgroup.C;
+            //tax.TaxC.TaxNumber = 3;
+            //tax.TaxC.TaxRate = 0;            
+            ////tax.TaxC.ChargeRates = 101;
+            ////tax.TaxC.VATAtCharge = true;
+            ////tax.TaxC.ChargeAtVAT = false;
 
-            tax.TaxD.TaxGroup = (byte)FPTaxgroup.D;
-            tax.TaxD.TaxNumber = 4;
-            tax.TaxD.TaxRate = 700;            
-            ////tax.TaxD.ChargeRates = 0;
-            ////tax.TaxD.VATAtCharge = false;
-            ////tax.TaxD.VATAtCharge = false;
+            //tax.TaxD.TaxGroup = (byte)FPTaxgroup.D;
+            //tax.TaxD.TaxNumber = 4;
+            //tax.TaxD.TaxRate = 700;            
+            //////tax.TaxD.ChargeRates = 0;
+            //////tax.TaxD.VATAtCharge = false;
+            //////tax.TaxD.VATAtCharge = false;
 
-            ////tax.TaxE.TaxGroup = (byte)FPTaxgroup.E;
-            ////tax.TaxE.TaxNumber = 5;
-            ////tax.TaxE.TaxRate = 7000;            
-            ////tax.TaxE.ChargeRates = 0;
-            ////tax.TaxE.VATAtCharge = false;
-            ////tax.TaxE.VATAtCharge = false;
-            //tax.ChargeRateOfGroupЕ = 500;
-            pr.FPSetTaxRate(0, tax);
-            
+            //////tax.TaxE.TaxGroup = (byte)FPTaxgroup.E;
+            //////tax.TaxE.TaxNumber = 5;
+            //////tax.TaxE.TaxRate = 7000;            
+            //////tax.TaxE.ChargeRates = 0;
+            //////tax.TaxE.VATAtCharge = false;
+            //////tax.TaxE.VATAtCharge = false;
+            ////tax.ChargeRateOfGroupЕ = 500;
+            //pr.FPSetTaxRate(0, tax);
+
 
             //Console.WriteLine("{0}", pr.status.fiscalNumber);
             //Console.WriteLine("{0}", pr.status.manufacturingDate);
@@ -190,7 +200,7 @@ namespace TestComm
             Encoding cp866 = Encoding.GetEncoding(866);
             string tempStr = Info.Substring(0, Math.Min(20, Info.Length));
 
-           return Combine(new byte[] { 0x1b, 0x00, (byte)tempStr.Length }, cp866.GetBytes(tempStr));
+            return Combine(new byte[] { 0x1b, 0x00, (byte)tempStr.Length }, cp866.GetBytes(tempStr));
             //_coding.Add(0x1b);
             //_coding.Add(0x00);
             //_coding.Add((byte)tempStr.Length);
@@ -219,7 +229,7 @@ namespace TestComm
                 sb.Append(b + ", ");
             }
             sb.Append("}");
-           return sb.ToString();
+            return sb.ToString();
         }
 
     }

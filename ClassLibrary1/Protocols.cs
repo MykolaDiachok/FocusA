@@ -30,6 +30,8 @@ namespace CentralLib.Protocols
         public string errorInfo { get; protected set; }
         private Status tStatus;
         public Taxes currentTaxes { get; private set; }
+        private UInt32 Max3ArrayBytes = BitConverter.ToUInt32(new byte[] { 255, 255, 255, 0 }, 0);
+        private UInt64 Max6ArrayBytes = BitConverter.ToUInt64(new byte[] { 255, 255, 255, 255, 255, 255, 0, 0 }, 0);
 
         public Status status
         {
@@ -426,6 +428,9 @@ namespace CentralLib.Protocols
 
         #region Чеки
 
+
+
+
         public void FPResetOrder() //обнуление чека
         {
             byte[] forsending = new byte[] { 15 };
@@ -462,6 +467,132 @@ namespace CentralLib.Protocols
             forsending = Combine(forsending, stringBytes);
             byte[] answer = ExchangeWithFP(forsending);
         }
+
+
+        /// <summary>
+        /// Код: 18.Sale                      регистрация продажи товара или услуги
+        /// Команда  запрещена,  если  не  зарегистрированы  налоговые  ставки.  Рассчитанная  стоимость  не  
+        /// должна превышать  999.999,99  грн.Сумма по  чеку не  должна превышать  21.474.836,47  грн.При
+        /// отрицательной цене(для скидки, отказа от  предыдущей регистрации  и пр.)  стоимость не  должна
+        /// превышать промежуточную сумму  по предыдущим  продажам.После закрытия  чека в  параметрах
+        /// артикулов соответствующих кодов   меняется статус  на больший(с увеличением  разрядности
+        /// меньшего),  увеличивается его  количество и  стоимость,  если артикулы  запрограммированы,  или
+        /// полностью заносится описание  артикула, если не запрограммированы.ЭККР запрещает изменение
+        /// налоговой группы, имени  товара,  а в  пределах чека, и  цены.Группа Е  –  непрограммируемая
+        /// необлагаемая группа.
+        /// </summary>
+        /// <param name="Amount">количество или вес </param>
+        /// <param name="Amount_Status">число десятичных разрядов в количестве,</param>
+        /// <param name="IsOneQuant">количество 1 не печатается в чеке)</param>
+        /// <param name="Price">цена в коп (бит 31 = 1 – отрицательная цена)</param>
+        /// <param name="NalogGroup">налоговая группа</param>
+        /// <param name="MemoryGoodName"></param>
+        /// <param name="GoodName">название товара или услуги (для n # 255) </param>
+        /// <param name="StrCode">код товара</param>
+        /// <param name="PrintingOfBarCodesOfGoods">печать штрих-кода товара (EAN13)</param>
+        public ReceiptInfo FPSaleEx(UInt16 Amount, byte Amount_Status, bool IsOneQuant, Int32 Price, ushort NalogGroup, bool MemoryGoodName, string GoodName, UInt64 StrCode, bool PrintingOfBarCodesOfGoods = false)
+        {
+            byte[] forsending = new byte[] { 18 };
+
+            forsending = Combine(forsending, ConvertUint32ToArrayByte3(Amount));
+            Amount_Status = SetBit(Amount_Status, 6, IsOneQuant);
+            Amount_Status = SetBit(Amount_Status, 7, PrintingOfBarCodesOfGoods);
+            forsending = Combine(forsending, new byte[] { Amount_Status });
+            Int32 _price = Price;
+            //BitArray b_price = new BitArray(BitConverter.GetBytes(_price));
+            if (Price < 0)
+            {
+                _price = -_price;
+                _price = _price ^ (1 << 31);
+            }
+            forsending = Combine(forsending, BitConverter.GetBytes(_price));
+            byte[] VAT = new byte[] { 0x80 }; ;
+            if (NalogGroup == 1)
+                VAT = new byte[] { 0x81 };
+            else if (NalogGroup == 2)
+                VAT = new byte[] { 0x82 };
+            else if (NalogGroup == 3)
+                VAT = new byte[] { 0x83 };
+            else if (NalogGroup == 4)
+                VAT = new byte[] { 0x84 };
+            else if (NalogGroup == 5)
+                VAT = new byte[] { 0x85 };
+            forsending = Combine(forsending, VAT);
+
+            if (MemoryGoodName)
+                forsending = Combine(forsending, new byte[] { 255 });
+            else
+            {
+                forsending = Combine(forsending, CodingStringToBytesWithLength(GoodName, 75));
+            }
+            forsending = Combine(forsending, ConvertUint64ToArrayByte6(StrCode));
+            byte[] answer = ExchangeWithFP(forsending);
+            if ((statusOperation) && (answer.Length == 8))
+            {
+                ReceiptInfo _checkinfo = new ReceiptInfo();
+                _checkinfo.CostOfGoodsOrService = BitConverter.ToInt32(answer, 0);
+                _checkinfo.SumAtReceipt = BitConverter.ToInt32(answer, 4);
+                return _checkinfo;
+            }
+            return new ReceiptInfo();
+        }
+
+        /// <summary>
+        /// Код: 20.Payment          регистрация оплаты и печать чека, если сума оплат не меньше
+        /// Команда  запрещена при закрытом чеке. Чек закрывается автоматически и печатается, если  
+        /// сумма оплат больше или равна сумме продаж или выплат, или установлен бит 31 в сумме оплат.В
+        /// последнем случае сумма данной оплаты вычисляется ЭККР.Если сумма наличными больше суммы
+        /// продаж, то будет  печататься сумма  сдачи.Оплата со  сдачей разрешена  только для  наличных.В
+        /// чеке выплат оплата    наличными должна     быть не  более суммы     в денежном     ящике.Для
+        /// нефискального чека  (обороты чека  не сохраняются  в дневных  счетчиках и  счетчиках артикулов)        
+        /// рекомендуется  открывать чек  продаж.Нулевая оплата  не печатается  в чеках.Номер  пакета
+        /// возвращается в случае закрытия чека.
+        /// </summary>
+        /// <param name="Payment_Status">статус (биты 0..3 - тип оплаты (см. команду 50);</param>
+        /// <param name="Payment">оплата в коп. </param>
+        /// <param name="CheckClose">автоматическое закрытие</param>
+        /// <param name="FiscStatus">= 1 – закрытие чека как нефискальный</param>
+        /// <param name="AuthorizationCode">код авторизации при оплате картой через платёжный терминал</param>
+        /// <returns>остаток или сдача (бит 31 = 1 – сдача), номер пакета чека в КЛЕФ</returns>
+        public PaymentInfo FPPayment(byte Payment_Status, UInt32 Payment, bool CheckClose, bool FiscStatus, string AuthorizationCode="")
+        {
+            byte[] forsending = new byte[] { 20 };
+            Payment_Status = SetBit(Payment_Status, 6, !FiscStatus);
+            forsending = Combine(forsending, new byte[] { Payment_Status });
+            byte[] bytePayment = BitConverter.GetBytes(WriteBitUInt32(Payment, 31, CheckClose));
+            //byte[] bytePayment = BitConverter.GetBytes(Payment);
+            //if (CheckClose)
+            //{
+            //    bytePayment[3] = SetBit(bytePayment[3], 7, CheckClose);
+            //}
+            ////forsending = Combine(forsending, bytePayment);
+            //int _Payment = (int)Payment;
+            //if (CheckClose)
+            //    //b_Payment[31] = true;
+            //    _Payment = _Payment ^ (1 << 31);
+            forsending = Combine(forsending, bytePayment);
+            forsending = Combine(forsending, new byte[] { 0 });
+            if (AuthorizationCode.Length!=0)
+                forsending = Combine(forsending, CodingStringToBytesWithLength(AuthorizationCode, 50));
+            byte[] answer = ExchangeWithFP(forsending);
+            if ((statusOperation) && (answer.Length  > 3))
+            {
+                PaymentInfo _paymentInfo = new PaymentInfo();
+                UInt32 tinfo = BitConverter.ToUInt32(answer, 0);
+                if (GetBit(answer[3],7))
+                {
+                    tinfo = ClearBitUInt32(tinfo, 31);
+                    _paymentInfo.Renting = tinfo;
+                }
+                else
+                    _paymentInfo.Rest = tinfo;
+                if (answer.Length>=8)
+                    _paymentInfo.NumberOfReceiptPackageInCPEF = BitConverter.ToUInt32(answer, 4);
+                return _paymentInfo;
+            }
+            return new PaymentInfo();
+        }
+
 
         #endregion
 
@@ -999,6 +1130,26 @@ namespace CentralLib.Protocols
             return new DateTime(2000 + _year, _month, _day, 0, 0, 0);
         }
 
+        private byte[] ConvertUint32ToArrayByte3(UInt32 inputValue)
+        {
+            if (inputValue > Max3ArrayBytes)
+            {
+                throw new System.ArgumentOutOfRangeException("input value", "Превышение максимального значения");
+            }
+            byte[] tByte = BitConverter.GetBytes(inputValue);
+            return new byte[] { tByte[0], tByte[1], tByte[2] };
+        }
+
+        private byte[] ConvertUint64ToArrayByte6(UInt64 inputValue)
+        {
+            if (inputValue > Max6ArrayBytes)
+            {
+                throw new System.ArgumentOutOfRangeException("input value", "Превышение максимального значения");
+            }
+            byte[] tByte = BitConverter.GetBytes(inputValue);
+            return new byte[] { tByte[0], tByte[1], tByte[2], tByte[3], tByte[4], tByte[5] };
+        }
+
         /// <summary>
         /// Для конвертации uint32 в массив из 6 байт
         /// </summary>
@@ -1018,7 +1169,7 @@ namespace CentralLib.Protocols
             }
             return forreturn;
         }
-        
+
         /// <summary>
         /// Строку кодируем в байты
         /// </summary>
@@ -1033,7 +1184,22 @@ namespace CentralLib.Protocols
             length = (byte)tempStr.Length;
             return cp866.GetBytes(tempStr);
         }
-        
+
+        /// <summary>
+        /// Из строки формируем массив байт
+        /// </summary>
+        /// <param name="InputString">Строка для преобразования</param>
+        /// <param name="MaxVal">Макс длина строки</param>
+        /// <returns>Возврат массив байт из строки + вначале байт с длиной строки</returns>
+        private byte[] CodingStringToBytesWithLength(string InputString, UInt16 MaxVal)
+        {
+            Encoding cp866 = Encoding.GetEncoding(866);
+            string tempStr = InputString.Substring(0, Math.Min(MaxVal, InputString.Length));
+            //length = (byte)tempStr.Length;
+
+            return Combine(new byte[] { (byte)tempStr.Length }, cp866.GetBytes(tempStr));
+        }
+
         /// <summary>
         /// Раскодируем массив байт и возвращаем строку
         /// </summary>
@@ -1049,9 +1215,9 @@ namespace CentralLib.Protocols
             return cp866.GetString(inputBytes, index, length);
         }
 
-        
+
         /// <summary>
-        /// Для объединение массиво байт
+        /// Для объединение массивов байт
         /// </summary>
         /// <param name="a"></param>
         /// <param name="b"></param>
@@ -1259,6 +1425,75 @@ namespace CentralLib.Protocols
             }
             return val;
         }
+
+        private UInt32 SetBitUInt32(UInt32 Value, byte bit)
+        {
+            if (bit >= 32)
+            {
+                throw new ArgumentException("bit must be between 0 and 31");
+            }
+
+            Value |= (UInt32)(1U << bit);
+            return Value;
+        }
+
+        private UInt32 ClearBitUInt32(UInt32 Value, byte bit)
+        {
+            if (bit >= 32)
+            {
+                throw new ArgumentException("bit must be between 0 and 31");
+            }
+
+            Value &= ~(UInt32)(1U << bit);
+            return Value;
+        }
+
+        private UInt32 WriteBitUInt32(UInt32 Value, byte bit, bool state)
+        {
+            if (bit >= 32)
+            {
+                throw new ArgumentException("bit must be between 0 and 31");
+            }
+
+            if (state)
+            {
+                Value |= (UInt32)(1U << bit);
+            }
+            else {
+                Value &= ~(UInt32)(1U << bit);
+            }
+
+            return Value;
+        }
+
+        private UInt32 ToggleBitUInt32(UInt32 Value, byte bit)
+        {
+            if (bit >= 32)
+            {
+                throw new ArgumentException("bit must be between 0 and 31");
+            }
+
+            if ((Value & (1 << bit)) == (1 << bit))
+            {
+                Value &= ~(UInt32)(1U << bit);
+            }
+            else {
+                Value |= (UInt32)(1U << bit);
+            }
+
+            return Value;
+        }
+
+        private bool ReadBitUInt32(UInt32 Value, byte bit)
+        {
+            if (bit >= 32)
+            {
+                throw new ArgumentException("bit must be between 0 and 31");
+            }
+
+            return ((Value & (1 << bit)) == (1 << bit));
+        }
+
 
         #endregion
 

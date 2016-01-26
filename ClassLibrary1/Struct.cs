@@ -155,4 +155,43 @@ namespace CentralLib.Protocols
       
     }
 
+    /// <summary>
+    /// Информация по продаже
+    /// </summary>
+    public struct ReceiptInfo
+    {
+        /// <summary>
+        /// стоимость товара или услуги
+        /// </summary>
+        public Int32 CostOfGoodsOrService;
+
+        /// <summary>
+        /// сумма по чеку
+        /// </summary>
+        public Int32 SumAtReceipt;
+    }
+
+    /// <summary>
+    /// Возврат после регистрация оплаты
+    /// </summary>
+    public struct PaymentInfo
+    {
+        public override string ToString()
+        {
+            return "Rest: " + Rest + " Renting:" + Renting + " NumberOfReceiptPackageInCPEF:" + NumberOfReceiptPackageInCPEF;
+        }
+        /// <summary>
+        ///  сдача (бит 31 = 1 – сдача)
+        /// </summary>
+        public UInt32 Renting;
+        /// <summary>
+        /// остаток
+        /// </summary>
+        public UInt64 Rest;
+        /// <summary>
+        /// номер пакета чека в КЛЕФ
+        /// </summary>
+        public UInt32 NumberOfReceiptPackageInCPEF;
+    }
+
 }
