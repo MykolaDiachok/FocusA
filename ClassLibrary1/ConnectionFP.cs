@@ -1,4 +1,5 @@
-﻿#define Debug
+﻿//#define Debug
+#define DebugErrorInfo
 
 
 using System;

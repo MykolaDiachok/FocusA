@@ -27,23 +27,23 @@ namespace CentralLib.Protocols
         public DateTime manufacturingDate { get; private set; }
         public DateTime DateTimeregistration { get; private set; }
         public string fiscalNumber { get; private set; }
-        public int LengthOfLine1OfAttributesOfTaxpayer { get; private set; } //длина строки 1 атрибутов налогоплательщика (= n1)
+        //public int LengthOfLine1OfAttributesOfTaxpayer { get; private set; } //длина строки 1 атрибутов налогоплательщика (= n1)
         public string Line1OfAttributesOfTaxpayer { get; private set; } //строка 1 атрибутов налогоплательщика
-        public int LengthOfLine2OfAttributesOfTaxpayer { get; private set; } //длина строки 2 атрибутов налогоплательщика (= n1)
+        //public int LengthOfLine2OfAttributesOfTaxpayer { get; private set; } //длина строки 2 атрибутов налогоплательщика (= n1)
         public string Line2OfAttributesOfTaxpayer { get; private set; } //строка 2 атрибутов налогоплательщика
-        public int LengthOfLine3OfAttributesOfTaxpayer { get; private set; } //длина строки 3 атрибутов налогоплательщика (= n1)
+        //public int LengthOfLine3OfAttributesOfTaxpayer { get; private set; } //длина строки 3 атрибутов налогоплательщика (= n1)
         public string Line3OfAttributesOfTaxpayer { get; private set; } //строка 3 атрибутов налогоплательщика
-        public int LengthOfLineOfTaxNumber { get; private set; } //  длина строки налогового номера
+        //public int LengthOfLineOfTaxNumber { get; private set; } //  длина строки налогового номера
         public string LineOfTaxNumber { get; private set; } //строка налогового номера
         public string VersionOfSWOfECR { get; private set; } //версия ПО ЭККР (“ЕП-11”)
         public DateTimeOffset setTime;
         public int ConsecutiveNumber;
 
         public Status(byte[] bitBytes, string SerialAndDate, DateTime DateTimeregistration, string fiscalNumber
-                , int LengthOfLine1OfAttributesOfTaxpayer, string Line1OfAttributesOfTaxpayer
-                , int LengthOfLine2OfAttributesOfTaxpayer, string Line2OfAttributesOfTaxpayer
-                , int LengthOfLine3OfAttributesOfTaxpayer, string Line3OfAttributesOfTaxpayer
-                , int LengthOfLineOfTaxNumber, string LineOfTaxNumber
+                , string Line1OfAttributesOfTaxpayer
+                ,  string Line2OfAttributesOfTaxpayer
+                ,  string Line3OfAttributesOfTaxpayer
+                ,  string LineOfTaxNumber
                 , string VersionOfSWOfECR
             ,int ConsecutiveNumber // номер операции что бы не обновлять часто
             )
@@ -75,16 +75,16 @@ namespace CentralLib.Protocols
             this.manufacturingDate = new DateTime(2000 + year, month, day);
             this.DateTimeregistration = DateTimeregistration;
             this.fiscalNumber = fiscalNumber;
-            this.LengthOfLine1OfAttributesOfTaxpayer = LengthOfLine1OfAttributesOfTaxpayer;
+            //this.LengthOfLine1OfAttributesOfTaxpayer = Line1OfAttributesOfTaxpayer.Length;
             this.Line1OfAttributesOfTaxpayer = Line1OfAttributesOfTaxpayer;
 
-            this.LengthOfLine2OfAttributesOfTaxpayer = LengthOfLine2OfAttributesOfTaxpayer;
+            //this.LengthOfLine2OfAttributesOfTaxpayer = Line2OfAttributesOfTaxpayer.Length;
             this.Line2OfAttributesOfTaxpayer = Line2OfAttributesOfTaxpayer;
 
-            this.LengthOfLine3OfAttributesOfTaxpayer = LengthOfLine3OfAttributesOfTaxpayer;
+            //this.LengthOfLine3OfAttributesOfTaxpayer = Line3OfAttributesOfTaxpayer.Length;
             this.Line3OfAttributesOfTaxpayer = Line3OfAttributesOfTaxpayer;
 
-            this.LengthOfLineOfTaxNumber = LengthOfLineOfTaxNumber;
+            //this.LengthOfLineOfTaxNumber = LineOfTaxNumber.Length;
             this.LineOfTaxNumber = LineOfTaxNumber;
 
             this.VersionOfSWOfECR = VersionOfSWOfECR;
@@ -94,4 +94,65 @@ namespace CentralLib.Protocols
 
 
     }
+
+    public struct PapStat
+    {
+        public bool? ErrorOfConnectionWithPrinter; //ошибка связи с принтером
+        public bool? ReceiptPaperIsAlmostEnded; //чековая лента почти заканчивается
+        public bool? ControlPaperIsAlmostEnded; //чековая лента почти заканчивается        
+        public bool? ReceiptPaperIsFinished; //чековая лента закончилась
+        public bool? ControlPaperIsFinished; //чековая лента закончилась
+
+        public PapStat(byte inputByte):this()
+        {
+            BitArray _bit = new BitArray(inputByte);
+            ErrorOfConnectionWithPrinter = _bit[0];
+            ControlPaperIsAlmostEnded = _bit[2];
+            ReceiptPaperIsAlmostEnded = _bit[3];
+            ControlPaperIsFinished = _bit[5];
+            ReceiptPaperIsAlmostEnded = _bit[6];
+        }
+
+        
+
+    }
+
+    /// <summary>
+    /// Описание налогов и что можно с ними делать
+    /// </summary>
+    public struct Taxes
+    {
+        public short MaxGroup;
+        public DateTime DateSet;
+        public ushort quantityOfDecimalDigitsOfMoneySum; // max=3
+        public bool VAT; //0 – вложенный, 1 – наложенный
+        public Tax TaxA, TaxB, TaxC, TaxD, TaxE;
+        public bool ToProgramChargeRates; // = 1 – программировать ставки сборов
+        public ushort ChargeRateOfGroupЕ;
+
+    }
+
+    public struct Tax
+    {
+        public byte TaxGroup;
+        public ushort TaxNumber;
+        public ushort TaxRate;
+        public ushort ChargeRates; //ставки сборов(в 0,01 %) (бит 15 = 1 – НДС на сбор бит 14 = 1 – сбор на НДС)
+        public bool VATAtCharge;
+        public bool ChargeAtVAT;
+        
+
+        public Tax(byte TaxGroup, ushort TaxNumber, ushort TaxRate, ushort ChargeRates, bool VATAtCharge,bool ChargeAtVAT) 
+        {
+            this.TaxGroup = TaxGroup;
+            this.TaxNumber = TaxNumber;
+            this.TaxRate = TaxRate;
+            this.ChargeRates = ChargeRates;
+            this.VATAtCharge = VATAtCharge;
+            this.ChargeAtVAT = ChargeAtVAT;
+
+        }
+      
+    }
+
 }
