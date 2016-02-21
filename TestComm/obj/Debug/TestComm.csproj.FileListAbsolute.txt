@@ -6,3 +6,6 @@ I:\FocusA\TestComm\bin\Debug\ClassLibrary1.pdb
 I:\FocusA\TestComm\obj\Debug\TestComm.csprojResolveAssemblyReference.cache
 I:\FocusA\TestComm\obj\Debug\TestComm.exe
 I:\FocusA\TestComm\obj\Debug\TestComm.pdb
+C:\Projects\FocusA\TestComm\bin\Debug\TestComm.exe.config
+C:\Projects\FocusA\TestComm\obj\Debug\TestComm.exe
+C:\Projects\FocusA\TestComm\obj\Debug\TestComm.pdb
