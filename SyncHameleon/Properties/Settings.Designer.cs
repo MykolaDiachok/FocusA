@@ -27,7 +27,7 @@ namespace SyncHameleon.Properties {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
         [global::System.Configuration.DefaultSettingValueAttribute("Host=chm.space.digma;Username=chameleon;Password=chameleon;Database=chameleonserv" +
-            "er")]
+            "er;CommandTimeout=240;Timeout=240;")]
         public string Npgsql {
             get {
                 return ((string)(this["Npgsql"]));

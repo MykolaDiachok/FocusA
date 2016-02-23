@@ -49,7 +49,7 @@ namespace SyncHameleon
 
 
             _timer = new System.Timers.Timer();
-            _timer.Interval = (3000);
+            _timer.Interval = (Properties.Settings.Default .TimerIntervalSec * 1000);
             _timer.Elapsed += (sender, e) => { HandleTimerElapsed(fpnumber); };
             _timer.Enabled = true;
             Console.ReadLine();
@@ -62,7 +62,12 @@ namespace SyncHameleon
 
         static void HandleTimerElapsed(string fpnumber)
         {
-            logger.Trace("Begin select");
+            _timer.Stop();
+            StopwatchHelper.Start("Begin select");
+            
+            String DateWork = DateTime.Now.ToString("dd.MM.yyyy");
+
+
 
             var connection = Properties.Settings.Default.Npgsql;//System.Configuration.ConfigurationManager.ConnectionStrings["Test"].ConnectionString;
             using (var conn = new NpgsqlConnection(connection))
@@ -72,18 +77,28 @@ namespace SyncHameleon
                 using (var cmd = new NpgsqlCommand())
                 {
                     cmd.Connection = conn;
-                    cmd.CommandText = "SELECT * FROM sales.checks where  date_trunc('day',time_check)='2016-02-14'";
+                    cmd.CommandText = @"select * 
+			                                from sales.sales_log 
+			                                where id_registrar = '"+ fpnumber + @"'
+                                                and date_trunc('day',time_create)='"+ DateWork + @"'
+			                               ";
                     logger.Trace("Select from base:{0}", cmd.CommandText);
+                    StopwatchHelper.Start("ExecuteReader");
                     using (var reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
                         {
+                            
+                            logger.Trace("Time Sales:{0}", reader["time_sales"]);
                             //Console.WriteLine(reader.GetString(0));
                         }
                     }
+                   StopwatchHelper.Stop("ExecuteReader");
                 }
             }
-            logger.Trace("End select");
+            
+            StopwatchHelper.Stop("Begin select");
+            _timer.Start();
         }
 
 
