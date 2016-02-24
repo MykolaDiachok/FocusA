@@ -17,10 +17,8 @@ namespace SyncHameleon
     class Program
     {
         private static string fpnumber;
+        private static string sqlserver;
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        public static bool stopProcessor = false;
-        public static bool Terminate = false;
-        public static System.Timers.Timer _timer;
 
         static void Main(string[] args)
         {
@@ -35,10 +33,11 @@ namespace SyncHameleon
 
             new OptionSet()
                 .Add("fp=|fpnumber=", f => fpnumber = f)
+                .Add("s=|sqlserver=", s => sqlserver = s)
                 .Add("?|h|help",h=>DisplayHelp())
                 .Parse(args);
 
-            if (fpnumber == null)
+            if ((fpnumber == null)&&(sqlserver == null))
             {
                 DisplayHelp();            
                 return;
@@ -46,68 +45,25 @@ namespace SyncHameleon
             
             GlobalDiagnosticsContext.Set("FPNumber", fpnumber);
             logger.Info("Set fp number:{0}", fpnumber);
+            GlobalDiagnosticsContext.Set("sqlserver", sqlserver);
+            logger.Info("Set sqlserver:{0}", sqlserver);
 
-
-            _timer = new System.Timers.Timer();
-            _timer.Interval = (Properties.Settings.Default .TimerIntervalSec * 1000);
-            _timer.Elapsed += (sender, e) => { HandleTimerElapsed(fpnumber); };
-            _timer.Enabled = true;
-            Console.ReadLine();
-            _timer.Dispose();
-
-          
+            Postrgres.startSync(sqlserver, fpnumber);
+                    
 
             logger.Trace("End Main");
         }
 
-        static void HandleTimerElapsed(string fpnumber)
-        {
-            _timer.Stop();
-            StopwatchHelper.Start("Begin select");
-            
-            String DateWork = DateTime.Now.ToString("dd.MM.yyyy");
-
-
-
-            var connection = Properties.Settings.Default.Npgsql;//System.Configuration.ConfigurationManager.ConnectionStrings["Test"].ConnectionString;
-            using (var conn = new NpgsqlConnection(connection))
-            {
-                logger.Trace("NpgsqlConnection:{0}", connection);
-                conn.Open();
-                using (var cmd = new NpgsqlCommand())
-                {
-                    cmd.Connection = conn;
-                    cmd.CommandText = @"select * 
-			                                from sales.sales_log 
-			                                where id_registrar = '"+ fpnumber + @"'
-                                                and date_trunc('day',time_create)='"+ DateWork + @"'
-			                               ";
-                    logger.Trace("Select from base:{0}", cmd.CommandText);
-                    StopwatchHelper.Start("ExecuteReader");
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            
-                            logger.Trace("Time Sales:{0}", reader["time_sales"]);
-                            //Console.WriteLine(reader.GetString(0));
-                        }
-                    }
-                   StopwatchHelper.Stop("ExecuteReader");
-                }
-            }
-            
-            StopwatchHelper.Stop("Begin select");
-            _timer.Start();
-        }
+        
 
 
         static void DisplayHelp()
         {
-            string showInfo = @"====================HELP========================== \n\r
-                '-fp' or '-fpnumer' введите номер аппарата для выборки";
-            logger.Trace("Show info:{0}", showInfo);
-            Console.WriteLine(showInfo);
+            Console.WriteLine("====================HELP==========================");
+            Console.WriteLine("'-fp' or '-fpnumer' введите номер аппарата для выборки");
+            Console.WriteLine("'-s' or '-sqlserver' sql сервер для синхронизации");
+            //logger.Trace("Show info:{0}", showInfo);
+            //Console.WriteLine(showInfo);
             
         }
     }
