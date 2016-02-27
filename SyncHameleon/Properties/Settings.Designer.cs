@@ -42,5 +42,25 @@ namespace SyncHameleon.Properties {
                 return ((uint)(this["TimerIntervalSec"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=FOCUS-A;Initial Catalog=FPWork;User ID=sa;Password=1СПредприятие82")]
+        public string FOCUSA {
+            get {
+                return ((string)(this["FOCUSA"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=focus-a;Initial Catalog=FPWork;User ID=sa;Password=1СПредприятие82")]
+        public string FPWorkConnectionString {
+            get {
+                return ((string)(this["FPWorkConnectionString"]));
+            }
+        }
     }
 }

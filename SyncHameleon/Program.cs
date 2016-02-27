@@ -32,7 +32,7 @@ namespace SyncHameleon
 #endif
 
             new OptionSet()
-                .Add("fp=|fpnumber=", f => fpnumber = f)
+                .Add("fp=|fpnumber=", fp => fpnumber = fp)
                 .Add("s=|sqlserver=", s => sqlserver = s)
                 .Add("?|h|help",h=>DisplayHelp())
                 .Parse(args);

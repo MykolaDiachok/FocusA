@@ -21,3 +21,5 @@ C:\Projects\FocusA\SyncHameleon\bin\Debug\EntityFramework.SqlServer.xml
 C:\Projects\FocusA\SyncHameleon\bin\Debug\System.Data.SQLite.xml
 C:\Projects\FocusA\SyncHameleon\bin\Debug\NDesk.Options.dll
 C:\Projects\FocusA\SyncHameleon\bin\Debug\dbNlog.db
+C:\Projects\FocusA\SyncHameleon\bin\Debug\linq2db.dll
+C:\Projects\FocusA\SyncHameleon\bin\Debug\linq2db.pdb

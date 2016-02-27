@@ -33,7 +33,7 @@ namespace TestComm
 
 
             Protocols pr = new Protocols(4);
-            bool op;
+            //bool op;
             pr.FPResetOrder();
             pr.FPSaleEx(1, 0, false, 3000, 0, false, "X-fiter", 1,false);
             //Console.WriteLine("{0}",pr.FPPayment(1, 1000, false, true));
