@@ -99,9 +99,9 @@ namespace CentralLib.Protocols
     {
         public bool? ErrorOfConnectionWithPrinter; //ошибка связи с принтером
         public bool? ReceiptPaperIsAlmostEnded; //чековая лента почти заканчивается
-        public bool? ControlPaperIsAlmostEnded; //чековая лента почти заканчивается        
+        public bool? ControlPaperIsAlmostEnded; //контрольная лента почти заканчивается        
         public bool? ReceiptPaperIsFinished; //чековая лента закончилась
-        public bool? ControlPaperIsFinished; //чековая лента закончилась
+        public bool? ControlPaperIsFinished; //контрольная лента закончилась
 
         public PapStat(byte inputByte):this()
         {
@@ -113,6 +113,21 @@ namespace CentralLib.Protocols
             ReceiptPaperIsAlmostEnded = _bit[6];
         }
 
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            if ((bool)ErrorOfConnectionWithPrinter)
+                sb.Append("ошибка связи с принтером;");
+            if ((bool)ReceiptPaperIsAlmostEnded)
+                sb.Append("чековая лента почти заканчивается;");
+            if ((bool)ControlPaperIsAlmostEnded)
+                sb.Append("контрольная лента почти заканчивается;");
+            if ((bool)ReceiptPaperIsFinished)
+                sb.Append("чековая лента закончилась;");
+            if ((bool)ControlPaperIsFinished)
+                sb.Append("контрольная лента закончилась;");
+            return "";
+        }
         
 
     }

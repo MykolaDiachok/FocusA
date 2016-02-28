@@ -1459,8 +1459,10 @@ namespace CentralLib.Protocols
         /// <returns></returns>
         private string PrintByteArrayX(byte[] bytes)
         {
-
-            return BitConverter.ToString(bytes).Replace("-", " ");
+            if (bytes.Length > 0)
+                return BitConverter.ToString(bytes).Replace("-", " ");
+            else
+                return "";
         }
         #endregion
 

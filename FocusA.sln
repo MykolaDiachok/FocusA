@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CentralLib", "ClassLibrary1\CentralLib.csproj", "{ABAC24C1-E800-4F1C-A77C-C5A4E17A1468}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestComm", "TestComm\TestComm.csproj", "{D3A2AB48-1363-404C-A8C3-A9CBA5302115}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyncHameleon", "SyncHameleon\SyncHameleon.csproj", "{FA35273B-2592-446C-B1DE-FBE68FEB8008}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrintFP", "PrintFP\PrintFP.csproj", "{9C31E9BE-CA41-4280-89D2-5720AA2FC12B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{FA35273B-2592-446C-B1DE-FBE68FEB8008}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA35273B-2592-446C-B1DE-FBE68FEB8008}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA35273B-2592-446C-B1DE-FBE68FEB8008}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C31E9BE-CA41-4280-89D2-5720AA2FC12B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C31E9BE-CA41-4280-89D2-5720AA2FC12B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C31E9BE-CA41-4280-89D2-5720AA2FC12B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C31E9BE-CA41-4280-89D2-5720AA2FC12B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,1 @@
+﻿RESTORE DATABASE FpWork FROM DISK='c:\T\fpwork.bak'

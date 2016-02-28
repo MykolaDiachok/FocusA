@@ -1,0 +1,14 @@
+I:\FocusA\PrintFP\bin\Debug\PrintFP.exe.config
+I:\FocusA\PrintFP\bin\Debug\NLog.config
+I:\FocusA\PrintFP\bin\Debug\PrintFP.exe
+I:\FocusA\PrintFP\bin\Debug\PrintFP.pdb
+I:\FocusA\PrintFP\bin\Debug\NBug.dll
+I:\FocusA\PrintFP\bin\Debug\NDesk.Options.dll
+I:\FocusA\PrintFP\bin\Debug\NLog.dll
+I:\FocusA\PrintFP\bin\Debug\NBug.xml
+I:\FocusA\PrintFP\bin\Debug\NLog.xml
+I:\FocusA\PrintFP\obj\Debug\PrintFP.csprojResolveAssemblyReference.cache
+I:\FocusA\PrintFP\obj\Debug\PrintFP.exe
+I:\FocusA\PrintFP\obj\Debug\PrintFP.pdb
+I:\FocusA\PrintFP\bin\Debug\ClassLibrary1.dll
+I:\FocusA\PrintFP\bin\Debug\ClassLibrary1.pdb
