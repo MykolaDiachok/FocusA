@@ -47,9 +47,10 @@ namespace SyncHameleon
             logger.Info("Set fp number:{0}", fpnumber);
             GlobalDiagnosticsContext.Set("sqlserver", sqlserver);
             logger.Info("Set sqlserver:{0}", sqlserver);
+            Postrgres runTimer = new Postrgres(sqlserver, fpnumber);
+            runTimer.startSync();
+            //Postrgres.startSync(sqlserver, fpnumber);
 
-            Postrgres.startSync(sqlserver, fpnumber);
-                    
 
             logger.Trace("End Main");
         }

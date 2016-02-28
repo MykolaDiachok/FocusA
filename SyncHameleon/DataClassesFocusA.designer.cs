@@ -2724,7 +2724,7 @@ namespace SyncHameleon
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CommentUp", DbType="VarChar(50) NOT NULL", CanBeNull=false)]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CommentUp", DbType="NVarChar(27) NOT NULL", CanBeNull=false)]
 		public string CommentUp
 		{
 			get
@@ -2744,7 +2744,7 @@ namespace SyncHameleon
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Comment", DbType="VarChar(50) NOT NULL", CanBeNull=false)]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Comment", DbType="NVarChar(27) NOT NULL", CanBeNull=false)]
 		public string Comment
 		{
 			get
@@ -3131,17 +3131,17 @@ namespace SyncHameleon
 		
 		private int _SESSID;
 		
-		private int _SYSTEMID;
+		private long _SYSTEMID;
 		
 		private int _SAREAID;
 		
-		private int _SORT;
+		private long _SORT;
 		
 		private int _Type;
 		
 		private string _FRECNUM;
 		
-		private int _SRECNUM;
+		private long _SRECNUM;
 		
 		private int _Amount;
 		
@@ -3156,6 +3156,10 @@ namespace SyncHameleon
 		private bool _MemoryGoodName;
 		
 		private string _GoodName;
+		
+		private string _CommentUp;
+		
+		private string _CommentDown;
 		
 		private string _StrCode;
 		
@@ -3197,17 +3201,17 @@ namespace SyncHameleon
     partial void OnFPNumberChanged();
     partial void OnSESSIDChanging(int value);
     partial void OnSESSIDChanged();
-    partial void OnSYSTEMIDChanging(int value);
+    partial void OnSYSTEMIDChanging(long value);
     partial void OnSYSTEMIDChanged();
     partial void OnSAREAIDChanging(int value);
     partial void OnSAREAIDChanged();
-    partial void OnSORTChanging(int value);
+    partial void OnSORTChanging(long value);
     partial void OnSORTChanged();
     partial void OnTypeChanging(int value);
     partial void OnTypeChanged();
     partial void OnFRECNUMChanging(string value);
     partial void OnFRECNUMChanged();
-    partial void OnSRECNUMChanging(int value);
+    partial void OnSRECNUMChanging(long value);
     partial void OnSRECNUMChanged();
     partial void OnAmountChanging(int value);
     partial void OnAmountChanged();
@@ -3223,6 +3227,10 @@ namespace SyncHameleon
     partial void OnMemoryGoodNameChanged();
     partial void OnGoodNameChanging(string value);
     partial void OnGoodNameChanged();
+    partial void OnCommentUpChanging(string value);
+    partial void OnCommentUpChanged();
+    partial void OnCommentDownChanging(string value);
+    partial void OnCommentDownChanged();
     partial void OnStrCodeChanging(string value);
     partial void OnStrCodeChanged();
     partial void OnErrorChanging(System.Nullable<bool> value);
@@ -3359,8 +3367,8 @@ namespace SyncHameleon
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_SYSTEMID", DbType="Int NOT NULL")]
-		public int SYSTEMID
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_SYSTEMID", DbType="BigInt NOT NULL")]
+		public long SYSTEMID
 		{
 			get
 			{
@@ -3399,8 +3407,8 @@ namespace SyncHameleon
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_SORT", DbType="Int NOT NULL")]
-		public int SORT
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_SORT", DbType="BigInt NOT NULL")]
+		public long SORT
 		{
 			get
 			{
@@ -3459,8 +3467,8 @@ namespace SyncHameleon
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_SRECNUM", DbType="Int NOT NULL")]
-		public int SRECNUM
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_SRECNUM", DbType="BigInt NOT NULL")]
+		public long SRECNUM
 		{
 			get
 			{
@@ -3599,7 +3607,7 @@ namespace SyncHameleon
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_GoodName", DbType="VarChar(50) NOT NULL", CanBeNull=false)]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_GoodName", DbType="NVarChar(75) NOT NULL", CanBeNull=false)]
 		public string GoodName
 		{
 			get
@@ -3615,6 +3623,46 @@ namespace SyncHameleon
 					this._GoodName = value;
 					this.SendPropertyChanged("GoodName");
 					this.OnGoodNameChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CommentUp", DbType="NVarChar(27)")]
+		public string CommentUp
+		{
+			get
+			{
+				return this._CommentUp;
+			}
+			set
+			{
+				if ((this._CommentUp != value))
+				{
+					this.OnCommentUpChanging(value);
+					this.SendPropertyChanging();
+					this._CommentUp = value;
+					this.SendPropertyChanged("CommentUp");
+					this.OnCommentUpChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CommentDown", DbType="NVarChar(27)")]
+		public string CommentDown
+		{
+			get
+			{
+				return this._CommentDown;
+			}
+			set
+			{
+				if ((this._CommentDown != value))
+				{
+					this.OnCommentDownChanging(value);
+					this.SendPropertyChanging();
+					this._CommentDown = value;
+					this.SendPropertyChanged("CommentDown");
+					this.OnCommentDownChanged();
 				}
 			}
 		}

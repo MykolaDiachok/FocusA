@@ -84,9 +84,11 @@ namespace SyncHameleon.DBHelper
         public string print_name_goods { get; set; }
         public int id_tax { get; set; }
         public int id_unit { get; set; }
+        public string name_unit { get; set; }
+        public int type_unit { get; set; }
         public string id_series { get; set; }
         public string name_series { get; set; }
-        public float quantity { get; set; }
+        public decimal quantity { get; set; }
         public int price { get; set; }
         public int discount { get; set; }
         public int summ { get; set; }
@@ -97,7 +99,7 @@ namespace SyncHameleon.DBHelper
         //Совместимость
         //
         public int Type { get; set; }
-        public int SORT { get; set; }
+        public long SORT { get; set; }
         public int Amount { get; set; }
         public int Amount_Status { get; set; }
         public int NalogGroup { get; set; }
@@ -117,6 +119,10 @@ namespace SyncHameleon.DBHelper
             this.print_name_goods = inReader["print_name_goods"].ToString();
             this.id_tax = (int)inReader["id_tax"];
             this.id_unit = (int)inReader["id_unit"];
+            this.name_unit = inReader["name_unit"].ToString();
+            this.type_unit = (short)inReader["type_unit"];
+            this.quantity = Math.Abs((decimal)inReader["quantity"]);
+            
             this.id_series = inReader["id_series"].ToString();
             this.name_series = inReader["name_series"].ToString();
             
@@ -128,12 +134,36 @@ namespace SyncHameleon.DBHelper
             this.time_create = (DateTime)inReader["time_create"];
             this.time_change = (DateTime)inReader["time_change"];
             this.Type = 0;
+
             if ((int)inReader["summ"] < 0)
             {
-                this.Type = 1;
-                this.quantity = -(float)inReader["quantity"];
+                this.Type = 1;                
                 this.summ = -(int)inReader["summ"];
             }
+            //
+            //
+            //
+            this.Amount_Status = 0;
+            this.Amount = (int)quantity;
+            if (this.type_unit != 1)
+            {
+                this.Amount_Status = 3;
+                this.Amount = (int)Math.Abs((decimal)inReader["quantity"] * 1000);
+            }
+            
+            //
+            //
+            //
+            this.NalogGroup = this.id_tax - 1;
+            this.GoodName = this.print_name_goods+" "+ this.name_unit;
+            if ((this.name_series!=null)&&(this.name_series.Length>0))
+            {
+                this.GoodName += " "+this.name_series;
+            }
+            this.GoodName = this.GoodName.Substring(0,Math.Min(75,this.GoodName.Length));
+            this.StrCode = inReader["id_goods"].ToString();
+            this.packname = (int)inReader["id_unit"];
+            this.SORT = (long)inReader["id_check_line"];
 
         }
 

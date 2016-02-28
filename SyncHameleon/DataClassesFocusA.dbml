@@ -114,8 +114,8 @@
       <Column Name="Payment7" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="CheckClose" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
       <Column Name="FiscStatus" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
-      <Column Name="CommentUp" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
-      <Column Name="Comment" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="CommentUp" Type="System.String" DbType="NVarChar(27) NOT NULL" CanBeNull="false" />
+      <Column Name="Comment" Type="System.String" DbType="NVarChar(27) NOT NULL" CanBeNull="false" />
       <Column Name="Old_Payment" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="Error" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
       <Column Name="ByteStatus" Type="System.Int32" DbType="Int" CanBeNull="true" />
@@ -141,19 +141,21 @@
       <Column Name="DATETIME" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
       <Column Name="FPNumber" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="SESSID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="SYSTEMID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="SYSTEMID" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
       <Column Name="SAREAID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="SORT" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="SORT" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
       <Column Name="Type" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="FRECNUM" Type="System.String" DbType="NVarChar(30) NOT NULL" CanBeNull="false" />
-      <Column Name="SRECNUM" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="SRECNUM" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
       <Column Name="Amount" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="Amount_Status" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="IsOneQuant" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
       <Column Name="Price" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="NalogGroup" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="MemoryGoodName" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
-      <Column Name="GoodName" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="GoodName" Type="System.String" DbType="NVarChar(75) NOT NULL" CanBeNull="false" />
+      <Column Name="CommentUp" Type="System.String" DbType="NVarChar(27)" CanBeNull="true" />
+      <Column Name="CommentDown" Type="System.String" DbType="NVarChar(27)" CanBeNull="true" />
       <Column Name="StrCode" Type="System.String" DbType="NChar(10) NOT NULL" CanBeNull="false" />
       <Column Name="Error" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
       <Column Name="ByteStatus" Type="System.Int32" DbType="Int" CanBeNull="true" />

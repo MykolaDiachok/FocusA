@@ -17,10 +17,26 @@ namespace SyncHameleon
 {
     class Postrgres
     {
-        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        private static System.Timers.Timer _timer;
-        private static string _SQLServer, _FPNumber;
+        private NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+        private System.Timers.Timer _timer;
+        private string _SQLServer, _FPNumber;
+        private bool bSQLServer=false, bFPNumber=false;
+        private DateTime startJob;
 
+        public Postrgres(string sqlserver, string fpnumber)
+        {
+            this._SQLServer = sqlserver;
+            this._FPNumber = fpnumber;
+            if ((this._SQLServer!=null)&&(this._SQLServer.Length>1)) this.bSQLServer = true;
+            if ((this._FPNumber != null) && (this._FPNumber.Length > 1)) this.bFPNumber = true;
+        }
+
+        public void startSync()
+        {
+            if (!this.bSQLServer &&!this.bFPNumber)
+                throw new System.ArgumentException("Value _SQLServer & _FPNumber is null");
+            startTimer();
+        }
 
 
         /// <summary>
@@ -28,19 +44,31 @@ namespace SyncHameleon
         /// </summary>
         /// <param name="sqlserver">Строка ссылка на sqlсервер, если есть</param>
         /// <param name="fpnumber">Если указан то № ФР</param>
-        public static void startSync(string sqlserver, string fpnumber)
+        public void startSync(string sqlserver, string fpnumber)
         {
-            _SQLServer = sqlserver;
-            _FPNumber = fpnumber;
+            this._SQLServer = sqlserver;
+            this._FPNumber = fpnumber;
+            if ((this._SQLServer != null) && (this._SQLServer.Length > 1)) this.bSQLServer = true;
+            if ((this._FPNumber != null) && (this._FPNumber.Length > 1)) this.bFPNumber = true;
+            if (!this.bSQLServer && !this.bFPNumber)
+                throw new System.ArgumentException("Value _SQLServer & _FPNumber is null");
+            startTimer();
+        }
+
+        private void startTimer()
+        {
+            startJob = DateTime.Now;
             _timer = new System.Timers.Timer();
             _timer.Interval = (Properties.Settings.Default.TimerIntervalSec * 1000);
             _timer.Elapsed += (sender, e) => { HandleTimerElapsed(); };
             _timer.Enabled = true;
             Console.ReadLine();
+            Console.WriteLine("Time start:{0}", startJob);
+            Console.WriteLine("Time stop:{0}", DateTime.Now);
             _timer.Dispose();
         }
 
-        private static void HandleTimerElapsed()
+        private void HandleTimerElapsed()
         {
             _timer.Stop();
             SelectChecksOperation();
@@ -54,7 +82,7 @@ namespace SyncHameleon
         /// </summary>
         /// <param name="_focusA">Ссылка на базу</param>
         /// <returns></returns>
-        public static List<tbl_ComInit> connectToFocusA(DataClassesFocusADataContext _focusA)
+        public List<tbl_ComInit> connectToFocusA(DataClassesFocusADataContext _focusA)
         {
 
             //DataClassesFocusADataContext _focusA = new DataClassesFocusADataContext();
@@ -75,10 +103,10 @@ namespace SyncHameleon
         /// <summary>
         /// Выборка и обработка чеков
         /// </summary>
-        private static void SelectChecksOperation()
+        private void SelectChecksOperation()
         {
 
-            StopwatchHelper.Start("Begin select CHECKS");
+            //StopwatchHelper.Start("Select CHECKS");
 
             using (DataClassesFocusADataContext _focusA = new DataClassesFocusADataContext())
             {
@@ -96,69 +124,176 @@ namespace SyncHameleon
                         //logger.Trace("NpgsqlConnection:{0}", connection);
                         conn.Open();
 
+                        syncChecks(_focusA, initRow, tBegin, tEnd, conn); //синхронизация с postgresql
+                    }
 
-                        using (var cmd = new NpgsqlCommand())
+                    // установка disable
+                    Table<tbl_Payment> tablePayment = _focusA.GetTable<tbl_Payment>();
+                    Table<tbl_Operation> tableOperation = _focusA.GetTable<tbl_Operation>();
+                    //initRow.PrintEvery
+                    //initRow.TypeEvery
+                    setDisableHeadChecks(_focusA, initRow, tablePayment);
+
+                    var allOp = (from tOperation in tableOperation
+                                 where tOperation.FPNumber == (int)initRow.FPNumber
+                                                  && tOperation.DateTime >= initRow.DateTimeBegin && tOperation.DateTime < initRow.DateTimeStop
+                                 select tOperation);
+
+                    var allPayment = (from list1 in tablePayment
+                                      where list1.FPNumber == (int)initRow.FPNumber
+                                          && list1.DATETIME >= initRow.DateTimeBegin && list1.DATETIME < initRow.DateTimeStop
+                                          && !((bool)list1.Disable)
+                                      select list1);
+
+                    var preOp = (from list1 in tablePayment
+                                 where list1.FPNumber == (int)initRow.FPNumber
+                                     && list1.DATETIME >= initRow.DateTimeBegin && list1.DATETIME < initRow.DateTimeStop
+                                     && !((bool)list1.Disable)
+                                 select list1).Except(
+                                    from tPayment in allPayment
+                                        join tOperation in allOp
+
+                                       on           new { DATETIME = tPayment.DATETIME,     FPNumber = tPayment.FPNumber,   Op = tPayment.Operation,    Num = tPayment.id }
+                                            equals  new { DATETIME = tOperation.DateTime,   FPNumber = tOperation.FPNumber, Op = tOperation.Operation,  Num = (long)tOperation.NumSlave }
+                                         select tPayment);
+                    foreach(var rowPayment in preOp)
+                    {
+                        tbl_Operation newOp = new tbl_Operation
                         {
-                            cmd.Connection = conn;
-                            cmd.CommandText = @"select *
+                            NumSlave = rowPayment.id,
+                            DateTime = rowPayment.DATETIME,
+                            FPNumber = rowPayment.FPNumber,
+                            Operation = rowPayment.Operation,
+                            InWork = false,
+                            Closed = false,
+                            CurentDateTime = DateTime.Now,
+                            Disable = false
+                        };
+                        _focusA.tbl_Operations.InsertOnSubmit(newOp);                        
+                        _focusA.SubmitChanges();
+                        rowPayment.NumOperation = newOp.id;
+                        _focusA.SubmitChanges();
+                    }
+                    
+                }
+            }
+            //StopwatchHelper.Stop("Select CHECKS");
+        }
+
+        private static void setDisableHeadChecks(DataClassesFocusADataContext _focusA, tbl_ComInit initRow, Table<tbl_Payment> tablePayment)
+        {
+            StopwatchHelper.Start("Set Disable:" + initRow.RealNumber);
+            var preparePayment = (from list in tablePayment
+                                  where list.FPNumber == (int)initRow.FPNumber
+                                   && list.DATETIME >= initRow.DateTimeBegin && list.DATETIME < initRow.DateTimeStop
+                                   && ((list.Payment - list.Payment3 == 0) || (list.Type != 0))
+                                  select list).OrderBy(x => x.DATETIME);
+            int index = 0;
+            int PrintEvery = (int)initRow.PrintEvery;
+            if (PrintEvery == 0) PrintEvery = 1;
+            bool TypeEvery = (bool)initRow.TypeEvery;
+            bool disable = false;
+            foreach (var rowPayment in preparePayment)
+            {
+                index++;
+                if (TypeEvery)
+                {
+                    if (index % PrintEvery == 0)
+                        disable = true;
+                    else
+                        disable = false;
+                }
+                else
+                {
+                    if (index % PrintEvery == 0)
+                        disable = false;
+                    else
+                        disable = true;
+                }
+                if (rowPayment.Disable != disable)
+                {
+                    rowPayment.Disable = disable;
+                    _focusA.SubmitChanges();
+                }
+
+            }
+            StopwatchHelper.Stop("Set Disable:" + initRow.RealNumber);
+        }
+
+        /// <summary>
+        /// синхронизация чеков с postgresql
+        /// </summary>
+        /// <param name="_focusA">ссылка на linq базу</param>
+        /// <param name="initRow">текущая строка ComInit</param>
+        /// <param name="tBegin">Дата начала</param>
+        /// <param name="tEnd">Дата окончения</param>
+        /// <param name="conn">Postgresql соединение</param>
+        private void syncChecks(DataClassesFocusADataContext _focusA, tbl_ComInit initRow, DateTime tBegin, DateTime tEnd, NpgsqlConnection conn)
+        {
+            StopwatchHelper.Start("CHECKSHEADS:" + initRow.RealNumber);
+            using (var cmd = new NpgsqlCommand())
+            {
+                cmd.Connection = conn;
+                cmd.CommandText = @"select *
 			                                from sales.checks checks                                            
 			                                where checks.id_workplace = :RealNumber                                                
                                                 and type_payment in (1,2)
                                                 and checks.time_check>='" + tBegin.ToString("dd.MM.yyyy HH:mm:ss") + @"'
                                                 and checks.time_check<'" + tEnd.AddSeconds(1).ToString("dd.MM.yyyy HH:mm:ss") + @"'
 			                               ";
-                            cmd.Parameters.Add(new NpgsqlParameter("RealNumber", DbType.Int32));
-                            cmd.Parameters[0].Value = initRow.RealNumber;
-                            //logger.Trace("Select from base:{0}", cmd.CommandText);
-                            StopwatchHelper.Start("ExecuteReader");
-                            List<DBHelper.Checks> listChecks = new List<DBHelper.Checks>();
-                            using (var reader = cmd.ExecuteReader())
-                            {
-                                while (reader.Read())
-                                {                                    
-                                    listChecks.Add(new DBHelper.Checks(reader));
-                                    //long _dt = getintDateTime((DateTime)reader["time_check"]);
-                                    //int _fp = (int)initRow.FPNumber;
-                                    //logger.Trace("Time:{0}\tOp:{1}", reader["time_check"], reader["id_employee"]);
-                                }
-                            }
-                            StopwatchHelper.Stop("ExecuteReader");
+                cmd.Parameters.Add(new NpgsqlParameter("RealNumber", DbType.Int32));
+                cmd.Parameters[0].Value = initRow.RealNumber;
+                //logger.Trace("Select from base:{0}", cmd.CommandText);
 
-                            Table<tbl_Payment> tablePayment = _focusA.GetTable<tbl_Payment>();
-                            //var query =
-                            //    from list in tablePayment
-                            //    where list.FPNumber == (int)initRow.FPNumber
-                            //    && list.DATETIME >= initRow.DateTimeBegin && list.DATETIME < initRow.DateTimeStop                                
-                            //    select list;
-                            //List<tbl_Payment> listPayment = query.ToList<tbl_Payment>();
-
-                            var linked = (from lC in listChecks
-                                          join lP in (from list in tablePayment
-                                                      where list.FPNumber == (int)initRow.FPNumber
-                                                      && list.DATETIME >= initRow.DateTimeBegin && list.DATETIME < initRow.DateTimeStop
-                                                      select list)
-                                          on    new { Operation = lC.Operation, DATETIME = lC.DATETIME, id_workplace = lC.id_workplace, id_session =lC.id_session, id_scheck = (int)lC.id_scheck,   id_check = lC.id_check } 
-                                          equals 
-                                                new { Operation = lP.Operation, DATETIME = lP.DATETIME, id_workplace = lP.SAREAID,      id_session = lP.SESSID,     id_scheck = (int)lP.SRECNUM,     id_check = lP.SYSTEMID }
-                                          select lC);
-                            //var T = linked.ToList();
-                            var notLinked = listChecks.Except(linked);
-                            List<tbl_Payment> listPayment = new List<tbl_Payment>();
-                            foreach (DBHelper.Checks check in notLinked)
-                            {
-                                listPayment.Add(insertPayment(_focusA, initRow, check));
-                            }
+                List<DBHelper.Checks> listChecks = new List<DBHelper.Checks>();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        listChecks.Add(new DBHelper.Checks(reader));
+                        //logger.Trace("Time:{0}\tOp:{1}", reader["time_check"], reader["id_employee"]);
+                    }
+                }
 
 
-                            using (var cmd1 = new NpgsqlCommand())
-                            {
-                                cmd1.Connection = conn;
-                                cmd1.CommandText = @"select check_lines.*,goods_attrs.print_name_goods , series.name_series, goods.id_tax
+                Table<tbl_Payment> tablePayment = _focusA.GetTable<tbl_Payment>();
+                //var query =
+                //    from list in tablePayment
+                //    where list.FPNumber == (int)initRow.FPNumber
+                //    && list.DATETIME >= initRow.DateTimeBegin && list.DATETIME < initRow.DateTimeStop                                
+                //    select list;
+                //List<tbl_Payment> listPayment = query.ToList<tbl_Payment>();
+
+                var linked = (from lC in listChecks
+                              join lP in (from list in tablePayment
+                                          where list.FPNumber == (int)initRow.FPNumber
+                                          && list.DATETIME >= initRow.DateTimeBegin && list.DATETIME < initRow.DateTimeStop
+                                          select list)
+                              on new { Operation = lC.Operation, DATETIME = lC.DATETIME, id_workplace = lC.id_workplace, id_session = lC.id_session, id_scheck = (int)lC.id_scheck, id_check = lC.id_check }
+                              equals
+                                    new { Operation = lP.Operation, DATETIME = lP.DATETIME, id_workplace = lP.SAREAID, id_session = lP.SESSID, id_scheck = (int)lP.SRECNUM, id_check = lP.SYSTEMID }
+                              select lC);
+                //var T = linked.ToList();
+                var notLinked = listChecks.Except(linked);
+                List<tbl_Payment> listPayment = new List<tbl_Payment>();
+                foreach (DBHelper.Checks check in notLinked)
+                {
+                    listPayment.Add(insertPayment(_focusA, initRow, check));
+                }
+                StopwatchHelper.Stop("CHECKSHEADS:" + initRow.RealNumber);
+
+                StopwatchHelper.Start("CHECKSLINES:" + initRow.RealNumber);
+                using (var cmdCheck_lines = new NpgsqlCommand())
+                {
+                    cmdCheck_lines.Connection = conn;
+                    cmdCheck_lines.CommandText = @"select check_lines.*,goods_attrs.print_name_goods , series.name_series, goods.id_tax, unit.name_unit, unit.type_unit
 			                                            from sales.check_lines check_lines
 											            left join front.goods_attrs goods_attrs
 											                on goods_attrs.id_goods = check_lines.id_goods
                                                         left join front.goods goods
 											                on goods.id_goods = check_lines.id_goods
+                                                        left join front.unit
+															on unit.id_unit = check_lines.id_unit
 											            left join front.series series
 											                on check_lines.id_series = series.id_series and check_lines.id_goods = series.id_goods 
 											                    and  check_lines.id_series != '-'                                              
@@ -167,32 +302,134 @@ namespace SyncHameleon
                                                             and check_lines.time_create>='" + tBegin.ToString("dd.MM.yyyy HH:mm:ss") + @"'
                                                             and check_lines.time_create<'" + tEnd.AddSeconds(1).ToString("dd.MM.yyyy HH:mm:ss") + @"'
                                   ";
-                                cmd1.Parameters.Add(new NpgsqlParameter("RealNumber", DbType.Int32));
-                                cmd1.Parameters.Add(new NpgsqlParameter("arrayChecks", NpgsqlDbType.Array| NpgsqlDbType.Bigint));
-                                cmd1.Parameters[0].Value = initRow.RealNumber;
-                                cmd1.Parameters[1].Value = listPayment.Select(x=>x.SYSTEMID).ToArray();
-                                StopwatchHelper.Start("ExecuteReader1");
-                                List<DBHelper.Check_Lines> listChecks_Lines = new List<DBHelper.Check_Lines>();
+                    cmdCheck_lines.Parameters.Add(new NpgsqlParameter("RealNumber", DbType.Int32));
+                    //cmdCheck_lines.Parameters.Add(new NpgsqlParameter("arrayChecks", NpgsqlDbType.Array| NpgsqlDbType.Bigint));
+                    cmdCheck_lines.Parameters[0].Value = initRow.RealNumber;
+                    ///cmd1.Parameters[1].Value = listPayment.Select(x=>x.SYSTEMID).ToArray(); // не работает в postgresql                                
+                    List<DBHelper.Check_Lines> listChecks_Lines = new List<DBHelper.Check_Lines>();
 
-                                using (var reader1 = cmd1.ExecuteReader())
-                                {
-                                    while (reader1.Read())
-                                    {
-                                        listChecks_Lines.Add(new DBHelper.Check_Lines(reader1));
-                                    }
-                                }
-                                StopwatchHelper.Stop("ExecuteReader1");
-                            }
-
-
+                    using (var readerCheck_lines = cmdCheck_lines.ExecuteReader())
+                    {
+                        while (readerCheck_lines.Read())
+                        {
+                            listChecks_Lines.Add(new DBHelper.Check_Lines(readerCheck_lines));
                         }
                     }
+
+                    //var tempList =
+                    //    (from list in tablePayment
+                    //    where list.FPNumber == (int)initRow.FPNumber
+                    //    && list.DATETIME >= initRow.DateTimeBegin && list.DATETIME < initRow.DateTimeStop                                
+                    //    && list.RowCount==0
+                    //    select list).ToList();
+                    //var linkedCheckLines = (from tListCheckLines in listChecks_Lines
+                    //                        join tPayment in (from list in tablePayment
+                    //                                          where list.FPNumber == (int)initRow.FPNumber
+                    //                                          && list.DATETIME >= initRow.DateTimeBegin && list.DATETIME < initRow.DateTimeStop
+                    //                                          && list.RowCount == 0
+                    //                                          select list)
+                    //                              on new { id_check = tListCheckLines.id_check }
+                    //                        equals
+                    //                                  new { id_check = tPayment.SYSTEMID }
+                    //                        select tListCheckLines);
+                    //var forPreAddChecklines = (listChecks_Lines.Except((from tListCheckLines in listChecks_Lines
+                    //                                                    join tPayment in (from list in tablePayment
+                    //                                                                      where list.FPNumber == (int)initRow.FPNumber
+                    //                                                                      && list.DATETIME >= initRow.DateTimeBegin && list.DATETIME < initRow.DateTimeStop
+                    //                                                                      && list.RowCount > 0
+                    //                                                                      select list)
+                    //                                                          on new { id_check = tListCheckLines.id_check }
+                    //                                                    equals
+                    //                                                              new { id_check = tPayment.SYSTEMID }
+                    //                                                    select tListCheckLines)));
+
+                    var forAddChekLines = (from tCheckLines in (listChecks_Lines.Except((from tListCheckLines in listChecks_Lines
+                                                                                         join tPayment in (from list in tablePayment
+                                                                                                           where list.FPNumber == (int)initRow.FPNumber
+                                                                                                           && list.DATETIME >= initRow.DateTimeBegin && list.DATETIME < initRow.DateTimeStop
+                                                                                                           && list.RowCount > 0
+                                                                                                           select list)
+                                                                                               on new { id_check = tListCheckLines.id_check }
+                                                                                         equals
+                                                                                                   new { id_check = tPayment.SYSTEMID }
+                                                                                         select tListCheckLines)))
+                                           join tPayment in (from list in tablePayment
+                                                             where list.FPNumber == (int)initRow.FPNumber
+                                                             && list.DATETIME >= initRow.DateTimeBegin && list.DATETIME < initRow.DateTimeStop
+                                                             select list)
+                                            on tCheckLines.id_check equals tPayment.SYSTEMID
+                                           orderby tPayment.SYSTEMID
+                                           select new { tCheckLines, tPayment }).OrderBy(x => x.tPayment.SYSTEMID).ThenBy(x => x.tCheckLines.id_check_line)
+                                          ;
+
+                    List<tbl_SALE> listSales = new List<tbl_SALE>();
+                    int rowsort = 1;
+                    int sumcheck = 0;
+                    long idcheck = 0;
+                    foreach (var rowCheckLines in forAddChekLines)
+                    {
+
+                        if (idcheck == rowCheckLines.tCheckLines.id_check)
+                        {
+                            rowsort++;
+                        }
+                        else
+                        {
+                            idcheck = rowCheckLines.tCheckLines.id_check;
+                            rowsort = 1;
+                            rowCheckLines.tPayment.CheckSum = 0;
+                        }
+                        tbl_SALE sale = new tbl_SALE
+                        {
+                            NumPayment = rowCheckLines.tPayment.id,
+                            FPNumber = (int)initRow.FPNumber,
+                            DATETIME = rowCheckLines.tPayment.DATETIME,
+                            SESSID = rowCheckLines.tPayment.SESSID,
+                            SYSTEMID = rowCheckLines.tPayment.SYSTEMID,
+                            SAREAID = rowCheckLines.tPayment.SAREAID,
+                            SORT = rowsort,
+                            Type = rowCheckLines.tCheckLines.Type,
+                            FRECNUM = rowCheckLines.tPayment.FRECNUM,
+                            SRECNUM = rowCheckLines.tPayment.SRECNUM,
+                            Amount = rowCheckLines.tCheckLines.Amount,
+                            Amount_Status = rowCheckLines.tCheckLines.Amount_Status,
+                            IsOneQuant = false,
+                            Price = rowCheckLines.tCheckLines.price,
+                            NalogGroup = rowCheckLines.tCheckLines.NalogGroup,
+                            MemoryGoodName = false,
+                            GoodName = rowCheckLines.tCheckLines.GoodName,
+                            StrCode = rowCheckLines.tCheckLines.StrCode,
+                            //Old_Price
+                            packname = rowCheckLines.tCheckLines.packname,
+                            //PackGuid
+                            RowSum = rowCheckLines.tCheckLines.summ,
+                            ForWork = true,
+                            discount = rowCheckLines.tCheckLines.discount
+                            //exchange
+                        };
+                        _focusA.tbl_SALEs.InsertOnSubmit(sale);
+                        rowCheckLines.tPayment.RowCount = rowsort;
+                        rowCheckLines.tPayment.CheckSum += rowCheckLines.tCheckLines.summ;
+                        _focusA.SubmitChanges();
+
+
+
+                    }
+
                 }
+
+                StopwatchHelper.Stop("CHECKSLINES:" + initRow.RealNumber);
             }
-            StopwatchHelper.Stop("Begin select CHECKS");
         }
 
-        private static tbl_Payment insertPayment(DataClassesFocusADataContext _focusA, tbl_ComInit initRow, DBHelper.Checks check)
+        /// <summary>
+        /// Добавление заголовков чеков 
+        /// </summary>
+        /// <param name="_focusA">ссылка на linq сервер</param>
+        /// <param name="initRow">Строка таблицы ComInit</param>
+        /// <param name="check">Подготовленый класс DBHelper.Checks </param>
+        /// <returns></returns>
+        private tbl_Payment insertPayment(DataClassesFocusADataContext _focusA, tbl_ComInit initRow, DBHelper.Checks check)
         {
             //TODO Скорее всего нужно будет смотреть в логи и искать сколько денег дал покупатель, пока данных нет
             // код в логах =19
@@ -239,15 +476,13 @@ namespace SyncHameleon
             return payment;
         }
 
-
-
         /// <summary>
         /// Процедура анализа лога и обновление базы
         /// </summary>
-        private static void SelectLogOperation()
+        private void SelectLogOperation()
         {
 
-            StopwatchHelper.Start("Begin select LOG");
+            
 
             using (DataClassesFocusADataContext _focusA = new DataClassesFocusADataContext())
             {
@@ -260,12 +495,12 @@ namespace SyncHameleon
                     DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
                     DateTime tEnd = DateTime.ParseExact(initRow.DateTimeStop.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
                     var connection = Properties.Settings.Default.Npgsql;//System.Configuration.ConfigurationManager.ConnectionStrings["Test"].ConnectionString;
+                    StopwatchHelper.Start("Select LOG:"+ initRow.RealNumber);
                     using (var conn = new NpgsqlConnection(connection))
                     {
-                        logger.Trace("NpgsqlConnection:{0}", connection);
+                        //logger.Trace("NpgsqlConnection:{0}", connection);
                         conn.Open();
-                        //getCashier(conn);
-
+                        //getCashier(conn);                        
                         using (var cmd = new NpgsqlCommand())
                         {
                             cmd.Connection = conn;
@@ -279,7 +514,7 @@ namespace SyncHameleon
                                                 and sales_log.time_create<'" + tEnd.AddSeconds(1).ToString("dd.MM.yyyy HH:mm:ss") + @"'
 			                               ";
                             //logger.Trace("Select from base:{0}", cmd.CommandText);
-                            StopwatchHelper.Start("ExecuteReader");
+                            
                             using (var reader = cmd.ExecuteReader())
                             {
                                 while (reader.Read())
@@ -304,7 +539,7 @@ namespace SyncHameleon
                                                 InsertCashier(_focusA, reader["name_employee"].ToString(), _dtCashiers, _fp);
                                             }
                                             insertCashIO(_focusA, reader["attrs"], _dt, _fp, false, 10); //внесение 10
-                                            logger.Trace("End operation InCash");
+                                            logger.Trace("Operation InCash");
                                             break;
                                         case (int)LogOperations.Check:
                                             logger.Trace("Operation Check");
@@ -365,12 +600,14 @@ namespace SyncHameleon
                                     //Console.WriteLine(reader.GetString(0));
                                 }
                             }
-                            StopwatchHelper.Stop("ExecuteReader");
+                            
                         }
                     }
+                    StopwatchHelper.Stop("Select LOG:" + initRow.RealNumber);
                 }
+                
             }
-            StopwatchHelper.Stop("Begin select LOG");
+            
 
 
         }
@@ -382,20 +619,20 @@ namespace SyncHameleon
         /// <param name="inName_Cashier">Имя кассира 15 символов</param>
         /// <param name="_dt">дата и время в int<</param>
         /// <param name="_fp">фискальный регистратор</param>
-        private static void InsertCashier(DataClassesFocusADataContext _focusA, string inName_Cashier, long _dt, int _fp)
+        private void InsertCashier(DataClassesFocusADataContext _focusA, string inName_Cashier, long _dt, int _fp)
         {
             var trow = _focusA.GetTable<tbl_Cashier>().FirstOrDefault(i => i.FPNumber == _fp && i.DATETIME == _dt && i.Operation == 3);
             if (trow != null)
-            {
-                logger.Trace("Operation SetCashier in base");
+            {                
                 return;
             }
+            logger.Trace("Operation SetCashier in base");
             tbl_Cashier cashier = new tbl_Cashier
             {
                 DATETIME = _dt,
                 FPNumber = _fp,
                 Num_Cashier = 0,
-                Name_Cashier = inName_Cashier.TrimStart().Substring(0, 15).Trim(), //TODO тут должно быть имя
+                Name_Cashier = inName_Cashier.TrimStart().Substring(0, Math.Min(15, inName_Cashier.TrimStart().Length)).Trim(), //TODO тут должно быть имя
                 Pass_Cashier = 0,
                 TakeProgName = false,
                 Operation = 3
@@ -424,7 +661,7 @@ namespace SyncHameleon
         /// <param name="conn">соединение с postgres</param>
         /// <param name="id_employee">id кассира</param>
         /// <returns></returns>
-        private static string getCashier(NpgsqlConnection conn, int id_employee)
+        private string getCashier(NpgsqlConnection conn, int id_employee)
         {
             using (var cmd = new NpgsqlCommand())
             {
@@ -453,12 +690,12 @@ namespace SyncHameleon
         /// <param name="_fp">фискальный регистратор</param>
         /// <param name="TypeOfMoney">тип денег</param>
         /// <param name="TypeOfOperation">тип операции</param>
-        private static void insertCashIO(DataClassesFocusADataContext _focusA, object tAttrs, long _dt, int _fp, bool TypeOfMoney, int TypeOfOperation)
+        private void insertCashIO(DataClassesFocusADataContext _focusA, object tAttrs, long _dt, int _fp, bool TypeOfMoney, int TypeOfOperation)
         {
             var trow = _focusA.GetTable<tbl_CashIO>().FirstOrDefault(i => i.FPNumber == _fp && i.DATETIME == _dt && i.Operation == TypeOfOperation);
             if (trow != null)
             {
-                logger.Trace("Operation InCash in base");
+                //logger.Trace("Operation InCash in base");
                 return;
             }
 
@@ -493,7 +730,7 @@ namespace SyncHameleon
         /// </summary>
         /// <param name="inDic">объектное поле</param>
         /// <returns></returns>
-        private static int returnMoney(object inDic)
+        private int returnMoney(object inDic)
         {
             Type t = inDic.GetType();
             bool isDict = t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Dictionary<,>);
@@ -511,7 +748,7 @@ namespace SyncHameleon
         /// </summary>
         /// <param name="inDateTime">Дата время DateTime</param>
         /// <returns></returns>
-        private static long getintDateTime(DateTime inDateTime)
+        private long getintDateTime(DateTime inDateTime)
         {
             //string sinDateTime = inDateTime.ToString("yyyyMMddHHmmss");
 
@@ -525,7 +762,7 @@ namespace SyncHameleon
         /// <param name="dBegin">Дата начала</param>
         /// <param name="dEnd">Дата окончания</param>
         /// <returns></returns>
-        private static string getQueryLog(string inFPNumber, DateTime dBegin, DateTime dEnd)
+        private string getQueryLog(string inFPNumber, DateTime dBegin, DateTime dEnd)
         {
             //TODO не забуть про +1 секунду вконце
             string ret = @"select sales_log.*, employees.name_employee 

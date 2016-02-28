@@ -16,7 +16,7 @@ namespace SyncHameleon
 
         public static void Start(string stopwatchName)
         {
-            logger.Trace("-> "+ stopwatchName);
+            logger.Trace("-> "+ stopwatchName+" >>BEGIN");
             Stopwatch stopwatch = Stopwatch.StartNew();
             stopwatches[stopwatchName] = stopwatch;
         }
@@ -31,7 +31,7 @@ namespace SyncHameleon
 
             // Format and display the TimeSpan value.
             GlobalDiagnosticsContext.Set("TimeSpan", milliseconds);
-            logger.Info("<- "+stopwatchName+":{0}",
+            logger.Info("<- "+stopwatchName+":{0}"+" <<END",
             String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
                 ts.Hours, ts.Minutes, ts.Seconds,
                 ts.Milliseconds / 10));
