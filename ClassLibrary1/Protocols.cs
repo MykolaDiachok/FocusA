@@ -1,5 +1,5 @@
 ﻿//#define Debug
-#define DebugErrorInfo
+//#define DebugErrorInfo
 
 using System;
 using System.Collections.Generic;
@@ -24,18 +24,49 @@ namespace CentralLib.Protocols
         /// Статус последней операцияя
         /// </summary>
         public bool statusOperation { get; private set; }
+
         /// <summary>
         /// Байт статуса
         /// </summary>
         public byte ByteStatus { get; private set; } // Возврат ФР статус
+
+        public strByteStatus structStatus
+        {
+            get
+            {               
+                return new strByteStatus(ByteStatus);
+            }
+        }
+
+
+
+
+
         /// <summary>
         /// Байт результат
         /// </summary>
         public byte ByteResult { get; private set; } // Возврат ФР результат
+
+        public strByteResult structResult
+        {
+            get
+            {
+                return new strByteResult(ByteResult);
+            }
+        }
+
         /// <summary>
         /// Байт резерва
         /// </summary>
         public byte ByteReserv { get; private set; } // Возврат ФР результат
+
+        public strByteReserv structReserv
+        {
+            get
+            {
+                return new strByteReserv(ByteReserv);
+            }
+        }
         public WorkProtocol currentProtocol { get; private set; }
         private ConnectionFP.ConnectionFP connFP = null;
         /// <summary>
@@ -67,7 +98,8 @@ namespace CentralLib.Protocols
         private void initial()
         {
             getStatus();
-            FPGetTaxRate();
+            if (!(bool)structStatus.ExceedingOfWorkingShiftDuration)
+                FPGetTaxRate();
         }
 
 
@@ -1071,6 +1103,8 @@ namespace CentralLib.Protocols
             byte[] forsending = new byte[] { 13 };
             forsending = Combine(forsending, BitConverter.GetBytes(pass));
             byte[] answer = ExchangeWithFP(forsending);
+
+            FPGetTaxRate(); // читаем ставки
             //TODO
             //По документации тут должно быть ответ с № КЛЕФ
             // return BitConverter.ToUInt32(answer, 0);
@@ -1500,7 +1534,7 @@ namespace CentralLib.Protocols
             return bytes;
         }
 
-        private bool GetBit(byte val, int num)
+        public bool GetBit(byte val, int num)
         {
             if ((num > 7) || (num < 0))//Проверка входных данных
             {
