@@ -34,7 +34,7 @@ namespace PrintFP.Primary
                             initRow.Error = false;
                             initRow.ErrorInfo = "";
                             initRow.ErrorCode = 0;
-
+                            var d = pr.dayReport;
 #if (!DEBUG)
                             initRow.FPNumber = pr.status.fiscalNumber;
 #endif

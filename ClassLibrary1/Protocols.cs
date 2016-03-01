@@ -18,6 +18,7 @@ namespace CentralLib.Protocols
     /// <summary>
     /// протокол обмена с фискальным регистратором
     /// </summary>
+    /// public partial class Protocols!!!!!!!!
     public class Protocols : IDisposable
     {
         /// <summary>
@@ -350,6 +351,89 @@ namespace CentralLib.Protocols
             {
                 this.statusOperation = false;
             }
+        }
+
+        private DayReport tDayReport;
+        public DayReport dayReport
+        {
+            get
+            {
+                if (lastByteCommand != 42)
+                    tDayReport = getDayReport();
+                return tDayReport;
+            }
+        }
+
+        private DayReport getDayReport()
+        {
+            byte[] bytesReturn, bytesReturn0, bytesReturn1, bytesReturn2, bytesReturn3;
+            {
+                byte[] forsending = new byte[] { 42 };
+                byte[] answer = ExchangeWithFP(forsending);
+                if ((connFP.statusOperation) && (answer.Length > 0))
+                {
+                    bytesReturn = answer;
+                }
+                else
+                {
+                    this.statusOperation = false;
+                    return new DayReport();
+                }
+            }
+            {
+                byte[] forsending = new byte[] { 42, 0 };
+                byte[] answer = ExchangeWithFP(forsending);
+                if ((connFP.statusOperation) && (answer.Length > 0))
+                {
+                    bytesReturn0 = answer;
+                }
+                else
+                {
+                    this.statusOperation = false;
+                    return new DayReport();
+                }
+            }
+            {
+                byte[] forsending = new byte[] { 42, 1 };
+                byte[] answer = ExchangeWithFP(forsending);
+                if ((connFP.statusOperation) && (answer.Length > 0))
+                {
+                    bytesReturn1 = answer;
+                }
+                else
+                {
+                    this.statusOperation = false;
+                    return new DayReport();
+                }
+            }
+            {
+                byte[] forsending = new byte[] { 42, 2 };
+                byte[] answer = ExchangeWithFP(forsending);
+                if ((connFP.statusOperation) && (answer.Length > 0))
+                {
+                    bytesReturn2 = answer;
+                }
+                else
+                {
+                    this.statusOperation = false;
+                    return new DayReport();
+                }
+            }
+            {
+                byte[] forsending = new byte[] { 42, 3 };
+                byte[] answer = ExchangeWithFP(forsending);
+                if ((connFP.statusOperation) && (answer.Length > 0))
+                {
+                    bytesReturn3 = answer;
+                }
+                else
+                {
+                    this.statusOperation = false;
+                    return new DayReport();
+                }
+            }
+
+            return new DayReport(bytesReturn, bytesReturn0, bytesReturn1, bytesReturn2, bytesReturn3);
         }
 
         /// <summary>

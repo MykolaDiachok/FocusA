@@ -361,12 +361,30 @@ namespace CentralLib.Protocols
     }
 
 
+    /// <summary>
+    /// Информация по бумаге
+    /// </summary>
     public struct PapStat
     {
+        /// <summary>
+        /// ошибка связи с принтером
+        /// </summary>
         public bool? ErrorOfConnectionWithPrinter; //ошибка связи с принтером
-        public bool? ReceiptPaperIsAlmostEnded; //чековая лента почти заканчивается
-        public bool? ControlPaperIsAlmostEnded; //контрольная лента почти заканчивается        
+        /// <summary>
+        /// чековая лента почти заканчивается
+        /// </summary>
+        public bool? ReceiptPaperIsAlmostEnded; //
+        /// <summary>
+        /// контрольная лента почти заканчивается 
+        /// </summary>
+        public bool? ControlPaperIsAlmostEnded; //       
+        /// <summary>
+        /// чековая лента закончилась
+        /// </summary>
         public bool? ReceiptPaperIsFinished; //чековая лента закончилась
+        /// <summary>
+        /// контрольная лента закончилась
+        /// </summary>
         public bool? ControlPaperIsFinished; //контрольная лента закончилась
 
         public PapStat(byte inputByte) : this()
@@ -396,6 +414,250 @@ namespace CentralLib.Protocols
         }
 
 
+    }
+
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public struct DayReport
+    {
+        //BitConverter.ToUInt32 = 4 байта
+        //BitConverter.ToUInt16 = 2 байта
+        public DayReport(byte[] bytesReturn, byte[] bytesReturn0, byte[] bytesReturn1, byte[] bytesReturn2, byte[] bytesReturn3) : this()
+        {
+            int tst = 0;
+            this.CounterOfSaleReceipts = BitConverter.ToUInt16(bytesReturn, tst); tst += 2;
+            this.CounterOfSalesByTaxGroupsAndTypesOfPayments = new TaxGroupsAndTypesOfPayments(bytesReturn,ref tst);
+            this.DailyMarkupBySale = BitConverter.ToUInt32(bytesReturn, tst); tst += 4;
+            this.DailyDiscountBySale = BitConverter.ToUInt32(bytesReturn, tst); tst += 4;
+            this.CounterOfPayoutReceipts = BitConverter.ToUInt16(bytesReturn, tst); tst += 2;
+            this.CountersOfPayoutByTaxGroupsAndTypesOfPayments = new TaxGroupsAndTypesOfPayments(bytesReturn, ref tst);
+            this.DailyMarkupByPayouts = BitConverter.ToUInt32(bytesReturn, tst); tst += 4;
+            this.DailyDiscountByPayouts = BitConverter.ToUInt32(bytesReturn, tst); tst += 4;
+            this.DailySumOfServiceCashGivingOut = BitConverter.ToUInt32(bytesReturn, tst); tst += 4;
+            tst = 0;
+            this.CurrentNumberOfZReport = BitConverter.ToUInt16(bytesReturn1, tst); tst += 2;
+            this.CounterOfSalesReceipt = BitConverter.ToUInt16(bytesReturn1, tst); tst += 2;
+            this.CounterOfPaymentReceipt = BitConverter.ToUInt16(bytesReturn1, tst); tst += 2;
+
+            //string hexday = answer[0].ToString("X");
+            //int _day = Math.Min(Math.Max((int)Convert.ToInt16(hexday), 1), 31);
+
+            //string hexmonth = answer[1].ToString("X");
+            //int _month = Math.Min(Math.Max((int)Convert.ToInt16(hexmonth), 1), 12);
+
+            //string hexyear = answer[2].ToString("X");
+            //int _year = Convert.ToInt16(hexyear);
+
+            //this.DateOfEndOfShift = 
+        }
+
+        /// <summary>
+        /// счетчик чеков продаж
+        /// </summary>
+        public int CounterOfSaleReceipts { get; }
+        /// <summary>
+        /// счетчики продаж по налоговым группам и формам оплат
+        /// </summary>
+        public TaxGroupsAndTypesOfPayments CounterOfSalesByTaxGroupsAndTypesOfPayments { get;  }
+        /// <summary>
+        /// дневная наценка по продажам
+        /// </summary>
+        public UInt32 DailyMarkupBySale { get; }
+        /// <summary>
+        /// дневная скидка по продажам
+        /// </summary>
+        public UInt32 DailyDiscountBySale { get; }
+        /// <summary>
+        /// дневная сумма служебного вноса
+        /// </summary>
+        public UInt32 DailySumOfServiceCashEntering { get; }
+        /// <summary>
+        /// счетчик чеков выплат
+        /// </summary>
+        public int CounterOfPayoutReceipts { get; }
+        /// <summary>
+        /// счетчики выплат по налоговым группам и формам оплат 
+        /// </summary>
+        public TaxGroupsAndTypesOfPayments CountersOfPayoutByTaxGroupsAndTypesOfPayments { get; }
+        /// <summary>
+        /// дневная наценка по выплатам
+        /// </summary>
+        public UInt32 DailyMarkupByPayouts { get; }
+        /// <summary>
+        /// дневная скидка по выплатам 
+        /// </summary>
+        public UInt32 DailyDiscountByPayouts { get; }
+        /// <summary>
+        /// дневная сумма служебной выдачи
+        /// </summary>
+        public UInt32 DailySumOfServiceCashGivingOut { get; }
+        /// <summary>
+        /// текущий номер Z-отчета 
+        /// </summary>
+        public int CurrentNumberOfZReport { get; }
+        /// <summary>
+        /// счетчик чеков продаж 
+        /// </summary>
+        public int CounterOfSalesReceipt { get; }//  2  bin
+        /// <summary>
+        /// счетчик чеков выплат
+        /// </summary>
+        public int CounterOfPaymentReceipt { get; }//   2  bin
+        /// <summary>
+        /// дата конца смены в формате ДДММГГ
+        /// </summary>
+        public string DateOfEndOfShift { get; }// in format DDMMYY   3  BCD
+        /// <summary>
+        /// время конца смены в формате ЧЧММ 
+        /// </summary>
+        public string TimeOfEndOfShift { get; } //in format NNMM   2  BCD
+        public DateTime DateTimeOfEndOfShift { get; }
+        /// <summary>
+        /// дата последнего дневного отчета в формате ДДММГГ 
+        /// </summary>
+        public string DateOfTheLastDailyReport { get; }// in format DDMMYY   3  BCD
+        public DateTime dtDateOfTheLastDailyReport { get; }
+        /// <summary>
+        /// счетчик артикулов 
+        /// </summary>
+        public int CounterOfArticles { get; }//  2  bin
+
+        /// <summary>
+        /// суммы налогов по налоговым группам для наложенного НДС
+        /// </summary>
+        public TaxByTaxGroups SumOfTaxByTaxGroupsForOverlayVAT { get; } //   4*(6+6)  bin
+        /// <summary>
+        /// количество аннулированных чеков продаж
+        /// </summary>
+        public int QuantityOfCancelSalesReceipt { get; } //   2  bin
+        /// <summary>
+        /// количество аннулированных чеков выплат
+        /// </summary>
+        public int QuantityOfCancelPaymentReceipt { get; } //  2  bin
+        /// <summary>
+        /// сумма аннулированных чеков продаж
+        /// </summary>
+        public int SumOfCancelSalesReceipt { get; }//   4  bin
+        /// <summary>
+        /// сумма аннулированных чеков выплат
+        /// </summary>
+        public int SumOfCancelPaymentReceipt { get; } //  4  bin
+        /// <summary>
+        /// количество отказов продаж
+        /// </summary>
+        public int QuantityOfCancelSales { get; } //   2  bin
+        /// <summary>
+        /// количество отказов выплат
+        /// </summary>
+        public int QuantityOfCancelPayments { get; }//   2  bin
+        /// <summary>
+        /// сумма отказов продаж
+        /// </summary>
+        public int SumOfCancelSales { get; }  //4  bin
+        /// <summary>
+        /// сумма отказов выплат
+        /// </summary>
+        public int SumOfCancelPayments { get; }   //4  bin
+
+
+    }
+
+    public struct TaxGroupsAndTypesOfPayments
+    {
+        public TaxGroupsAndTypesOfPayments(byte[] inBytes,ref int ccounter):this()
+        {
+            TaxA = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            TaxB = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            TaxC = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            TaxD = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            TaxE = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            TaxF = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+
+            Card = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            Credit = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            Check = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            Cash = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            Certificat = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            Voucher = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            ElectronicMoney = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            InsurancePayment = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            OverPayment = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            Payment = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+        }
+        //TODO описать счетчики продаж по налоговым группам и формам оплат
+        //4*(6+10) 
+        /// <summary>
+        /// По налогу А
+        /// </summary>
+        public UInt32 TaxA {get; set;}
+        /// <summary>
+        /// по налогу B
+        /// </summary>
+        public UInt32 TaxB;
+        /// <summary>
+        /// по налогу C
+        /// </summary>
+        public UInt32 TaxC;
+        /// <summary>
+        /// по налогу D
+        /// </summary>
+        public UInt32 TaxD;
+        /// <summary>
+        /// по налогу E
+        /// </summary>
+        public UInt32 TaxE;
+        /// <summary>
+        /// по налогу F
+        /// </summary>
+        public UInt32 TaxF;
+        /// <summary>
+        /// Карточка - 0
+        /// </summary>
+        public UInt32 Card;
+        /// <summary>
+        /// Кредит - 1
+        /// </summary>
+        public UInt32 Credit;
+        /// <summary>
+        /// Чек - 2
+        /// </summary>
+        public UInt32 Check;
+        /// <summary>
+        /// Наличка - 3 
+        /// </summary>
+        public UInt32 Cash;
+        /// <summary>
+        /// Сертификат -4
+        /// </summary>
+        public UInt32 Certificat;
+        /// <summary>
+        /// расписка, поручительство -5
+        /// </summary>
+        public UInt32 Voucher;
+        /// <summary>
+        /// электронные деньги -6
+        /// </summary>
+        public UInt32 ElectronicMoney;
+        /// <summary>
+        /// страховой платеж -7
+        /// </summary>
+        public UInt32 InsurancePayment;
+        /// <summary>
+        /// переплата -8
+        /// </summary>
+        public UInt32 OverPayment;
+        /// <summary>
+        /// Оплата
+        /// </summary>
+        public UInt32 Payment;
+    }
+
+    public struct TaxByTaxGroups
+    {
+        //TODO суммы налогов по налоговым группам для наложенного НДС
+        //4*(6+6)
     }
 
     /// <summary>

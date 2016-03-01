@@ -10,6 +10,7 @@ using NLog.Config;
 using CentralLib;
 using CentralLib.Protocols;
 using PrintFP.Primary;
+using System.Threading;
 
 namespace PrintFP
 {
@@ -18,6 +19,8 @@ namespace PrintFP
         private static string fpnumber, server;
         private static Logger logger = LogManager.GetCurrentClassLogger();
         private static DateTime startJob;
+        private static System.Timers.Timer _timer;
+        private static infoPr rStatus;
 
         static int Main(string[] args)
         {
@@ -47,12 +50,27 @@ namespace PrintFP
             }
             NLog.GlobalDiagnosticsContext.Set("FPNumber", fpnumber);
             logger.Info("Set fp number:{0}", fpnumber);
-            infoPr rStatus = infoPr.Good;
+            rStatus = infoPr.Good;
+            _timer = new System.Timers.Timer();
+            _timer.Interval = (Properties.Settings.Default.TimerIntervalSec * 1000);
+            _timer.Elapsed += (sender, e) => { HandleTimerElapsed(); };
+            _timer.Enabled = true;
+
+           
+            Console.ReadLine();
+            Console.WriteLine("Time start:{0}", startJob);
+            Console.WriteLine("Time stop:{0}", DateTime.Now);
+            return (int)rStatus;
+        }
+
+        private static  void HandleTimerElapsed()
+        {
+            _timer.Stop();
             try
             {
                 Init init = new Init(fpnumber, server);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.Fatal(ex, "Завершена работа FP");
                 rStatus = infoPr.CriticalError;
@@ -61,11 +79,9 @@ namespace PrintFP
             {
 
             }
-            Console.ReadLine();
-            Console.WriteLine("Time start:{0}", startJob);
-            Console.WriteLine("Time stop:{0}", DateTime.Now);
-            return (int)rStatus;
+            _timer.Start();
         }
+
 
         private static void DisplayHelp()
         {
