@@ -22,7 +22,7 @@ namespace CentralLib.Protocols
     public class Protocols : IDisposable
     {
         /// <summary>
-        /// Статус последней операцияя
+        /// Статус последней операции true - завершено, false - сбой
         /// </summary>
         public bool statusOperation { get; private set; }
 

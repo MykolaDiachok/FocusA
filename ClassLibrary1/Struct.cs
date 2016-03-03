@@ -137,7 +137,7 @@ namespace CentralLib.Protocols
         public strByteReserv(byte inByte) : this()
         {
             this.Reserv = inByte;
-            this.ReceiptOfServiceReportIsOpened = (inByte & (1 << 0 )) != 0;
+            this.ReceiptOfServiceReportIsOpened = (inByte & (1 << 0)) != 0;
             this.StatusOfEmergency = (inByte & (1 << 1)) != 0;
             this.PaperIsAbsentInCaseIfPrinterIsntReady = (inByte & (1 << 2)) != 0;
             this.ReceiptSalePayment = (inByte & (1 << 3)) != 0;
@@ -213,7 +213,7 @@ namespace CentralLib.Protocols
         public strByteStatus(byte inByte) : this()
         {
             this.ByteStatus = inByte;
-            this.PrinterNotReady = (inByte & (1 <<0)) != 0;
+            this.PrinterNotReady = (inByte & (1 << 0)) != 0;
             this.ModemError = (inByte & (1 << 1)) != 0;
             this.ErrorOrFiscalMemoryOverflow = (inByte & (1 << 2)) != 0;
             this.IncorrectDateOrClockError = (inByte & (1 << 3)) != 0;
@@ -248,7 +248,7 @@ namespace CentralLib.Protocols
 
     public struct strByteResult
     {
-        public byte ByteResult { get;  }
+        public byte ByteResult { get; }
         public strByteResult(byte inByte) : this()
         {
             this.ByteResult = inByte;
@@ -426,31 +426,76 @@ namespace CentralLib.Protocols
         //BitConverter.ToUInt16 = 2 байта
         public DayReport(byte[] bytesReturn, byte[] bytesReturn0, byte[] bytesReturn1, byte[] bytesReturn2, byte[] bytesReturn3) : this()
         {
+            #region bytesReturn
             int tst = 0;
             this.CounterOfSaleReceipts = BitConverter.ToUInt16(bytesReturn, tst); tst += 2;
-            this.CounterOfSalesByTaxGroupsAndTypesOfPayments = new TaxGroupsAndTypesOfPayments(bytesReturn,ref tst);
+            this.CounterOfSalesByTaxGroupsAndTypesOfPayments = new SumTaxGroupsAndTypesOfPayments(bytesReturn, ref tst);
             this.DailyMarkupBySale = BitConverter.ToUInt32(bytesReturn, tst); tst += 4;
             this.DailyDiscountBySale = BitConverter.ToUInt32(bytesReturn, tst); tst += 4;
             this.CounterOfPayoutReceipts = BitConverter.ToUInt16(bytesReturn, tst); tst += 2;
-            this.CountersOfPayoutByTaxGroupsAndTypesOfPayments = new TaxGroupsAndTypesOfPayments(bytesReturn, ref tst);
+            this.CountersOfPayoutByTaxGroupsAndTypesOfPayments = new SumTaxGroupsAndTypesOfPayments(bytesReturn, ref tst);
             this.DailyMarkupByPayouts = BitConverter.ToUInt32(bytesReturn, tst); tst += 4;
             this.DailyDiscountByPayouts = BitConverter.ToUInt32(bytesReturn, tst); tst += 4;
             this.DailySumOfServiceCashGivingOut = BitConverter.ToUInt32(bytesReturn, tst); tst += 4;
+            #endregion
+            #region bytesReturn0
             tst = 0;
-            this.CurrentNumberOfZReport = BitConverter.ToUInt16(bytesReturn1, tst); tst += 2;
-            this.CounterOfSalesReceipt = BitConverter.ToUInt16(bytesReturn1, tst); tst += 2;
-            this.CounterOfPaymentReceipt = BitConverter.ToUInt16(bytesReturn1, tst); tst += 2;
+            this.CurrentNumberOfZReport = BitConverter.ToUInt16(bytesReturn0, tst); tst += 2;
+            this.CounterOfSalesReceipt = BitConverter.ToUInt16(bytesReturn0, tst); tst += 2;
+            this.CounterOfPaymentReceipt = BitConverter.ToUInt16(bytesReturn0, tst); tst += 2;
+            {
+                string hexday = bytesReturn0[tst].ToString("X"); tst++;
+                int tday = Math.Min(Math.Max((int)Convert.ToInt16(hexday), 1), 31);
 
-            //string hexday = answer[0].ToString("X");
-            //int _day = Math.Min(Math.Max((int)Convert.ToInt16(hexday), 1), 31);
+                string hexmonth = bytesReturn0[tst].ToString("X"); tst++;
+                int tmonth = Math.Min(Math.Max((int)Convert.ToInt16(hexmonth), 1), 12);
 
-            //string hexmonth = answer[1].ToString("X");
-            //int _month = Math.Min(Math.Max((int)Convert.ToInt16(hexmonth), 1), 12);
+                string hexyear = bytesReturn0[tst].ToString("X"); tst++;
+                int tyear = Convert.ToInt16(hexyear);
 
-            //string hexyear = answer[2].ToString("X");
-            //int _year = Convert.ToInt16(hexyear);
+                string hexhour = bytesReturn0[tst].ToString("X"); tst++;
+                int thour = Convert.ToInt16(hexyear);
 
-            //this.DateOfEndOfShift = 
+                string hexmin = bytesReturn0[tst].ToString("X"); tst++;
+                int tmin = Convert.ToInt16(hexyear);
+                this.DateTimeOfEndOfShift = new DateTime(2000 + tyear, tmonth, tday, thour, tmin, 0);
+                this.DateOfEndOfShift = this.DateTimeOfEndOfShift.ToString("dd.MM.yy");
+                this.TimeOfEndOfShift = this.DateTimeOfEndOfShift.ToString("HH:mm");
+            }
+            {
+                string hexday = bytesReturn0[tst].ToString("X"); tst++;
+                int tday = Math.Min(Math.Max((int)Convert.ToInt16(hexday), 1), 31);
+
+                string hexmonth = bytesReturn0[tst].ToString("X"); tst++;
+                int tmonth = Math.Min(Math.Max((int)Convert.ToInt16(hexmonth), 1), 12);
+
+                string hexyear = bytesReturn0[tst].ToString("X"); tst++;
+                int tyear = Convert.ToInt16(hexyear);
+                this.dtDateOfTheLastDailyReport = new DateTime(2000 + tyear, tmonth, tday);
+                this.DateOfTheLastDailyReport = this.dtDateOfTheLastDailyReport.ToString("dd.MM.yy");
+            }
+
+            this.CounterOfArticles = BitConverter.ToUInt16(bytesReturn, tst); tst += 2;
+            #endregion
+            #region bytesReturn1
+            tst = 0;
+            this.SumOfTaxByTaxGroupsForOverlayVAT = new SumTaxByTaxGroups(bytesReturn1, ref tst);
+            #endregion
+            #region bytesReturn2
+            tst = 0;
+            this.QuantityOfCancelSalesReceipt = BitConverter.ToUInt16(bytesReturn2, tst); tst += 2; //   2  bin
+            this.QuantityOfCancelPaymentReceipt = BitConverter.ToUInt16(bytesReturn2, tst); tst += 2; //  2  bin
+            this.SumOfCancelSalesReceipt = BitConverter.ToUInt32(bytesReturn2, tst); tst += 4;//   4  bin
+            this.SumOfCancelPaymentReceipt = BitConverter.ToUInt32(bytesReturn2, tst); tst += 4; //  4  bin
+            this.QuantityOfCancelSales = BitConverter.ToUInt16(bytesReturn2, tst); tst += 2; //   2  bin
+            this.QuantityOfCancelPayments = BitConverter.ToUInt16(bytesReturn2, tst); tst += 2;//   2  bin
+            this.SumOfCancelSales = BitConverter.ToUInt32(bytesReturn2, tst); tst += 4;  //4  bin        
+            this.SumOfCancelPayments = BitConverter.ToUInt32(bytesReturn2, tst); tst += 4;  //4  bin
+            #endregion
+            #region bytesReturn3
+            //TODO реализовать разбор КЛЕФ, при надобности
+            #endregion
+
         }
 
         /// <summary>
@@ -460,7 +505,7 @@ namespace CentralLib.Protocols
         /// <summary>
         /// счетчики продаж по налоговым группам и формам оплат
         /// </summary>
-        public TaxGroupsAndTypesOfPayments CounterOfSalesByTaxGroupsAndTypesOfPayments { get;  }
+        public SumTaxGroupsAndTypesOfPayments CounterOfSalesByTaxGroupsAndTypesOfPayments { get; }
         /// <summary>
         /// дневная наценка по продажам
         /// </summary>
@@ -480,7 +525,7 @@ namespace CentralLib.Protocols
         /// <summary>
         /// счетчики выплат по налоговым группам и формам оплат 
         /// </summary>
-        public TaxGroupsAndTypesOfPayments CountersOfPayoutByTaxGroupsAndTypesOfPayments { get; }
+        public SumTaxGroupsAndTypesOfPayments CountersOfPayoutByTaxGroupsAndTypesOfPayments { get; }
         /// <summary>
         /// дневная наценка по выплатам
         /// </summary>
@@ -527,7 +572,8 @@ namespace CentralLib.Protocols
         /// <summary>
         /// суммы налогов по налоговым группам для наложенного НДС
         /// </summary>
-        public TaxByTaxGroups SumOfTaxByTaxGroupsForOverlayVAT { get; } //   4*(6+6)  bin
+        public SumTaxByTaxGroups SumOfTaxByTaxGroupsForOverlayVAT { get; } //   4*(6+6)  bin
+
         /// <summary>
         /// количество аннулированных чеков продаж
         /// </summary>
@@ -539,11 +585,11 @@ namespace CentralLib.Protocols
         /// <summary>
         /// сумма аннулированных чеков продаж
         /// </summary>
-        public int SumOfCancelSalesReceipt { get; }//   4  bin
+        public UInt32 SumOfCancelSalesReceipt { get; }//   4  bin
         /// <summary>
         /// сумма аннулированных чеков выплат
         /// </summary>
-        public int SumOfCancelPaymentReceipt { get; } //  4  bin
+        public UInt32 SumOfCancelPaymentReceipt { get; } //  4  bin
         /// <summary>
         /// количество отказов продаж
         /// </summary>
@@ -555,18 +601,18 @@ namespace CentralLib.Protocols
         /// <summary>
         /// сумма отказов продаж
         /// </summary>
-        public int SumOfCancelSales { get; }  //4  bin
+        public UInt32 SumOfCancelSales { get; }  //4  bin
         /// <summary>
         /// сумма отказов выплат
         /// </summary>
-        public int SumOfCancelPayments { get; }   //4  bin
+        public UInt32 SumOfCancelPayments { get; }   //4  bin
 
 
     }
 
-    public struct TaxGroupsAndTypesOfPayments
+    public struct SumTaxGroupsAndTypesOfPayments
     {
-        public TaxGroupsAndTypesOfPayments(byte[] inBytes,ref int ccounter):this()
+        public SumTaxGroupsAndTypesOfPayments(byte[] inBytes, ref int ccounter) : this()
         {
             TaxA = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
             TaxB = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
@@ -591,7 +637,7 @@ namespace CentralLib.Protocols
         /// <summary>
         /// По налогу А
         /// </summary>
-        public UInt32 TaxA {get; set;}
+        public UInt32 TaxA { get; set; }
         /// <summary>
         /// по налогу B
         /// </summary>
@@ -654,10 +700,76 @@ namespace CentralLib.Protocols
         public UInt32 Payment;
     }
 
-    public struct TaxByTaxGroups
+    public struct SumTaxByTaxGroups
     {
         //TODO суммы налогов по налоговым группам для наложенного НДС
         //4*(6+6)
+        public SumTaxByTaxGroups(byte[] inBytes, ref int ccounter) : this()
+        {
+            TaxA = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            TaxB = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            TaxC = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            TaxD = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            TaxE = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            TaxF = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+
+            VatA = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            VatB = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            VatC = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            VatD = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            VatE = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            VatF = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+        }
+
+        /// <summary>
+        /// По налогу А
+        /// </summary>
+        public UInt32 TaxA { get; set; }
+        /// <summary>
+        /// по налогу B
+        /// </summary>
+        public UInt32 TaxB;
+        /// <summary>
+        /// по налогу C
+        /// </summary>
+        public UInt32 TaxC;
+        /// <summary>
+        /// по налогу D
+        /// </summary>
+        public UInt32 TaxD;
+        /// <summary>
+        /// по налогу E
+        /// </summary>
+        public UInt32 TaxE;
+        /// <summary>
+        /// по налогу F
+        /// </summary>
+        public UInt32 TaxF;
+
+        /// <summary>
+        /// По вложенному налогу А
+        /// </summary>
+        public UInt32 VatA { get; set; }
+        /// <summary>
+        /// по вложенному налогу B
+        /// </summary>
+        public UInt32 VatB;
+        /// <summary>
+        /// по вложенному налогу C
+        /// </summary>
+        public UInt32 VatC;
+        /// <summary>
+        /// по вложенному налогу D
+        /// </summary>
+        public UInt32 VatD;
+        /// <summary>
+        /// по вложенному налогу E
+        /// </summary>
+        public UInt32 VatE;
+        /// <summary>
+        /// по вложенному налогу F
+        /// </summary>
+        public UInt32 VatF;
     }
 
     /// <summary>
