@@ -10,12 +10,12 @@ namespace PrintFP.Primary
     partial class Init
     {
         
-        public void onlyZReport(Protocols pr)
+        public void onlyZReport(Protocol_EP11 pr)
         {
             pr.FPDayClrReport();
         }
 
-        public void StartJob(Protocols pr)
+        public void StartJob(Protocol_EP11 pr)
         {
             pr.FPDayReport();
         }

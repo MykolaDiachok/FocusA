@@ -8,10 +8,11 @@ using System.Text;
 
 using System.Threading.Tasks;
 using CentralLib;
-using CentralLib.ConnectionFP;
-using CentralLib.DefaultPortCom;
+using CentralLib.Connections;
 using System.Collections;
 using System.Threading;
+using CentralLib.Helper;
+
 
 namespace CentralLib.Protocols
 {
@@ -19,66 +20,59 @@ namespace CentralLib.Protocols
     /// протокол обмена с фискальным регистратором
     /// </summary>
     /// public partial class Protocols!!!!!!!!
-    public class Protocols : IDisposable
+    public class Protocol_EP11 : BaseProtocol, IProtocols
     {
         /// <summary>
         /// Статус последней операции true - завершено, false - сбой
         /// </summary>
-        public bool statusOperation { get; private set; }
+        //public bool statusOperation { get; private set; }
 
         /// <summary>
         /// Байт статуса
         /// </summary>
-        public byte ByteStatus { get; private set; } // Возврат ФР статус
+        //public byte ByteStatus { get; private set; } // Возврат ФР статус
 
-        public strByteStatus structStatus
-        {
-            get
-            {               
-                return new strByteStatus(ByteStatus);
-            }
-        }
-
-
-
-
+        //public strByteStatus structStatus
+        //{
+        //    get
+        //    {               
+        //        return new strByteStatus(ByteStatus);
+        //    }
+        //}
 
         /// <summary>
         /// Байт результат
         /// </summary>
-        public byte ByteResult { get; private set; } // Возврат ФР результат
+        //public byte ByteResult { get; private set; } // Возврат ФР результат
 
-        public strByteResult structResult
-        {
-            get
-            {
-                return new strByteResult(ByteResult);
-            }
-        }
+        //public strByteResult structResult
+        //{
+        //    get
+        //    {
+        //        return new strByteResult(ByteResult);
+        //    }
+        //}
 
         /// <summary>
         /// Байт резерва
         /// </summary>
-        public byte ByteReserv { get; private set; } // Возврат ФР результат
+        //public byte ByteReserv { get; private set; } // Возврат ФР результат
 
-        public strByteReserv structReserv
-        {
-            get
-            {
-                return new strByteReserv(ByteReserv);
-            }
-        }
-        public WorkProtocol currentProtocol { get; private set; }
-        private ConnectionFP.ConnectionFP connFP = null;
-        /// <summary>
-        /// Заканчивать соединение при уничтожении
-        /// </summary>
-        private bool killConnFP = false;
-        public string errorInfo { get; protected set; }
+        //public strByteReserv structReserv
+        //{
+        //    get
+        //    {
+        //        return new strByteReserv(ByteReserv);
+        //    }
+        //}
+        //public WorkProtocol currentProtocol { get; private set; }
+        //private CentralLib.Connections.ConnectFactory connFP = null;
+                
+        //public string errorInfo { get; protected set; }
         private Status tStatus;
         public Taxes currentTaxes { get; private set; }
-        private UInt32 Max3ArrayBytes = BitConverter.ToUInt32(new byte[] { 255, 255, 255, 0 }, 0);
-        private UInt64 Max6ArrayBytes = BitConverter.ToUInt64(new byte[] { 255, 255, 255, 255, 255, 255, 0, 0 }, 0);
+
+        //private ByteHelper byteHelper;
 
         public Status status
         {
@@ -90,14 +84,14 @@ namespace CentralLib.Protocols
             }
         }
 
-        private byte? lastByteCommand = null;
-        public bool useCRC16 { get; private set; }
+        //private byte? lastByteCommand = null;
+        //public bool useCRC16 { get; private set; }
 
         /// <summary>
         /// Основные комманды для первичной инициализации класса, такие как получить статус и получить данные по налогам
         /// </summary>
         private void initial()
-        {
+        {            
             getStatus();
             if (!(bool)structStatus.ExceedingOfWorkingShiftDuration)
                 FPGetTaxRate();
@@ -108,55 +102,25 @@ namespace CentralLib.Protocols
         /// Передаем класс для подключения. Рекомендую использовать сразу код порта
         /// </summary>
         /// <param name="connFP"></param>
-        public Protocols(ConnectionFP.ConnectionFP connFP)
+        public Protocol_EP11(CentralLib.Connections.DefaultPortCom dComPort):base(dComPort)
         {
-            this.connFP = connFP;
-            this.useCRC16 = true;
+            
             initial();
+
+
         }
+
+
 
         /// <summary>
         /// Класс инициализации приложения
         /// </summary>
         /// <param name="serialPort"></param>
-        public Protocols(int serialPort)
+        public Protocol_EP11(int serialPort):base(serialPort)
         {
-            if (serialPort == 0) // for test
-            {
-                killConnFP = false;
-                this.useCRC16 = true;
-                //initial();
-                return;
-            }
-            DefaultPortCom.DefaultPortCom initialPort = new DefaultPortCom.DefaultPortCom((byte)serialPort);
-            this.connFP = new ConnectionFP.ConnectionFP(initialPort);
-            try
-            {
-                connFP.Open();
-            }
-            catch (AggregateException e)
-            {
-                this.statusOperation = false;
-                StringBuilder sb = new StringBuilder();
-                sb.AppendFormat("Caught {0}, exception: {1}", e.InnerExceptions.Count, string.Join(", ", e.InnerExceptions.Select(x => x.Message)));
-
-#if Debug
-                Console.WriteLine("Описание ошибки:{0}", this.errorInfo);
-#endif
-            }
-            killConnFP = true;
-            this.useCRC16 = true;
             initial();
         }
 
-        public void Dispose()
-        {
-            if (killConnFP)
-            {
-                connFP.Close();
-                ((IDisposable)connFP).Dispose();
-            }
-        }
 
         /// <summary>
         /// Основная функция обмена для протокола, сюда передаем массив байтов, на выходе массив байтов ответа ФР, при этом передаются только данные.
@@ -164,49 +128,49 @@ namespace CentralLib.Protocols
         /// </summary>
         /// <param name="inputByte"></param>
         /// <returns></returns>
-        private byte[] ExchangeWithFP(byte[] inputByte)
-        {
-            byte[] answer;
-            this.lastByteCommand = inputByte[0];
-            answer = connFP.dataExchange(inputByte, useCRC16, false);
-            if (!connFP.statusOperation) //repetition if error
-            {
-                Thread.Sleep(800);
-#if Debug
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("ошибка первое ожидание");
-                ///Console.ReadKey();
-#endif
-                answer = connFP.dataExchange(inputByte, useCRC16, true);
-            }
-            if (!connFP.statusOperation) //repetition if error
-            {
-                //TODO: большая проблема искать в чем причина
-                Thread.Sleep(800);
-                answer = connFP.dataExchange(inputByte, useCRC16, true);
-#if Debug
-                Console.ForegroundColor = ConsoleColor.DarkYellow;
-                Console.WriteLine("Вторая ошибка");
-                Console.ReadKey();
-#endif
-            }
-            this.ByteStatus = connFP.ByteStatus;
-            this.ByteResult = connFP.ByteResult;
-            this.ByteReserv = connFP.ByteReserv;
-            this.errorInfo = connFP.errorInfo;
+//        private byte[] ExchangeWithFP(byte[] inputByte)
+//        {
+//            byte[] answer;
+//            base.lastByteCommand = inputByte[0];
+//            answer = connFP.dataExchange(inputByte, useCRC16, false);
+//            if (!connFP.statusOperation) //repetition if error
+//            {
+//                Thread.Sleep(800);
+//#if Debug
+//                Console.ForegroundColor = ConsoleColor.Yellow;
+//                Console.WriteLine("ошибка первое ожидание");
+//                ///Console.ReadKey();
+//#endif
+//                answer = connFP.dataExchange(inputByte, useCRC16, true);
+//            }
+//            if (!connFP.statusOperation) //repetition if error
+//            {
+//                //TODO: большая проблема искать в чем причина
+//                Thread.Sleep(800);
+//                answer = connFP.dataExchange(inputByte, useCRC16, true);
+//#if Debug
+//                Console.ForegroundColor = ConsoleColor.DarkYellow;
+//                Console.WriteLine("Вторая ошибка");
+//                Console.ReadKey();
+//#endif
+//            }
+//            this.ByteStatus = connFP.ByteStatus;
+//            this.ByteResult = connFP.ByteResult;
+//            this.ByteReserv = connFP.ByteReserv;
+//            this.errorInfo = connFP.errorInfo;
 
-            this.statusOperation = connFP.statusOperation;
-#if DebugErrorInfo
-            Console.WriteLine("Send:{0}", PrintByteArrayX(inputByte));
-            Console.WriteLine("Resive:{0}", PrintByteArrayX(answer));
-            Console.WriteLine("statusOperation:{0}", statusOperation);
-            Console.WriteLine("errorInfo:{0}", errorInfo);
-            Console.WriteLine("ByteStatus:{0}", ByteStatus);
-            Console.WriteLine("ByteResult:{0}", ByteResult);
-            Console.WriteLine("ByteReserv:{0}", ByteReserv);
-#endif
-            return answer;
-        }
+//            this.statusOperation = connFP.statusOperation;
+//#if DebugErrorInfo
+//            Console.WriteLine("Send:{0}", PrintByteArrayX(inputByte));
+//            Console.WriteLine("Resive:{0}", PrintByteArrayX(answer));
+//            Console.WriteLine("statusOperation:{0}", statusOperation);
+//            Console.WriteLine("errorInfo:{0}", errorInfo);
+//            Console.WriteLine("ByteStatus:{0}", ByteStatus);
+//            Console.WriteLine("ByteResult:{0}", ByteResult);
+//            Console.WriteLine("ByteReserv:{0}", ByteReserv);
+//#endif
+//            return answer;
+//        }
 
         /// <summary>
         /// Код: 0. SendStatus 	 	прочитать состояние регистратора 
@@ -216,7 +180,7 @@ namespace CentralLib.Protocols
             byte[] forsending = new byte[] { 0 };
             byte[] answer = ExchangeWithFP(forsending);
 
-            if ((connFP.statusOperation) && (answer.Length > 0))
+            if ((connFP.statusOperation) && (answer.Length > 21))
             {
                 string hexday = answer[21].ToString("X");
                 int _day = Math.Min(Math.Max((int)Convert.ToInt16(hexday), 1), 31);
@@ -234,59 +198,59 @@ namespace CentralLib.Protocols
                 int _min = Math.Min(Math.Max((int)Convert.ToInt16(hexmin), 0), 59);
 
                 int curCountByte = 26;
-                string fiscalNumber = EncodingBytes(answer, curCountByte, 10);
+                string fiscalNumber =new ByteHelper().EncodingBytes(answer, curCountByte, 10);
                 curCountByte = curCountByte + 10;
 
 
                 byte tlen1 = answer[curCountByte];
-                tlen1 = SetBit(tlen1, 6, false);
-                tlen1 = SetBit(tlen1, 7, false);
+                tlen1 = byteHelper.SetBit(tlen1, 6, false);
+                tlen1 = byteHelper.SetBit(tlen1, 7, false);
                 int len1 = tlen1;
 
                 string str1 = "";
                 if (len1 > 0)
                 {
                     curCountByte++;
-                    str1 = EncodingBytes(answer, curCountByte, len1);
+                    str1 = byteHelper.EncodingBytes(answer, curCountByte, len1);
 
                 }
                 curCountByte = curCountByte + len1;
 
                 byte tlen2 = answer[curCountByte];
-                tlen2 = SetBit(tlen2, 6, false);
-                tlen2 = SetBit(tlen2, 7, false);
+                tlen2 = byteHelper.SetBit(tlen2, 6, false);
+                tlen2 = byteHelper.SetBit(tlen2, 7, false);
                 int len2 = tlen2;
                 string str2 = "";
                 if (len2 > 0)
                 {
                     curCountByte++;
-                    str2 = EncodingBytes(answer, curCountByte, len2);
+                    str2 = byteHelper.EncodingBytes(answer, curCountByte, len2);
 
                 }
                 curCountByte = curCountByte + len2;
 
                 byte tlen3 = answer[curCountByte];
-                tlen3 = SetBit(tlen3, 6, false);
-                tlen3 = SetBit(tlen3, 7, false);
+                tlen3 = byteHelper.SetBit(tlen3, 6, false);
+                tlen3 = byteHelper.SetBit(tlen3, 7, false);
                 int len3 = tlen3;
                 string str3 = "";
                 if (len3 > 0)
                 {
                     curCountByte++;
-                    str3 = EncodingBytes(answer, curCountByte, len3);
+                    str3 = byteHelper.EncodingBytes(answer, curCountByte, len3);
 
                 }
                 curCountByte = curCountByte + len3;
 
                 byte tlenTax = answer[curCountByte];
-                tlenTax = SetBit(tlenTax, 6, false);
-                tlenTax = SetBit(tlenTax, 7, false);
+                tlenTax = byteHelper.SetBit(tlenTax, 6, false);
+                tlenTax = byteHelper.SetBit(tlenTax, 7, false);
                 int lenTax = tlenTax;
                 string strTax = "";
                 if (lenTax > 0)
                 {
                     curCountByte++;
-                    strTax = EncodingBytes(answer, curCountByte, lenTax);
+                    strTax = byteHelper.EncodingBytes(answer, curCountByte, lenTax);
 
                 }
                 curCountByte = curCountByte + len3;
@@ -295,17 +259,17 @@ namespace CentralLib.Protocols
                 //string ver = EncodingBytes(answer.Skip(answer.Length-6).Take(5).ToArray());
                 byte[] verBytes = new byte[5];
                 System.Buffer.BlockCopy(answer, answer.Length - 5, verBytes, 0, 5);
-                string ver = EncodingBytes(verBytes);
-                switch (ver)
-                {
-                    case "ЕП-11":
-                        this.currentProtocol = WorkProtocol.EP11;
-                        this.useCRC16 = true;
-                        break;
-                };
+                string ver = byteHelper.EncodingBytes(verBytes);
+                //switch (ver)
+                //{
+                //    case "ЕП-11":
+                //        this.currentProtocol = WorkProtocol.EP11;
+                //        //this.useCRC16 = true;
+                //        break;
+                //};
 
                 this.tStatus = new Status(answer.Take(2).ToArray()
-                    , EncodingBytes(answer.Skip(2).Take(19).ToArray())
+                    , byteHelper.EncodingBytes(answer.Skip(2).Take(19).ToArray())
                     , new DateTime(2000 + _year, _month, _day, _hour, _min, 0)
                     , fiscalNumber
                     , str1
@@ -492,9 +456,9 @@ namespace CentralLib.Protocols
         public void FPSetPassword(byte UserID, ushort OldPassword, ushort NewPassword)
         {
             byte[] forsending = new byte[] { 5 };//SetCod
-            forsending = Combine(forsending, BitConverter.GetBytes(OldPassword));
-            forsending = Combine(forsending, new byte[] { UserID });
-            forsending = Combine(forsending, BitConverter.GetBytes(NewPassword));
+            forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(OldPassword));
+            forsending = byteHelper.Combine(forsending, new byte[] { UserID });
+            forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(NewPassword));
             byte[] answer = ExchangeWithFP(forsending);
         }
 
@@ -509,13 +473,13 @@ namespace CentralLib.Protocols
         public void FPRegisterCashier(byte CashierID, string Name, ushort Password = 0)
         {
             byte[] forsending = new byte[] { 6 };//SetCashier
-            forsending = Combine(forsending, BitConverter.GetBytes(Password));
-            forsending = Combine(forsending, new byte[] { CashierID });
+            forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(Password));
+            forsending = byteHelper.Combine(forsending, new byte[] { CashierID });
             byte length;
-            byte[] stringBytes = CodingBytes(Name, 15, out length);
+            byte[] stringBytes = byteHelper.CodingBytes(Name, 15, out length);
 
-            forsending = Combine(forsending, new byte[] { length });
-            forsending = Combine(forsending, stringBytes);
+            forsending = byteHelper.Combine(forsending, new byte[] { length });
+            forsending = byteHelper.Combine(forsending, stringBytes);
             byte[] answer = ExchangeWithFP(forsending);
         }
 
@@ -532,7 +496,7 @@ namespace CentralLib.Protocols
         public UInt32 FPCashOut(UInt32 Summa)
         {
             byte[] forsending = new byte[] { 24 };
-            forsending = Combine(forsending, BitConverter.GetBytes(Summa));
+            forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(Summa));
             byte[] answer = ExchangeWithFP(forsending);
             if (answer.Length == 4)
                 return BitConverter.ToUInt32(answer, 0);
@@ -547,7 +511,7 @@ namespace CentralLib.Protocols
         public UInt32 FPCashIn(UInt32 Summa)
         {
             byte[] forsending = new byte[] { 16 };
-            forsending = Combine(forsending, BitConverter.GetBytes(Summa));
+            forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(Summa));
             byte[] answer = ExchangeWithFP(forsending);
             if (answer.Length == 4)
                 return BitConverter.ToUInt32(answer, 0);
@@ -576,15 +540,15 @@ namespace CentralLib.Protocols
         {
             byte[] forsending = new byte[] { 11 };//Comment            
             byte length;
-            byte[] stringBytes = CodingBytes("Нульовий чек", 27, out length);
-            length = SetBit(length, 7, false);
-            forsending = Combine(forsending, new byte[] { length });
-            forsending = Combine(forsending, stringBytes);
+            byte[] stringBytes = byteHelper.CodingBytes("Нульовий чек", 27, out length);
+            length = byteHelper.SetBit(length, 7, false);
+            forsending = byteHelper.Combine(forsending, new byte[] { length });
+            forsending = byteHelper.Combine(forsending, stringBytes);
             byte[] answer = ExchangeWithFP(forsending);
             if (statusOperation)
             {
                 forsending = new byte[] { 20, 0x03 };//Payment 
-                forsending = Combine(forsending, BitConverter.GetBytes(0 ^ (1 << 31)));
+                forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(0 ^ (1 << 31)));
                 answer = ExchangeWithFP(forsending);
                 if (answer.Length == 4)
                     return BitConverter.ToUInt32(answer, 0);
@@ -605,10 +569,10 @@ namespace CentralLib.Protocols
         {
             byte[] forsending = new byte[] { 11 };//Comment            
             byte length;
-            byte[] stringBytes = CodingBytes(CommentLine, 27, out length);
-            length = SetBit(length, 7, OpenRefundReceipt);
-            forsending = Combine(forsending, new byte[] { length });
-            forsending = Combine(forsending, stringBytes);
+            byte[] stringBytes = byteHelper.CodingBytes(CommentLine, 27, out length);
+            length = byteHelper.SetBit(length, 7, OpenRefundReceipt);
+            forsending = byteHelper.Combine(forsending, new byte[] { length });
+            forsending = byteHelper.Combine(forsending, stringBytes);
             byte[] answer = ExchangeWithFP(forsending);
         }
 
@@ -639,10 +603,10 @@ namespace CentralLib.Protocols
         {
             byte[] forsending = new byte[] { 8 };
 
-            forsending = Combine(forsending, ConvertUint32ToArrayByte3(Amount));
-            Amount_Status = SetBit(Amount_Status, 6, IsOneQuant);
-            Amount_Status = SetBit(Amount_Status, 7, PrintingOfBarCodesOfGoods);
-            forsending = Combine(forsending, new byte[] { Amount_Status });
+            forsending = byteHelper.Combine(forsending, byteHelper.ConvertUint32ToArrayByte3(Amount));
+            Amount_Status = byteHelper.SetBit(Amount_Status, 6, IsOneQuant);
+            Amount_Status = byteHelper.SetBit(Amount_Status, 7, PrintingOfBarCodesOfGoods);
+            forsending = byteHelper.Combine(forsending, new byte[] { Amount_Status });
             Int32 _price = Price;
             //BitArray b_price = new BitArray(BitConverter.GetBytes(_price));
             if (Price < 0)
@@ -650,7 +614,7 @@ namespace CentralLib.Protocols
                 _price = -_price;
                 _price = _price ^ (1 << 31);
             }
-            forsending = Combine(forsending, BitConverter.GetBytes(_price));
+            forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(_price));
             byte[] VAT = new byte[] { 0x80 }; ;
             if (NalogGroup == 1)
                 VAT = new byte[] { 0x81 };
@@ -662,15 +626,15 @@ namespace CentralLib.Protocols
                 VAT = new byte[] { 0x84 };
             else if (NalogGroup == 5)
                 VAT = new byte[] { 0x85 };
-            forsending = Combine(forsending, VAT);
+            forsending = byteHelper.Combine(forsending, VAT);
 
             if (MemoryGoodName)
-                forsending = Combine(forsending, new byte[] { 255 });
+                forsending = byteHelper.Combine(forsending, new byte[] { 255 });
             else
             {
-                forsending = Combine(forsending, CodingStringToBytesWithLength(GoodName, 75));
+                forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(GoodName, 75));
             }
-            forsending = Combine(forsending, ConvertUint64ToArrayByte6(StrCode));
+            forsending = byteHelper.Combine(forsending, byteHelper.ConvertUint64ToArrayByte6(StrCode));
             byte[] answer = ExchangeWithFP(forsending);
             if ((statusOperation) && (answer.Length == 8))
             {
@@ -708,10 +672,10 @@ namespace CentralLib.Protocols
         {
             byte[] forsending = new byte[] { 18 };
 
-            forsending = Combine(forsending, ConvertUint32ToArrayByte3(Amount));
-            Amount_Status = SetBit(Amount_Status, 6, IsOneQuant);
-            Amount_Status = SetBit(Amount_Status, 7, PrintingOfBarCodesOfGoods);
-            forsending = Combine(forsending, new byte[] { Amount_Status });
+            forsending = byteHelper.Combine(forsending, byteHelper.ConvertUint32ToArrayByte3(Amount));
+            Amount_Status = byteHelper.SetBit(Amount_Status, 6, IsOneQuant);
+            Amount_Status = byteHelper.SetBit(Amount_Status, 7, PrintingOfBarCodesOfGoods);
+            forsending = byteHelper.Combine(forsending, new byte[] { Amount_Status });
             Int32 _price = Price;
             //BitArray b_price = new BitArray(BitConverter.GetBytes(_price));
             if (Price < 0)
@@ -719,7 +683,7 @@ namespace CentralLib.Protocols
                 _price = -_price;
                 _price = _price ^ (1 << 31);
             }
-            forsending = Combine(forsending, BitConverter.GetBytes(_price));
+            forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(_price));
             byte[] VAT = new byte[] { 0x80 }; ;
             if (NalogGroup == 1)
                 VAT = new byte[] { 0x81 };
@@ -731,15 +695,15 @@ namespace CentralLib.Protocols
                 VAT = new byte[] { 0x84 };
             else if (NalogGroup == 5)
                 VAT = new byte[] { 0x85 };
-            forsending = Combine(forsending, VAT);
+            forsending = byteHelper.Combine(forsending, VAT);
 
             if (MemoryGoodName)
-                forsending = Combine(forsending, new byte[] { 255 });
+                forsending = byteHelper.Combine(forsending, new byte[] { 255 });
             else
             {
-                forsending = Combine(forsending, CodingStringToBytesWithLength(GoodName, 75));
+                forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(GoodName, 75));
             }
-            forsending = Combine(forsending, ConvertUint64ToArrayByte6(StrCode));
+            forsending = byteHelper.Combine(forsending, byteHelper.ConvertUint64ToArrayByte6(StrCode));
             byte[] answer = ExchangeWithFP(forsending);
             if ((statusOperation) && (answer.Length == 8))
             {
@@ -771,9 +735,9 @@ namespace CentralLib.Protocols
         public PaymentInfo FPPayment(byte Payment_Status, UInt32 Payment, bool CheckClose, bool FiscStatus, string AuthorizationCode="")
         {
             byte[] forsending = new byte[] { 20 };
-            Payment_Status = SetBit(Payment_Status, 6, !FiscStatus);
-            forsending = Combine(forsending, new byte[] { Payment_Status });
-            byte[] bytePayment = BitConverter.GetBytes(WriteBitUInt32(Payment, 31, CheckClose));
+            Payment_Status = byteHelper.SetBit(Payment_Status, 6, !FiscStatus);
+            forsending = byteHelper.Combine(forsending, new byte[] { Payment_Status });
+            byte[] bytePayment = BitConverter.GetBytes(byteHelper.WriteBitUInt32(Payment, 31, CheckClose));
             //byte[] bytePayment = BitConverter.GetBytes(Payment);
             //if (CheckClose)
             //{
@@ -784,18 +748,18 @@ namespace CentralLib.Protocols
             //if (CheckClose)
             //    //b_Payment[31] = true;
             //    _Payment = _Payment ^ (1 << 31);
-            forsending = Combine(forsending, bytePayment);
-            forsending = Combine(forsending, new byte[] { 0 });
+            forsending = byteHelper.Combine(forsending, bytePayment);
+            forsending = byteHelper.Combine(forsending, new byte[] { 0 });
             if (AuthorizationCode.Length!=0)
-                forsending = Combine(forsending, CodingStringToBytesWithLength(AuthorizationCode, 50));
+                forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(AuthorizationCode, 50));
             byte[] answer = ExchangeWithFP(forsending);
             if ((statusOperation) && (answer.Length  > 3))
             {
                 PaymentInfo _paymentInfo = new PaymentInfo();
                 UInt32 tinfo = BitConverter.ToUInt32(answer, 0);
-                if (GetBit(answer[3],7))
+                if (byteHelper.GetBit(answer[3],7))
                 {
-                    tinfo = ClearBitUInt32(tinfo, 31);
+                    tinfo = byteHelper.ClearBitUInt32(tinfo, 31);
                     _paymentInfo.Renting = tinfo;
                 }
                 else
@@ -814,8 +778,8 @@ namespace CentralLib.Protocols
         private byte[] GetMemmory(byte[] AddressOfBlock, byte NumberOfPage, byte SizeOfBlock) //прочитать блок памяти регистратора
         {
             byte[] forsending = new byte[] { 28 };
-            forsending = Combine(forsending, new byte[] { AddressOfBlock[1], AddressOfBlock[0] });
-            forsending = Combine(forsending, new byte[] { NumberOfPage, SizeOfBlock });
+            forsending = byteHelper.Combine(forsending, new byte[] { AddressOfBlock[1], AddressOfBlock[0] });
+            forsending = byteHelper.Combine(forsending, new byte[] { NumberOfPage, SizeOfBlock });
             byte[] answer = ExchangeWithFP(forsending);
             return answer;
         }
@@ -873,7 +837,7 @@ namespace CentralLib.Protocols
                 this.statusOperation = false;
                 return "";
             }
-            return EncodingBytes(answer);
+            return byteHelper.EncodingBytes(answer);
         }
 
 
@@ -886,42 +850,42 @@ namespace CentralLib.Protocols
             , string TaxNumber, bool AddTaxInfo)
         {
             byte[] forsending = new byte[] { 22 };
-            forsending = Combine(forsending, BitConverter.GetBytes(Password));
+            forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(Password));
 
             byte length1;
             byte[] stringBytes1;
-            if (StringInfo1DoubleHeight) stringBytes1 = CodingBytes(StringInfo1, 20, out length1);
-            else stringBytes1 = CodingBytes(StringInfo1, 30, out length1);
-            length1 = SetBit(length1, 6, StringInfo1DoubleHeight);
-            length1 = SetBit(length1, 7, StringInfo1DoubleWidth);
-            forsending = Combine(forsending, new byte[] { length1 });
-            forsending = Combine(forsending, stringBytes1);
+            if (StringInfo1DoubleHeight) stringBytes1 = byteHelper.CodingBytes(StringInfo1, 20, out length1);
+            else stringBytes1 = byteHelper.CodingBytes(StringInfo1, 30, out length1);
+            length1 = byteHelper.SetBit(length1, 6, StringInfo1DoubleHeight);
+            length1 = byteHelper.SetBit(length1, 7, StringInfo1DoubleWidth);
+            forsending = byteHelper.Combine(forsending, new byte[] { length1 });
+            forsending = byteHelper.Combine(forsending, stringBytes1);
 
             byte length2;
             byte[] stringBytes2;
-            if (StringInfo2DoubleHeight) stringBytes2 = CodingBytes(StringInfo2, 20, out length2);
-            else stringBytes2 = CodingBytes(StringInfo2, 30, out length2);
-            length2 = SetBit(length2, 6, StringInfo2DoubleHeight);
-            length2 = SetBit(length2, 7, StringInfo2DoubleWidth);
-            forsending = Combine(forsending, new byte[] { length2 });
-            forsending = Combine(forsending, stringBytes2);
+            if (StringInfo2DoubleHeight) stringBytes2 = byteHelper.CodingBytes(StringInfo2, 20, out length2);
+            else stringBytes2 = byteHelper.CodingBytes(StringInfo2, 30, out length2);
+            length2 = byteHelper.SetBit(length2, 6, StringInfo2DoubleHeight);
+            length2 = byteHelper.SetBit(length2, 7, StringInfo2DoubleWidth);
+            forsending = byteHelper.Combine(forsending, new byte[] { length2 });
+            forsending = byteHelper.Combine(forsending, stringBytes2);
 
             byte length3;
             byte[] stringBytes3;
-            if (StringInfo3DoubleHeight) stringBytes3 = CodingBytes(StringInfo3, 20, out length3);
-            else stringBytes3 = CodingBytes(StringInfo3, 30, out length3);
-            length3 = SetBit(length3, 6, StringInfo3DoubleHeight);
-            length3 = SetBit(length3, 7, StringInfo3DoubleWidth);
-            forsending = Combine(forsending, new byte[] { length3 });
-            forsending = Combine(forsending, stringBytes3);
+            if (StringInfo3DoubleHeight) stringBytes3 = byteHelper.CodingBytes(StringInfo3, 20, out length3);
+            else stringBytes3 = byteHelper.CodingBytes(StringInfo3, 30, out length3);
+            length3 = byteHelper.SetBit(length3, 6, StringInfo3DoubleHeight);
+            length3 = byteHelper.SetBit(length3, 7, StringInfo3DoubleWidth);
+            forsending = byteHelper.Combine(forsending, new byte[] { length3 });
+            forsending = byteHelper.Combine(forsending, stringBytes3);
 
 
 
             byte legthTax;
-            byte[] stringTax = CodingBytes(TaxNumber, 12, out legthTax);
+            byte[] stringTax = byteHelper.CodingBytes(TaxNumber, 12, out legthTax);
             //legthTax = SetBit(legthTax, 7, AddTaxInfo); - не работает
-            forsending = Combine(forsending, new byte[] { legthTax });
-            forsending = Combine(forsending, stringTax);
+            forsending = byteHelper.Combine(forsending, new byte[] { legthTax });
+            forsending = byteHelper.Combine(forsending, stringTax);
             byte[] answer = ExchangeWithFP(forsending);
         }
 
@@ -933,27 +897,27 @@ namespace CentralLib.Protocols
 
 
             byte[] forsending = new byte[] { 25 };
-            forsending = Combine(forsending, BitConverter.GetBytes(Password)); //пароль программирования
-            forsending = Combine(forsending, new byte[] { (byte)tTaxes.MaxGroup });
+            forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(Password)); //пароль программирования
+            forsending = byteHelper.Combine(forsending, new byte[] { (byte)tTaxes.MaxGroup });
             if (tTaxes.MaxGroup > 0)
             {
-                forsending = Combine(forsending, BitConverter.GetBytes(tTaxes.TaxA.TaxRate));
+                forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(tTaxes.TaxA.TaxRate));
             }
             if (tTaxes.MaxGroup > 1)
             {
-                forsending = Combine(forsending, BitConverter.GetBytes(tTaxes.TaxB.TaxRate));
+                forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(tTaxes.TaxB.TaxRate));
             }
             if (tTaxes.MaxGroup > 2)
             {
-                forsending = Combine(forsending, BitConverter.GetBytes(tTaxes.TaxC.TaxRate));
+                forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(tTaxes.TaxC.TaxRate));
             }
             if (tTaxes.MaxGroup > 3)
             {
-                forsending = Combine(forsending, BitConverter.GetBytes(tTaxes.TaxD.TaxRate));
+                forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(tTaxes.TaxD.TaxRate));
             }
             if (tTaxes.MaxGroup > 4)
             {
-                forsending = Combine(forsending, BitConverter.GetBytes(tTaxes.TaxE.TaxRate));
+                forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(tTaxes.TaxE.TaxRate));
             }
             byte tBit = 0;
             //TODO - в ходе экспериментов это не работало
@@ -967,9 +931,9 @@ namespace CentralLib.Protocols
             //if (tTaxes.quantityOfDecimalDigitsOfMoneySum == 3)
             //    tBit = SetBit(tBit, 3, true);
 
-            tBit = SetBit(tBit, 4, tTaxes.VAT);
-            tBit = SetBit(tBit, 5, tTaxes.ToProgramChargeRates);
-            forsending = Combine(forsending, new byte[] { tBit });
+            tBit = byteHelper.SetBit(tBit, 4, tTaxes.VAT);
+            tBit = byteHelper.SetBit(tBit, 5, tTaxes.ToProgramChargeRates);
+            forsending = byteHelper.Combine(forsending, new byte[] { tBit });
             if (tTaxes.ToProgramChargeRates)
             {
 
@@ -977,55 +941,55 @@ namespace CentralLib.Protocols
                 {
                     byte[] forSend = BitConverter.GetBytes(tTaxes.TaxA.ChargeRates);
                     byte firstByte = forSend[1];
-                    firstByte = SetBit(firstByte, 7, tTaxes.TaxA.VATAtCharge);
-                    firstByte = SetBit(firstByte, 6, tTaxes.TaxA.ChargeAtVAT);
+                    firstByte = byteHelper.SetBit(firstByte, 7, tTaxes.TaxA.VATAtCharge);
+                    firstByte = byteHelper.SetBit(firstByte, 6, tTaxes.TaxA.ChargeAtVAT);
                     forSend[1] = firstByte;
-                    forsending = Combine(forsending, forSend);
+                    forsending = byteHelper.Combine(forsending, forSend);
                 }
                 if (tTaxes.MaxGroup > 1)
                 {
                     byte[] forSend = BitConverter.GetBytes(tTaxes.TaxB.ChargeRates);
                     byte firstByte = forSend[1];
-                    firstByte = SetBit(firstByte, 7, tTaxes.TaxB.VATAtCharge);
-                    firstByte = SetBit(firstByte, 6, tTaxes.TaxB.ChargeAtVAT);
+                    firstByte = byteHelper.SetBit(firstByte, 7, tTaxes.TaxB.VATAtCharge);
+                    firstByte = byteHelper.SetBit(firstByte, 6, tTaxes.TaxB.ChargeAtVAT);
                     forSend[1] = firstByte;
-                    forsending = Combine(forsending, forSend);
+                    forsending = byteHelper.Combine(forsending, forSend);
                 }
                 if (tTaxes.MaxGroup > 2)
                 {
                     byte[] forSend = BitConverter.GetBytes(tTaxes.TaxC.ChargeRates);
                     byte firstByte = forSend[1];
-                    firstByte = SetBit(firstByte, 7, tTaxes.TaxC.VATAtCharge);
-                    firstByte = SetBit(firstByte, 6, tTaxes.TaxC.ChargeAtVAT);
+                    firstByte = byteHelper.SetBit(firstByte, 7, tTaxes.TaxC.VATAtCharge);
+                    firstByte = byteHelper.SetBit(firstByte, 6, tTaxes.TaxC.ChargeAtVAT);
                     forSend[1] = firstByte;
-                    forsending = Combine(forsending, forSend);
+                    forsending = byteHelper.Combine(forsending, forSend);
                 }
                 if (tTaxes.MaxGroup > 3)
                 {
                     byte[] forSend = BitConverter.GetBytes(tTaxes.TaxD.ChargeRates);
                     byte firstByte = forSend[1];
-                    firstByte = SetBit(firstByte, 7, tTaxes.TaxD.VATAtCharge);
-                    firstByte = SetBit(firstByte, 6, tTaxes.TaxD.ChargeAtVAT);
+                    firstByte = byteHelper.SetBit(firstByte, 7, tTaxes.TaxD.VATAtCharge);
+                    firstByte = byteHelper.SetBit(firstByte, 6, tTaxes.TaxD.ChargeAtVAT);
                     forSend[1] = firstByte;
-                    forsending = Combine(forsending, forSend);
+                    forsending = byteHelper.Combine(forsending, forSend);
                 }
                 if (tTaxes.MaxGroup > 4)
                 {
                     byte[] forSend = BitConverter.GetBytes(tTaxes.TaxE.ChargeRates);
                     byte firstByte = forSend[1];
-                    firstByte = SetBit(firstByte, 7, tTaxes.TaxE.VATAtCharge);
-                    firstByte = SetBit(firstByte, 6, tTaxes.TaxE.ChargeAtVAT);
+                    firstByte = byteHelper.SetBit(firstByte, 7, tTaxes.TaxE.VATAtCharge);
+                    firstByte = byteHelper.SetBit(firstByte, 6, tTaxes.TaxE.ChargeAtVAT);
                     forSend[1] = firstByte;
-                    forsending = Combine(forsending, forSend);
+                    forsending = byteHelper.Combine(forsending, forSend);
                 }
 
-                forsending = Combine(forsending, BitConverter.GetBytes(tTaxes.ChargeRateOfGroupЕ));
+                forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(tTaxes.ChargeRateOfGroupЕ));
             }
 
-            forsending = Combine(forsending, BitConverter.GetBytes(tTaxes.TaxD.TaxRate));
+            forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(tTaxes.TaxD.TaxRate));
 
 
-            Console.WriteLine("{0}", PrintByteArrayX(forsending));
+            Console.WriteLine("{0}", byteHelper.PrintByteArrayX(forsending));
             byte[] answer = ExchangeWithFP(forsending);
         }
 
@@ -1039,7 +1003,7 @@ namespace CentralLib.Protocols
                 Taxes tTax = new Taxes();
                 tTax.MaxGroup = (short)answer[tst];
                 tst++;
-                tTax.DateSet = returnDatefromByte(answer, tst);
+                tTax.DateSet = byteHelper.returnDatefromByte(answer, tst);
                 tst = tst + 3;
                 if (tTax.MaxGroup > 0)
                 {
@@ -1079,25 +1043,25 @@ namespace CentralLib.Protocols
                 byte tByteStatus = answer[tst];
                 tst++;
                 tTax.quantityOfDecimalDigitsOfMoneySum = 0;
-                if (GetBit(tByteStatus, 0))
+                if (byteHelper.GetBit(tByteStatus, 0))
                     tTax.quantityOfDecimalDigitsOfMoneySum = 1;
-                if (GetBit(tByteStatus, 1))
+                if (byteHelper.GetBit(tByteStatus, 1))
                     tTax.quantityOfDecimalDigitsOfMoneySum = 2;
-                if (GetBit(tByteStatus, 2))
+                if (byteHelper.GetBit(tByteStatus, 2))
                     tTax.quantityOfDecimalDigitsOfMoneySum = 3;
 
 
-                tTax.VAT = GetBit(tByteStatus, 4);
-                tTax.ToProgramChargeRates = GetBit(tByteStatus, 5);
+                tTax.VAT = byteHelper.GetBit(tByteStatus, 4);
+                tTax.ToProgramChargeRates = byteHelper.GetBit(tByteStatus, 5);
                 if (tTax.ToProgramChargeRates)
                 {
                     if (tTax.MaxGroup > 0)
                     {
                         byte[] byteget = new byte[] { answer[tst], answer[tst + 1] };
-                        tTax.TaxA.VATAtCharge = GetBit(byteget[1], 7);
-                        tTax.TaxA.ChargeAtVAT = GetBit(byteget[1], 6);
-                        byteget[1] = SetBit(byteget[1], 7, false);
-                        byteget[1] = SetBit(byteget[1], 6, false);
+                        tTax.TaxA.VATAtCharge = byteHelper.GetBit(byteget[1], 7);
+                        tTax.TaxA.ChargeAtVAT = byteHelper.GetBit(byteget[1], 6);
+                        byteget[1] = byteHelper.SetBit(byteget[1], 7, false);
+                        byteget[1] = byteHelper.SetBit(byteget[1], 6, false);
                         tTax.TaxA.ChargeRates = BitConverter.ToUInt16(byteget, 0);
                         tst = tst + 2;
                     }
@@ -1105,40 +1069,40 @@ namespace CentralLib.Protocols
                     if (tTax.MaxGroup > 1)
                     {
                         byte[] byteget = new byte[] { answer[tst], answer[tst + 1] };
-                        tTax.TaxB.VATAtCharge = GetBit(byteget[1], 7);
-                        tTax.TaxB.ChargeAtVAT = GetBit(byteget[1], 6);
-                        byteget[1] = SetBit(byteget[1], 7, false);
-                        byteget[1] = SetBit(byteget[1], 6, false);
+                        tTax.TaxB.VATAtCharge = byteHelper.GetBit(byteget[1], 7);
+                        tTax.TaxB.ChargeAtVAT = byteHelper.GetBit(byteget[1], 6);
+                        byteget[1] = byteHelper.SetBit(byteget[1], 7, false);
+                        byteget[1] = byteHelper.SetBit(byteget[1], 6, false);
                         tTax.TaxB.ChargeRates = BitConverter.ToUInt16(byteget, 0);
                         tst = tst + 2;
                     }
                     if (tTax.MaxGroup > 2)
                     {
                         byte[] byteget = new byte[] { answer[tst], answer[tst + 1] };
-                        tTax.TaxC.VATAtCharge = GetBit(byteget[1], 7);
-                        tTax.TaxC.ChargeAtVAT = GetBit(byteget[1], 6);
-                        byteget[1] = SetBit(byteget[1], 7, false);
-                        byteget[1] = SetBit(byteget[1], 6, false);
+                        tTax.TaxC.VATAtCharge = byteHelper.GetBit(byteget[1], 7);
+                        tTax.TaxC.ChargeAtVAT = byteHelper.GetBit(byteget[1], 6);
+                        byteget[1] = byteHelper.SetBit(byteget[1], 7, false);
+                        byteget[1] = byteHelper.SetBit(byteget[1], 6, false);
                         tTax.TaxC.ChargeRates = BitConverter.ToUInt16(byteget, 0);
                         tst = tst + 2;
                     }
                     if (tTax.MaxGroup > 3)
                     {
                         byte[] byteget = new byte[] { answer[tst], answer[tst + 1] };
-                        tTax.TaxD.VATAtCharge = GetBit(byteget[1], 7);
-                        tTax.TaxD.ChargeAtVAT = GetBit(byteget[1], 6);
-                        byteget[1] = SetBit(byteget[1], 7, false);
-                        byteget[1] = SetBit(byteget[1], 6, false);
+                        tTax.TaxD.VATAtCharge = byteHelper.GetBit(byteget[1], 7);
+                        tTax.TaxD.ChargeAtVAT = byteHelper.GetBit(byteget[1], 6);
+                        byteget[1] = byteHelper.SetBit(byteget[1], 7, false);
+                        byteget[1] = byteHelper.SetBit(byteget[1], 6, false);
                         tTax.TaxD.ChargeRates = BitConverter.ToUInt16(byteget, 0);
                         tst = tst + 2;
                     }
                     if (tTax.MaxGroup > 4)
                     {
                         byte[] byteget = new byte[] { answer[tst], answer[tst + 1] };
-                        tTax.TaxE.VATAtCharge = GetBit(byteget[1], 7);
-                        tTax.TaxE.ChargeAtVAT = GetBit(byteget[1], 6);
-                        byteget[1] = SetBit(byteget[1], 7, false);
-                        byteget[1] = SetBit(byteget[1], 6, false);
+                        tTax.TaxE.VATAtCharge = byteHelper.GetBit(byteget[1], 7);
+                        tTax.TaxE.ChargeAtVAT = byteHelper.GetBit(byteget[1], 6);
+                        byteget[1] = byteHelper.SetBit(byteget[1], 7, false);
+                        byteget[1] = byteHelper.SetBit(byteget[1], 6, false);
                         tTax.TaxE.ChargeRates = BitConverter.ToUInt16(byteget, 0);
                         tst = tst + 2;
                     }
@@ -1146,8 +1110,8 @@ namespace CentralLib.Protocols
                     byte[] bytegetE = new byte[] { answer[tst], answer[tst + 1] };
                     //tTax.TaxE.VATAtCharge = GetBit(bytegetE[1], 7);
                     //tTax.TaxE.ChargeAtVAT = GetBit(bytegetE[1], 6);
-                    bytegetE[1] = SetBit(bytegetE[1], 7, false);
-                    bytegetE[1] = SetBit(bytegetE[1], 6, false);
+                    bytegetE[1] = byteHelper.SetBit(bytegetE[1], 7, false);
+                    bytegetE[1] = byteHelper.SetBit(bytegetE[1], 6, false);
                     tTax.ChargeRateOfGroupЕ = BitConverter.ToUInt16(bytegetE, 0);
 
                 }
@@ -1161,11 +1125,11 @@ namespace CentralLib.Protocols
         public void FPArtReport(ushort pass = 0, UInt32? CodeBeginning = null, UInt32? CodeFinishing = null)
         {
             byte[] forsending = new byte[] { 10 };
-            forsending = Combine(forsending, BitConverter.GetBytes(pass));
+            forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(pass));
             if (CodeBeginning != null)
             {
-                forsending = Combine(forsending, ConvertTobyte(CodeBeginning));
-                forsending = Combine(forsending, ConvertTobyte(CodeFinishing));
+                forsending = byteHelper.Combine(forsending, byteHelper.ConvertTobyte(CodeBeginning));
+                forsending = byteHelper.Combine(forsending, byteHelper.ConvertTobyte(CodeFinishing));
             }
             byte[] answer = ExchangeWithFP(forsending);
         }
@@ -1185,7 +1149,7 @@ namespace CentralLib.Protocols
         public void FPDayClrReport(ushort pass = 0)
         {
             byte[] forsending = new byte[] { 13 };
-            forsending = Combine(forsending, BitConverter.GetBytes(pass));
+            forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(pass));
             byte[] answer = ExchangeWithFP(forsending);
 
             FPGetTaxRate(); // читаем ставки
@@ -1307,7 +1271,7 @@ namespace CentralLib.Protocols
         {
             Encoding cp866 = Encoding.GetEncoding(866);
             string tempStr = Info.Substring(0, Math.Min(20, Info.Length));
-            byte[] forsending = Combine(new byte[] { 0x1b, 0x00, (byte)tempStr.Length }, cp866.GetBytes(tempStr));
+            byte[] forsending = byteHelper.Combine(new byte[] { 0x1b, 0x00, (byte)tempStr.Length }, cp866.GetBytes(tempStr));
             var answer = ExchangeWithFP(forsending);
             return connFP.statusOperation;
         }
@@ -1316,7 +1280,7 @@ namespace CentralLib.Protocols
         {
             Encoding cp866 = Encoding.GetEncoding(866);
             string tempStr = Info.Substring(0, Math.Min(20, Info.Length));
-            byte[] forsending = Combine(new byte[] { 0x1b, 0x01, (byte)tempStr.Length }, cp866.GetBytes(tempStr));
+            byte[] forsending = byteHelper.Combine(new byte[] { 0x1b, 0x01, (byte)tempStr.Length }, cp866.GetBytes(tempStr));
             var answer = ExchangeWithFP(forsending);
             return connFP.statusOperation;
         }
@@ -1326,391 +1290,12 @@ namespace CentralLib.Protocols
         #region helper
         #region byte
 
-        /// <summary>
-        /// из массива байт получаем дату, используется 3 байта подряд
-        /// </summary>
-        /// <param name="inputByte">Массив бай</param>
-        /// <param name="index">начальный идекс для 1 байта</param>
-        /// <returns></returns>
-        private DateTime returnDatefromByte(byte[] inputByte, int index = 0)
-        {
-            string hexday = inputByte[index].ToString("X");
-            int _day = Math.Min(Math.Max((int)Convert.ToInt16(hexday), 1), 31);
-            index++;
-            string hexmonth = inputByte[index].ToString("X");
-            int _month = Math.Min(Math.Max((int)Convert.ToInt16(hexmonth), 1), 12);
-            index++;
-            string hexyear = inputByte[index].ToString("X");
-            int _year = Convert.ToInt16(hexyear);
 
-            return new DateTime(2000 + _year, _month, _day, 0, 0, 0);
-        }
-
-        private byte[] ConvertUint32ToArrayByte3(UInt32 inputValue)
-        {
-            if (inputValue > Max3ArrayBytes)
-            {
-                throw new System.ArgumentOutOfRangeException("input value", "Превышение максимального значения");
-            }
-            byte[] tByte = BitConverter.GetBytes(inputValue);
-            return new byte[] { tByte[0], tByte[1], tByte[2] };
-        }
-
-        private byte[] ConvertUint64ToArrayByte6(UInt64 inputValue)
-        {
-            if (inputValue > Max6ArrayBytes)
-            {
-                throw new System.ArgumentOutOfRangeException("input value", "Превышение максимального значения");
-            }
-            byte[] tByte = BitConverter.GetBytes(inputValue);
-            return new byte[] { tByte[0], tByte[1], tByte[2], tByte[3], tByte[4], tByte[5] };
-        }
-
-        /// <summary>
-        /// Для конвертации uint32 в массив из 6 байт
-        /// </summary>
-        /// <param name="inputValue"></param>
-        /// <param name="needCountArray"></param>
-        /// <returns></returns>
-        private byte[] ConvertTobyte(UInt32? inputValue, int needCountArray = 6)
-        {
-            UInt32 tValue = inputValue.GetValueOrDefault();
-
-
-            byte[] forreturn = BitConverter.GetBytes(tValue);
-            if (forreturn.Length != needCountArray)
-            {
-                byte[] addzerobyte = new Byte[needCountArray - forreturn.Length];
-                forreturn = Combine(forreturn, addzerobyte);
-            }
-            return forreturn;
-        }
-
-        /// <summary>
-        /// Строку кодируем в байты
-        /// </summary>
-        /// <param name="InputString">Входящая строка</param>
-        /// <param name="MaxVal">Максимальная длина строка</param>
-        /// <param name="length">Возвращаем количество байт после кодировки</param>
-        /// <returns></returns>
-        private byte[] CodingBytes(string InputString, UInt16 MaxVal, out byte length)
-        {
-            Encoding cp866 = Encoding.GetEncoding(866);
-            string tempStr = InputString.Substring(0, Math.Min(MaxVal, InputString.Length));
-            length = (byte)tempStr.Length;
-            return cp866.GetBytes(tempStr);
-        }
-
-        /// <summary>
-        /// Из строки формируем массив байт
-        /// </summary>
-        /// <param name="InputString">Строка для преобразования</param>
-        /// <param name="MaxVal">Макс длина строки</param>
-        /// <returns>Возврат массив байт из строки + вначале байт с длиной строки</returns>
-        private byte[] CodingStringToBytesWithLength(string InputString, UInt16 MaxVal)
-        {
-            Encoding cp866 = Encoding.GetEncoding(866);
-            string tempStr = InputString.Substring(0, Math.Min(MaxVal, InputString.Length));
-            //length = (byte)tempStr.Length;
-
-            return Combine(new byte[] { (byte)tempStr.Length }, cp866.GetBytes(tempStr));
-        }
-
-        /// <summary>
-        /// Раскодируем массив байт и возвращаем строку
-        /// </summary>
-        /// <param name="inputBytes"></param>
-        /// <param name="index"></param>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        private string EncodingBytes(byte[] inputBytes, int index = 0, int length = 0)
-        {
-            if (length == 0)
-                length = inputBytes.Length;
-            Encoding cp866 = Encoding.GetEncoding(866);
-            return cp866.GetString(inputBytes, index, length);
-        }
-
-
-        /// <summary>
-        /// Для объединение массивов байт
-        /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
-        /// <returns></returns>
-        private byte[] Combine(byte[] a, byte[] b)
-        {
-            byte[] c = new byte[a.Length + b.Length];
-            System.Buffer.BlockCopy(a, 0, c, 0, a.Length);
-            System.Buffer.BlockCopy(b, 0, c, a.Length, b.Length);
-            return c;
-        }
-
-        /// <summary>
-        /// поиск в массиве байт первого вхождения из массива байт
-        /// </summary>
-        /// <param name="searchIn"></param>
-        /// <param name="searchBytes"></param>
-        /// <param name="start"></param>
-        /// <returns></returns>
-        private int ByteSearch(byte[] searchIn, byte[] searchBytes, int start = 0)
-        {
-            int found = -1;
-            bool matched = false;
-            //only look at this if we have a populated search array and search bytes with a sensible start 
-            if (searchIn.Length > 0 && searchBytes.Length > 0 && start <= (searchIn.Length - searchBytes.Length) && searchIn.Length >= searchBytes.Length)
-            {
-                //iterate through the array to be searched 
-                for (int i = start; i <= searchIn.Length - searchBytes.Length; i++)
-                {
-                    //if the start bytes match we will start comparing all other bytes 
-                    if (searchIn[i] == searchBytes[0])
-                    {
-                        if (searchIn.Length > 1)
-                        {
-                            //multiple bytes to be searched we have to compare byte by byte 
-                            matched = true;
-                            for (int y = 1; y <= searchBytes.Length - 1; y++)
-                            {
-                                if (searchIn[i + y] != searchBytes[y])
-                                {
-                                    matched = false;
-                                    break;
-                                }
-                            }
-                            //everything matched up 
-                            if (matched)
-                            {
-                                found = i;
-                                break;
-                            }
-
-                        }
-                        else
-                        {
-                            //search byte is only one bit nothing else to do 
-                            found = i;
-                            break; //stop the loop 
-                        }
-
-                    }
-                }
-
-            }
-            return found;
-        }
-
-        /// <summary>
-        /// Возврат массива байт без дубликатов DLE {DLE, DLE}
-        /// </summary>
-        /// <param name="source"></param>
-        /// <returns></returns>
-        private byte[] returnWithOutDublicateDLE(byte[] source)
-        {
-            return returnWithOutDublicate(source, new byte[] { (byte)WorkByte.DLE, (byte)WorkByte.DLE });
-        }
-
-        /// <summary>
-        /// Возврат массива байт без дубликатов
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="pattern"></param>
-        /// <returns></returns>
-        private byte[] returnWithOutDublicate(byte[] source, byte[] pattern)
-        {
-
-            List<byte> tReturn = new List<byte>();
-            int sLenght = source.Length;
-            for (int i = 0; i < sLenght; i++)
-            {
-                if (source.Skip(i).Take(pattern.Length).SequenceEqual(pattern))
-                {
-                    tReturn.Add(source[i]);
-                    i++;
-                }
-                else
-                {
-                    tReturn.Add(source[i]);
-                }
-            }
-            return (byte[])tReturn.ToArray();
-        }
-
-        /// <summary>
-        /// Поиск в массиве байт, исходя из массива байт
-        /// </summary>
-        /// <param name="source"></param>
-        /// <param name="pattern"></param>
-        /// <returns></returns>
-        private int? PatternAt(byte[] source, byte[] pattern)
-        {
-            for (int i = 0; i < source.Length; i++)
-            {
-                if (source.Skip(i).Take(pattern.Length).SequenceEqual(pattern))
-                {
-                    return i;
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Еще один метод вывода массива байтов в строку, не оптимальный
-        /// </summary>
-        /// <param name="bytes"></param>
-        /// <returns></returns>
-        private string PrintByteArray(byte[] bytes)
-        {
-            var sb = new StringBuilder("");
-            foreach (var b in bytes)
-            {
-                sb.Append(b + " ");
-            }
-            sb.Append("");
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// Ввыести массив байтов в строку, сделано для отладки
-        /// </summary>
-        /// <param name="bytes"></param>
-        /// <returns></returns>
-        private string PrintByteArrayX(byte[] bytes)
-        {
-            if (bytes.Length > 0)
-                return BitConverter.ToString(bytes).Replace("-", " ");
-            else
-                return "";
-        }
         #endregion
 
         #region bit
 
-        private byte BitArrayToByte(BitArray ba)
-        {
-            byte result = 0;
-            for (byte index = 0, m = 1; index < 8; index++, m *= 2)
-                result += ba.Get(index) ? m : (byte)0;
-            return result;
-        }
-
-        private byte[] ToByteArray(BitArray bits)
-        {
-            int numBytes = bits.Count / 8;
-            if (bits.Count % 8 != 0) numBytes++;
-
-            byte[] bytes = new byte[numBytes];
-            int byteIndex = 0, bitIndex = 0;
-
-            for (int i = 0; i < bits.Count; i++)
-            {
-                if (bits[i])
-                    bytes[byteIndex] |= (byte)(1 << (7 - bitIndex));
-
-                bitIndex++;
-                if (bitIndex == 8)
-                {
-                    bitIndex = 0;
-                    byteIndex++;
-                }
-            }
-
-            return bytes;
-        }
-
-        public bool GetBit(byte val, int num)
-        {
-            if ((num > 7) || (num < 0))//Проверка входных данных
-            {
-                throw new ArgumentException();
-            }
-            return ((val >> num) & 1) > 0;//собственно все вычисления
-        }
-
-        private byte SetBit(byte val, int num, bool bit)
-        {
-            if ((num > 7) || (num < 0))//Проверка входных данных
-            {
-                throw new ArgumentException();
-            }
-            byte tmpval = 1;
-            tmpval = (byte)(tmpval << num);//устанавливаем необходимый бит в единицу
-            val = (byte)(val & (~tmpval));//сбрасываем в 0 необходимый бит
-
-            if (bit)// если бит требуется установить в 1
-            {
-                val = (byte)(val | (tmpval));//то устанавливаем необходимый бит в 1
-            }
-            return val;
-        }
-
-        private UInt32 SetBitUInt32(UInt32 Value, byte bit)
-        {
-            if (bit >= 32)
-            {
-                throw new ArgumentException("bit must be between 0 and 31");
-            }
-
-            Value |= (UInt32)(1U << bit);
-            return Value;
-        }
-
-        private UInt32 ClearBitUInt32(UInt32 Value, byte bit)
-        {
-            if (bit >= 32)
-            {
-                throw new ArgumentException("bit must be between 0 and 31");
-            }
-
-            Value &= ~(UInt32)(1U << bit);
-            return Value;
-        }
-
-        private UInt32 WriteBitUInt32(UInt32 Value, byte bit, bool state)
-        {
-            if (bit >= 32)
-            {
-                throw new ArgumentException("bit must be between 0 and 31");
-            }
-
-            if (state)
-            {
-                Value |= (UInt32)(1U << bit);
-            }
-            else {
-                Value &= ~(UInt32)(1U << bit);
-            }
-
-            return Value;
-        }
-
-        private UInt32 ToggleBitUInt32(UInt32 Value, byte bit)
-        {
-            if (bit >= 32)
-            {
-                throw new ArgumentException("bit must be between 0 and 31");
-            }
-
-            if ((Value & (1 << bit)) == (1 << bit))
-            {
-                Value &= ~(UInt32)(1U << bit);
-            }
-            else {
-                Value |= (UInt32)(1U << bit);
-            }
-
-            return Value;
-        }
-
-        private bool ReadBitUInt32(UInt32 Value, byte bit)
-        {
-            if (bit >= 32)
-            {
-                throw new ArgumentException("bit must be between 0 and 31");
-            }
-
-            return ((Value & (1 << bit)) == (1 << bit));
-        }
+      
 
 
         #endregion

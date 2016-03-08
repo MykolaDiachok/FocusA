@@ -7,8 +7,6 @@ using CentralLib;
 using System.IO.Ports;
 
 using System.Threading;
-using CentralLib.DefaultPortCom;
-using CentralLib.ConnectionFP;
 using CentralLib.Protocols;
 
 namespace TestComm
@@ -18,27 +16,16 @@ namespace TestComm
         static void Main(string[] args)
         {
 
-            //UInt16 testa_ = UInt16.MaxValue;
-            //byte[] testa = BitConverter.GetBytes(testa_);
-            //UInt32 testb_ = UInt32.MaxValue;
-            //Int32 text32 = Int32.MinValue;
-            //byte[] test32 = BitConverter.GetBytes(text32);
-            //byte[] testb = BitConverter.GetBytes(testb_);
-            //UInt64 testc_ = UInt64.MaxValue;
-            //byte[] testc = BitConverter.GetBytes(testc_);
-            //byte[] testd = { 255, 255, 255, 255, 255, 255, 0, 0 };
-            //Console.WriteLine("{0}", BitConverter.ToUInt64(testd, 0));
-            //Double teste = Double.MaxValue;
-            //byte[] teste_ = BitConverter.GetBytes(teste);
 
+           
 
-            Protocols pr = new Protocols(4);
+            IProtocols pr = SingletonProtocol.Instance(4).GetProtocols();
             //bool op;
-            pr.FPResetOrder();
-            pr.FPSaleEx(1, 0, false, 3000, 0, false, "X-fiter", 1,false);
+            //pr.FPResetOrder();
+            //pr.FPSaleEx(1, 0, false, 3000, 0, false, "X-fiter", 1,false);
             //Console.WriteLine("{0}",pr.FPPayment(1, 1000, false, true));
             //Console.WriteLine("{0}", pr.FPPayment(2, 1000, false, true));
-            Console.WriteLine("{0}", pr.FPPayment(3, 3000, true, true));
+            //Console.WriteLine("{0}", pr.FPPayment(3, 3000, true, true));
 
             //pr.FPCplOnline();
 
@@ -105,7 +92,7 @@ namespace TestComm
             // Console.WriteLine("{0}", pr.FPInToCash(10000));
             //Console.WriteLine("{0}", pr.FPOutOfCash(10000));
 
-            //pr.FPDayReport();
+            pr.FPDayReport();
             //pr.FPPeriodicReport(0, DateTime.Now.AddDays(-60), DateTime.Now);
             //pr.FPPeriodicReportShort(0, DateTime.Now.AddDays(-60), DateTime.Now);
             //pr.FPPeriodicReport2(0, 0, 1);

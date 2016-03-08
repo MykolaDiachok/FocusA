@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CentralLib
+namespace CentralLib.Helper
 {
     public enum WorkByte:byte
     {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CentralLib.Protocols
 {
-    public struct Status
+    public struct Status 
     {
         public bool usingCollection { get; private set; } //используются сборы
         public bool modeOfRegistrationsOfPayments { get; private set; } //режим регистраций оплат в чеке(запрещены все регистрации  кроме оплат и комментариев)
@@ -98,7 +98,7 @@ namespace CentralLib.Protocols
     /// <summary>
     /// Значение битов байта Резерва
     /// </summary>
-    public struct strByteReserv
+    public struct strByteReserv 
     {
         public byte Reserv { get; }
         /// <summary>
@@ -174,7 +174,7 @@ namespace CentralLib.Protocols
     /// <summary>
     /// Описание структуры статуса ФР
     /// </summary>
-    public struct strByteStatus
+    public struct strByteStatus 
     {
         public byte ByteStatus { get; }
         /// <summary>
@@ -246,7 +246,7 @@ namespace CentralLib.Protocols
         }
     }
 
-    public struct strByteResult
+    public struct strByteResult 
     {
         public byte ByteResult { get; }
         public strByteResult(byte inByte) : this()
@@ -364,7 +364,7 @@ namespace CentralLib.Protocols
     /// <summary>
     /// Информация по бумаге
     /// </summary>
-    public struct PapStat
+    public struct PapStat 
     {
         /// <summary>
         /// ошибка связи с принтером

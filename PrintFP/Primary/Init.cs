@@ -39,7 +39,7 @@ namespace PrintFP.Primary
 
                         try
                         {
-                            using (Protocols pr = new Protocols(initRow.Port))
+                            using (Protocol_EP11 pr = new Protocol_EP11(initRow.Port))
                             {
                                 InitialSet(_focusA, initRow, pr);
                                 if (operation.Operation==3) // set cachier
@@ -130,7 +130,7 @@ namespace PrintFP.Primary
         /// <param name="tOp"></param>
         /// <param name="tInit"></param>
         /// <param name="pr"></param>
-        private void setStatuses(tbl_Operation tOp, tbl_ComInit tInit, Protocols pr)
+        private void setStatuses(tbl_Operation tOp, tbl_ComInit tInit, Protocol_EP11 pr)
         {
             tInit.CurrentSystemDateTime = DateTime.Now;
             tInit.ByteStatus = pr.ByteStatus;
@@ -159,7 +159,7 @@ namespace PrintFP.Primary
         /// <param name="_focusA"></param>
         /// <param name="initRow"></param>
         /// <param name="pr"></param>
-        private void InitialSet(DataClasses1DataContext _focusA, tbl_ComInit initRow, Protocols pr)
+        private void InitialSet(DataClasses1DataContext _focusA, tbl_ComInit initRow, Protocol_EP11 pr)
         {
             initRow.Error = false;
             initRow.ErrorInfo = "";

@@ -1,7 +1,3 @@
-I:\FocusA\ClassLibrary1\bin\Debug\ClassLibrary1.dll
-I:\FocusA\ClassLibrary1\bin\Debug\ClassLibrary1.pdb
-I:\FocusA\ClassLibrary1\obj\Debug\ClassLibrary1.dll
-I:\FocusA\ClassLibrary1\obj\Debug\ClassLibrary1.pdb
 I:\FocusA\ClassLibrary1\obj\Debug\CentralLib.csprojResolveAssemblyReference.cache
 I:\FocusA\ClassLibrary1\bin\Debug\NBug.dll
 I:\FocusA\ClassLibrary1\bin\Debug\NDesk.Options.dll
@@ -10,3 +6,7 @@ I:\FocusA\ClassLibrary1\bin\Debug\Npgsql.dll
 I:\FocusA\ClassLibrary1\bin\Debug\NBug.xml
 I:\FocusA\ClassLibrary1\bin\Debug\NLog.xml
 I:\FocusA\ClassLibrary1\bin\Debug\Npgsql.xml
+I:\FocusA\ClassLibrary1\bin\Debug\CentralLib.dll
+I:\FocusA\ClassLibrary1\bin\Debug\CentralLib.pdb
+I:\FocusA\ClassLibrary1\obj\Debug\CentralLib.dll
+I:\FocusA\ClassLibrary1\obj\Debug\CentralLib.pdb
