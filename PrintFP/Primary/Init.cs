@@ -129,7 +129,53 @@ namespace PrintFP.Primary
                                 }
                                 else if (operation.Operation == 5) //payment
                                 {
-
+                                    Table<tbl_Payment> tblPayment = _focusA.GetTable<tbl_Payment>();
+                                    Table<tbl_SALE> tblSales = _focusA.GetTable<tbl_SALE>();
+                                    var headCheck = (from table in tblPayment
+                                                     where table.FPNumber == operation.FPNumber
+                                                     && table.DATETIME == operation.DateTime
+                                                     && table.id == operation.NumSlave
+                                                     && table.Operation == operation.Operation
+                                                     select table).FirstOrDefault();
+                                    headCheck.ForWork = true;
+                                    var tableCheck = (from tableSales in tblSales
+                                                      where tableSales.DATETIME == headCheck.DATETIME
+                                                      && tableSales.FPNumber == headCheck.FPNumber
+                                                      && tableSales.FRECNUM == headCheck.FRECNUM
+                                                      && tableSales.SAREAID == headCheck.SAREAID
+                                                      && tableSales.SESSID == headCheck.SESSID
+                                                      && tableSales.SRECNUM == headCheck.SRECNUM
+                                                      && tableSales.NumPayment == headCheck.id
+                                                      select tableSales);
+                                    foreach (var rowCheck in tableCheck)
+                                    {
+                                        var rowSum = pr.FPPayMoneyEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, (ushort)rowCheck.NalogGroup, false, rowCheck.GoodName, (ulong)rowCheck.packname);
+                                        rowCheck.ByteReserv = pr.ByteReserv;
+                                        rowCheck.ByteResult = pr.ByteResult;
+                                        rowCheck.ByteStatus = pr.ByteStatus;
+                                        rowCheck.Error = !pr.statusOperation;
+                                    }
+                                    if (headCheck.Payment0 > 0)
+                                    {
+                                        pr.FPPayment(0, (uint)headCheck.Payment0, false, true);
+                                    }
+                                    if (headCheck.Payment1 > 0)
+                                    {
+                                        pr.FPPayment(1, (uint)headCheck.Payment1, false, true);
+                                    }
+                                    if (headCheck.Payment2 > 0)
+                                    {
+                                        pr.FPPayment(2, (uint)headCheck.Payment2, false, true);
+                                    }
+                                    if (headCheck.Payment3 > 0)
+                                    {
+                                        pr.FPPayment(3, (uint)headCheck.Payment3, false, true);
+                                    }
+                                    headCheck.ByteReserv = pr.ByteReserv;
+                                    headCheck.ByteResult = pr.ByteResult;
+                                    headCheck.ByteStatus = pr.ByteStatus;
+                                    headCheck.Error = !pr.statusOperation;
+                                    headCheck.CheckClose = true;
                                 }
                                 else if (operation.Operation == 35) //X
                                 {

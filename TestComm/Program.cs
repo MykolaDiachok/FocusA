@@ -22,8 +22,13 @@ namespace TestComm
             BaseProtocol pr = SingletonProtocol.Instance(4).GetProtocols();
             //bool op;
             pr.FPResetOrder();
-            var tR = pr.FPSaleEx(1, 0, false, 995, 0, false, "Сигарети L&M Loft Sea Blue  Харкiв п. МРЦ 10,00", 3,false);
+            var tR= pr.FPSaleEx(1, 0, false, 995, 0, false, "Сигарети L&M Loft Sea Blue  Харкiв п. МРЦ 10,00", 3, false);
             var ss = pr.FPPayment(3, 5000, false, true);
+
+
+            pr.FPResetOrder();
+            tR = pr.FPPayMoneyEx(1, 0, false, 995, 0, false, "Сигарети L&M Loft Sea Blue  Харкiв п. МРЦ 10,00", 3,false);
+            ss = pr.FPPayment(3, 995, false, true);
             //Console.WriteLine("{0}",pr.FPPayment(1, 1000, false, true));
             //Console.WriteLine("{0}", pr.FPPayment(2, 1000, false, true));
             //Console.WriteLine("{0}", pr.FPPayment(3, 3000, true, true));
@@ -82,7 +87,7 @@ namespace TestComm
             //Console.WriteLine("{0}", pr.status.printerIsFiscalized);
             //Console.WriteLine("{0}", pr.FPGetPayName((byte)FPTypePays.Splata4));
             //pr.FPRegisterCashier(0, "Master", 0);
-            //pr.FPDayClrReport();
+            pr.FPDayClrReport();
             //pr.FPSetHeadLine(0, "The Galactic Empire", true, true, "The Death Star", true, false, "The captian cabin", false, true, "123456789012", false);
             //pr.FPPrintZeroReceipt();
             //pr.FPLineFeed();
