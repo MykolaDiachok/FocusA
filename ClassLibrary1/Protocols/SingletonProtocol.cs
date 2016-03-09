@@ -8,8 +8,8 @@ namespace CentralLib.Protocols
 {
     public class SingletonProtocol
     {
-        static SingletonProtocol uniqueInstance;        
-        IProtocols singletonProtocol;
+        static SingletonProtocol uniqueInstance;
+        BaseProtocol singletonProtocol;
 
 
         protected SingletonProtocol(int port)
@@ -29,7 +29,7 @@ namespace CentralLib.Protocols
         }
         
 
-        public IProtocols GetProtocols()
+        public BaseProtocol GetProtocols()
         {
             return singletonProtocol;
         }

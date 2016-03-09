@@ -9,7 +9,7 @@ namespace PrintFP.Primary
 {
     partial class Init
     {
-        private bool isEmptyPapers(Protocol_EP11 pr)
+        private bool isEmptyPapers(BaseProtocol pr)
         {
 
             return false;

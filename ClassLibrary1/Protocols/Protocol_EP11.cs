@@ -70,7 +70,10 @@ namespace CentralLib.Protocols
                 
         //public string errorInfo { get; protected set; }
         private Status tStatus;
-        public override Taxes currentTaxes { get; }
+        public override Taxes currentTaxes
+        {
+            get;  set;
+        }
 
         //private ByteHelper byteHelper;
 
@@ -289,7 +292,7 @@ namespace CentralLib.Protocols
 
         private PapStat tpapStat;
 
-        public PapStat papStat
+        public override PapStat papStat
         {
             get
             {
@@ -318,7 +321,7 @@ namespace CentralLib.Protocols
         }
 
         private DayReport tDayReport;
-        public DayReport dayReport
+        public override DayReport dayReport
         {
             get
             {
@@ -1105,7 +1108,7 @@ namespace CentralLib.Protocols
 
                 }
 
-                currentTaxes = tTax;
+                this.currentTaxes = tTax;
             }
         }
         #endregion

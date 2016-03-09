@@ -156,10 +156,11 @@ namespace SyncHameleon.DBHelper
             //
             this.NalogGroup = this.id_tax - 1;
             this.GoodName = this.print_name_goods+" "+ this.name_unit;
-            if ((this.name_series!=null)&&(this.name_series.Length>0))
-            {
-                this.GoodName += " "+this.name_series;
-            }
+            //Серии отключаем от пробивки из-за ошибок у postgres
+            //if ((this.name_series!=null)&&(this.name_series.Length>0))
+            //{
+            //    this.GoodName += " "+this.name_series;
+            //}
             this.GoodName = this.GoodName.Substring(0,Math.Min(75,this.GoodName.Length));
             this.StrCode = inReader["id_goods"].ToString();
             this.packname = (int)inReader["id_unit"];

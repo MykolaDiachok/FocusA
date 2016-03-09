@@ -113,6 +113,10 @@ namespace CentralLib.Protocols
             {
                 throw new NotImplementedException();
             }
+            set
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public virtual DayReport dayReport
@@ -229,8 +233,10 @@ namespace CentralLib.Protocols
 
         private string getstringProtocol()
         {
-            byte[] forsending = new byte[] { 0 };
+            byte[] forsending = new byte[] { 28, 00, 30 };
             byte[] answer = ExchangeWithFP(forsending);
+            forsending = new byte[] { 0 };
+            answer = ExchangeWithFP(forsending);
             string tCurProtocol="";
             if ((connFP.statusOperation) && (answer.Length > 21))
             {
@@ -239,7 +245,7 @@ namespace CentralLib.Protocols
             return tCurProtocol;
         }
 
-        public IProtocols getCurrentProtocol()
+        public BaseProtocol getCurrentProtocol()
         {
             string tPr = getstringProtocol();
             
@@ -256,7 +262,7 @@ namespace CentralLib.Protocols
                 this.connFP = new CentralLib.Connections.ConnectFP_EP11(this.defaultPortCom);
                 return new Protocol_EP11(this.defaultPortCom);
             }
-            else if ((tPr == "ЕП-06")||(tPr.Substring(1,2)== "ЕП")) //Если не 11 и есть инфо по ЕП то считаем что  это 6 протокол
+            else if ((tPr == "ЕП-06")||((tPr.Length>2) &&(tPr.Substring(1,2)== "ЕП"))) //Если не 11 и есть инфо по ЕП то считаем что  это 6 протокол
             {
                 this.useCRC16 = false;
                 this.currentProtocol = WorkProtocol.EP06;

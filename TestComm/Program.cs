@@ -19,10 +19,11 @@ namespace TestComm
 
            
 
-            IProtocols pr = SingletonProtocol.Instance(4).GetProtocols();
+            BaseProtocol pr = SingletonProtocol.Instance(4).GetProtocols();
             //bool op;
-            //pr.FPResetOrder();
-            //pr.FPSaleEx(1, 0, false, 3000, 0, false, "X-fiter", 1,false);
+            pr.FPResetOrder();
+            var tR = pr.FPSaleEx(1, 0, false, 995, 0, false, "Сигарети L&M Loft Sea Blue  Харкiв п. МРЦ 10,00", 3,false);
+            var ss = pr.FPPayment(3, 5000, false, true);
             //Console.WriteLine("{0}",pr.FPPayment(1, 1000, false, true));
             //Console.WriteLine("{0}", pr.FPPayment(2, 1000, false, true));
             //Console.WriteLine("{0}", pr.FPPayment(3, 3000, true, true));
@@ -92,7 +93,7 @@ namespace TestComm
             // Console.WriteLine("{0}", pr.FPInToCash(10000));
             //Console.WriteLine("{0}", pr.FPOutOfCash(10000));
 
-            pr.FPDayReport();
+            //pr.FPDayReport();
             //pr.FPPeriodicReport(0, DateTime.Now.AddDays(-60), DateTime.Now);
             //pr.FPPeriodicReportShort(0, DateTime.Now.AddDays(-60), DateTime.Now);
             //pr.FPPeriodicReport2(0, 0, 1);

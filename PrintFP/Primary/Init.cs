@@ -39,30 +39,93 @@ namespace PrintFP.Primary
 
                         try
                         {
-                            using (Protocol_EP11 pr = new Protocol_EP11(initRow.Port))
+                            //using (Protocol_EP11 pr = new Protocol_EP11(initRow.Port))
+                            using (var pr = (BaseProtocol)SingletonProtocol.Instance(initRow.Port).GetProtocols())
                             {
-                                InitialSet(_focusA, initRow, pr);
-                                if (operation.Operation==3) // set cachier
+                                if (!InitialSet(_focusA, initRow, pr))
+                                {
+                                    return;
+                                }
+                                if (operation.Operation == 3) // set cachier
                                 {
                                     var tblCashier = getCashier(_focusA, operation);
                                     pr.FPRegisterCashier(0, tblCashier.Name_Cashier);
                                     tblCashier.ByteReserv = pr.ByteReserv;
                                     tblCashier.ByteResult = pr.ByteResult;
                                     tblCashier.ByteStatus = pr.ByteStatus;
-                                    
+
                                     //tblCashier.Error = pr.er
                                 }
-                                else if (operation.Operation==10) //in money
+                                else if (operation.Operation == 10) //in money
                                 {
-
+                                    var tblCashIO = getCashIO(_focusA, operation);
+                                    pr.FPCashIn((uint)tblCashIO.Money);
+                                    //tblCashIO.ByteReserv = pr.ByteReserv;
+                                    tblCashIO.ByteResult = pr.ByteResult;
+                                    tblCashIO.ByteStatus = pr.ByteStatus;
+                                    tblCashIO.Error = !pr.statusOperation;
+                                    //var tbl
                                 }
                                 else if (operation.Operation == 15) //out money
                                 {
-
+                                    var tblCashIO = getCashIO(_focusA, operation);
+                                    pr.FPCashOut((uint)tblCashIO.Money);
+                                    //tblCashIO.ByteReserv = pr.ByteReserv;
+                                    tblCashIO.ByteResult = pr.ByteResult;
+                                    tblCashIO.ByteStatus = pr.ByteStatus;
+                                    tblCashIO.Error = !pr.statusOperation;
                                 }
                                 else if (operation.Operation == 12) //check
                                 {
-
+                                    Table<tbl_Payment> tblPayment = _focusA.GetTable<tbl_Payment>();
+                                    Table<tbl_SALE> tblSales = _focusA.GetTable<tbl_SALE>();
+                                    var headCheck = (from table in tblPayment
+                                                   where table.FPNumber == operation.FPNumber
+                                                   && table.DATETIME == operation.DateTime
+                                                   && table.id == operation.NumSlave
+                                                   && table.Operation == operation.Operation
+                                                   select table).FirstOrDefault();
+                                    headCheck.ForWork = true;
+                                    var tableCheck = (from tableSales in tblSales
+                                                      where tableSales.DATETIME == headCheck.DATETIME
+                                                      && tableSales.FPNumber == headCheck.FPNumber
+                                                      && tableSales.FRECNUM == headCheck.FRECNUM
+                                                      && tableSales.SAREAID == headCheck.SAREAID
+                                                      && tableSales.SESSID == headCheck.SESSID
+                                                      && tableSales.SRECNUM == headCheck.SRECNUM
+                                                      && tableSales.NumPayment == headCheck.id
+                                                      select tableSales);
+                                    foreach(var rowCheck in tableCheck)
+                                    {
+                                        var rowSum = pr.FPSaleEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, (ushort)rowCheck.NalogGroup, false, rowCheck.GoodName, (ulong)rowCheck.packname);
+                                        rowCheck.ByteReserv = pr.ByteReserv;
+                                        rowCheck.ByteResult = pr.ByteResult;
+                                        rowCheck.ByteStatus = pr.ByteStatus;
+                                        rowCheck.Error = !pr.statusOperation;
+                                    }
+                                    if (headCheck.Payment0>0)
+                                    {
+                                        pr.FPPayment(0,(uint)headCheck.Payment0, false, true);
+                                    }
+                                    if (headCheck.Payment1 > 0)
+                                    {
+                                        pr.FPPayment(1, (uint)headCheck.Payment1, false, true);
+                                    }
+                                    if (headCheck.Payment2 > 0)
+                                    {
+                                        pr.FPPayment(2, (uint)headCheck.Payment2, false, true);
+                                    }
+                                    if (headCheck.Payment3 > 0)
+                                    {
+                                        pr.FPPayment(3, (uint)headCheck.Payment3, false, true);
+                                    }
+                                    headCheck.ByteReserv = pr.ByteReserv;
+                                    headCheck.ByteResult = pr.ByteResult;
+                                    headCheck.ByteStatus = pr.ByteStatus;
+                                    headCheck.Error = !pr.statusOperation;
+                                    headCheck.CheckClose = true;
+                                    
+                                    //pr.FPPayment();
                                 }
                                 else if (operation.Operation == 5) //payment
                                 {
@@ -70,11 +133,11 @@ namespace PrintFP.Primary
                                 }
                                 else if (operation.Operation == 35) //X
                                 {
-
+                                    pr.FPDayReport();
                                 }
                                 else if (operation.Operation == 39) //Z
                                 {
-
+                                    pr.FPDayClrReport();
                                 }
                                 else if (operation.Operation == 40) //periodic report
                                 {
@@ -105,6 +168,19 @@ namespace PrintFP.Primary
             }
         }
 
+        private tbl_CashIO getCashIO(DataClasses1DataContext _focusA, tbl_Operation tOp)
+        {
+            Table<tbl_CashIO> tableCashIO = _focusA.GetTable<tbl_CashIO>();
+            var tReturn = (from table in tableCashIO
+                           where table.FPNumber == tOp.FPNumber
+                           && table.DATETIME == tOp.DateTime
+                           && table.id == tOp.NumSlave
+                           && table.Operation == tOp.Operation
+                           select table).FirstOrDefault();
+            return tReturn;
+        }
+
+
         /// <summary>
         /// Получение кассира по операции
         /// </summary>
@@ -130,7 +206,7 @@ namespace PrintFP.Primary
         /// <param name="tOp"></param>
         /// <param name="tInit"></param>
         /// <param name="pr"></param>
-        private void setStatuses(tbl_Operation tOp, tbl_ComInit tInit, Protocol_EP11 pr)
+        private void setStatuses(tbl_Operation tOp, tbl_ComInit tInit, BaseProtocol pr)
         {
             tInit.CurrentSystemDateTime = DateTime.Now;
             tInit.ByteStatus = pr.ByteStatus;
@@ -147,7 +223,7 @@ namespace PrintFP.Primary
             tOp.ByteReserv = pr.ByteReserv;
             tOp.ByteResult = pr.ByteResult;
             tOp.Error = !pr.statusOperation;
-            if (!pr.statusOperation)
+            if (pr.statusOperation)
                 tOp.Closed = true;
             tOp.InWork = true;
             
@@ -159,7 +235,7 @@ namespace PrintFP.Primary
         /// <param name="_focusA"></param>
         /// <param name="initRow"></param>
         /// <param name="pr"></param>
-        private void InitialSet(DataClasses1DataContext _focusA, tbl_ComInit initRow, Protocol_EP11 pr)
+        private bool InitialSet(DataClasses1DataContext _focusA, tbl_ComInit initRow, BaseProtocol pr)
         {
             initRow.Error = false;
             initRow.ErrorInfo = "";
@@ -167,6 +243,40 @@ namespace PrintFP.Primary
             var status = pr.status;
             var dayReport = pr.dayReport;
             var papstatus = pr.papStat;
+            initRow.PapStat = pr.papStat.ToString();
+            if ((bool)papstatus.ControlPaperIsAlmostEnded)
+            {
+                initRow.Error = true;
+                initRow.ErrorInfo = papstatus.ToString();
+                initRow.CurrentSystemDateTime = DateTime.Now;
+                initRow.ByteStatus = pr.ByteStatus;
+                initRow.ByteStatusInfo = pr.structStatus.ToString();
+                initRow.ByteReserv = pr.ByteReserv;
+                initRow.ByteReservInfo = pr.structReserv.ToString();
+                initRow.ByteResult = pr.ByteResult;
+                initRow.ByteResultInfo = pr.structResult.ToString();
+                
+                _focusA.SubmitChanges();
+                pr.showTopString("Контрольная лента закончилась!");
+
+                return false;
+            }
+            if ((bool)papstatus.ReceiptPaperIsAlmostEnded)
+            {
+                initRow.Error = true;
+                initRow.ErrorInfo = papstatus.ToString();
+                initRow.CurrentSystemDateTime = DateTime.Now;
+                initRow.ByteStatus = pr.ByteStatus;
+                initRow.ByteStatusInfo = pr.structStatus.ToString();
+                initRow.ByteReserv = pr.ByteReserv;
+                initRow.ByteReservInfo = pr.structReserv.ToString();
+                initRow.ByteResult = pr.ByteResult;
+                initRow.ByteResultInfo = pr.structResult.ToString();                
+                _focusA.SubmitChanges();
+                pr.showTopString("Чековая лента закончилась!");
+                return false;
+            }
+
             var sStatus = pr.structStatus;
 #if (!DEBUG)
                             initRow.FPNumber = pr.status.fiscalNumber;
@@ -208,7 +318,16 @@ namespace PrintFP.Primary
 
                 logger.Error(ex, "Error get date from fiscal printer");
                 initRow.Error = true;
-                initRow.ErrorInfo = string.Format("Error:{0};St={1};Rt={2};Rv={3}", ex.Message, pr.structStatus.ToString(), pr.structResult.ToString(), pr.structReserv.ToString());
+                initRow.ErrorInfo = string.Format("Error:{0};St={1};Rt={2};Rv={3}", ex.Message+" #"+ "Error get date from fiscal printer", pr.structStatus.ToString(), pr.structResult.ToString(), pr.structReserv.ToString());
+                initRow.CurrentSystemDateTime = DateTime.Now;
+                initRow.ByteStatus = pr.ByteStatus;
+                initRow.ByteStatusInfo = pr.structStatus.ToString();
+                initRow.ByteReserv = pr.ByteReserv;
+                initRow.ByteReservInfo = pr.structReserv.ToString();
+                initRow.ByteResult = pr.ByteResult;
+                initRow.ByteResultInfo = pr.structResult.ToString();
+                
+                _focusA.SubmitChanges();
             }
             initRow.CurrentSystemDateTime = DateTime.Now;
             initRow.ByteStatus = pr.ByteStatus;
@@ -217,7 +336,9 @@ namespace PrintFP.Primary
             initRow.ByteReservInfo = pr.structReserv.ToString();
             initRow.ByteResult = pr.ByteResult;
             initRow.ByteResultInfo = pr.structResult.ToString();
+            
             _focusA.SubmitChanges();
+            return !initRow.Error;
         }
     }
 }

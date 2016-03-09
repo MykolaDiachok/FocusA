@@ -10,5 +10,5 @@ I:\FocusA\PrintFP\bin\Debug\NLog.xml
 I:\FocusA\PrintFP\obj\Debug\PrintFP.csprojResolveAssemblyReference.cache
 I:\FocusA\PrintFP\obj\Debug\PrintFP.exe
 I:\FocusA\PrintFP\obj\Debug\PrintFP.pdb
-I:\FocusA\PrintFP\bin\Debug\ClassLibrary1.dll
-I:\FocusA\PrintFP\bin\Debug\ClassLibrary1.pdb
+I:\FocusA\PrintFP\bin\Debug\CentralLib.dll
+I:\FocusA\PrintFP\bin\Debug\CentralLib.pdb

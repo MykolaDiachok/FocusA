@@ -389,7 +389,7 @@ namespace CentralLib.Protocols
 
         public PapStat(byte inputByte) : this()
         {
-            BitArray _bit = new BitArray(inputByte);
+            BitArray _bit = new BitArray(new byte[] { inputByte });
             ErrorOfConnectionWithPrinter = _bit[0];
             ControlPaperIsAlmostEnded = _bit[2];
             ReceiptPaperIsAlmostEnded = _bit[3];
