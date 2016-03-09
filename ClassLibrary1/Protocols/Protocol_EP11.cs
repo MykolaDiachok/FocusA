@@ -70,11 +70,11 @@ namespace CentralLib.Protocols
                 
         //public string errorInfo { get; protected set; }
         private Status tStatus;
-        public Taxes currentTaxes { get; private set; }
+        public override Taxes currentTaxes { get; }
 
         //private ByteHelper byteHelper;
 
-        public Status status
+        public override Status status
         {
             get
             {
@@ -403,7 +403,7 @@ namespace CentralLib.Protocols
         /// <summary>
         ///Код: 14.LineFeed продвижение бумаги на одну строку
         /// </summary>
-        public void FPLineFeed()
+        public override void FPLineFeed()
         {
             byte[] forsending = new byte[] { 14 };
             byte[] answer = ExchangeWithFP(forsending);
@@ -413,7 +413,7 @@ namespace CentralLib.Protocols
         /// Код: 32.       PrintVer печать налогового номера и версии программного обеспечения
         /// Налоговый номер и дата регистрации ЭККР печатаются только в фискальном режиме.
         /// </summary>
-        public void FPPrintVer()
+        public override void FPPrintVer()
         {
             byte[] forsending = new byte[] { 32 };
             byte[] answer = ExchangeWithFP(forsending);
@@ -425,7 +425,7 @@ namespace CentralLib.Protocols
         /// При отсутствии параметра на денежный ящик подается импульс 200мс.
         /// </summary>
         /// <param name="impulse"> длительность импульса открытия в 2мс </param>
-        public void FPOpenBox(byte impulse = 0) //обнуление чека
+        public override void FPOpenBox(byte impulse = 0) //обнуление чека
         {
             byte[] forsending = new byte[] { 29 };
             if (impulse != 0)
@@ -439,7 +439,7 @@ namespace CentralLib.Protocols
         ///  сопровождается печатью в чеке.Команда запрещена при открытом чеке. Вызов команды меняет
         ///  значение параметра на противоположный.
         /// </summary>
-        public void FPCplOnline() // Код: 38. запрет/разрешение режима OnLine регистраций
+        public override void FPCplOnline() // Код: 38. запрет/разрешение режима OnLine регистраций
         {
             byte[] forsending = new byte[] { 38 };
             byte[] answer = ExchangeWithFP(forsending);
@@ -453,7 +453,7 @@ namespace CentralLib.Protocols
         /// <param name="UserID">номер (0-7 – пароли кассиров, 8 – пароль режима программирования, 9 – пароль режима отчетов)</param>
         /// <param name="OldPassword"> старый пароль</param>
         /// <param name="NewPassword">новый пароль</param>
-        public void FPSetPassword(byte UserID, ushort OldPassword, ushort NewPassword)
+        public override void FPSetPassword(byte UserID, ushort OldPassword, ushort NewPassword)
         {
             byte[] forsending = new byte[] { 5 };//SetCod
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(OldPassword));
@@ -470,7 +470,7 @@ namespace CentralLib.Protocols
         /// <param name="CashierID">Номер</param>
         /// <param name="Name">Длина имени кассира (= n)0..15</param>
         /// <param name="Password">Пароль</param>
-        public void FPRegisterCashier(byte CashierID, string Name, ushort Password = 0)
+        public override void FPRegisterCashier(byte CashierID, string Name, ushort Password = 0)
         {
             byte[] forsending = new byte[] { 6 };//SetCashier
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(Password));
@@ -493,7 +493,7 @@ namespace CentralLib.Protocols
         /// </summary>
         /// <param name="Summa">сумма инкассации в коп.</param>
         /// <returns>номер пакета чека в КЛЕФ</returns>
-        public UInt32 FPCashOut(UInt32 Summa)
+        public override UInt32 FPCashOut(UInt32 Summa)
         {
             byte[] forsending = new byte[] { 24 };
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(Summa));
@@ -508,7 +508,7 @@ namespace CentralLib.Protocols
         /// </summary>
         /// <param name="Summa">сумма аванса в коп.</param>
         /// <returns>номер пакета чека в КЛЕФ</returns>
-        public UInt32 FPCashIn(UInt32 Summa)
+        public override UInt32 FPCashIn(UInt32 Summa)
         {
             byte[] forsending = new byte[] { 16 };
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(Summa));
@@ -526,7 +526,7 @@ namespace CentralLib.Protocols
         /// <summary>
         /// Код: 15. ResetOrder                обнуление чека
         /// </summary>
-        public void FPResetOrder() //обнуление чека
+        public override void FPResetOrder() //обнуление чека
         {
             byte[] forsending = new byte[] { 15 };
             byte[] answer = ExchangeWithFP(forsending);
@@ -536,7 +536,7 @@ namespace CentralLib.Protocols
         /// Печать нулевого чека
         /// </summary>
         /// <returns></returns>
-        public UInt32 FPPrintZeroReceipt()
+        public override UInt32 FPPrintZeroReceipt()
         {
             byte[] forsending = new byte[] { 11 };//Comment            
             byte length;
@@ -565,7 +565,7 @@ namespace CentralLib.Protocols
         /// </summary>
         /// <param name="CommentLine">Строка комментария</param>
         /// <param name="OpenRefundReceipt">= 1 – открытие чека выплаты</param>
-        public void FPCommentLine(string CommentLine, bool OpenRefundReceipt = false)
+        public override void FPCommentLine(string CommentLine, bool OpenRefundReceipt = false)
         {
             byte[] forsending = new byte[] { 11 };//Comment            
             byte length;
@@ -599,7 +599,7 @@ namespace CentralLib.Protocols
         /// <param name="StrCode">код товара</param>
         /// <param name="PrintingOfBarCodesOfGoods">=1 – печать штрих-кода товара (EAN13)</param>
         /// <returns></returns>
-        public ReceiptInfo FPPayMoneyEx(UInt16 Amount, byte Amount_Status, bool IsOneQuant, Int32 Price, ushort NalogGroup, bool MemoryGoodName, string GoodName, UInt64 StrCode, bool PrintingOfBarCodesOfGoods = false)
+        public override ReceiptInfo FPPayMoneyEx(UInt16 Amount, byte Amount_Status, bool IsOneQuant, Int32 Price, ushort NalogGroup, bool MemoryGoodName, string GoodName, UInt64 StrCode, bool PrintingOfBarCodesOfGoods = false)
         {
             byte[] forsending = new byte[] { 8 };
 
@@ -668,7 +668,7 @@ namespace CentralLib.Protocols
         /// <param name="GoodName">название товара или услуги (для n # 255) </param>
         /// <param name="StrCode">код товара</param>
         /// <param name="PrintingOfBarCodesOfGoods">печать штрих-кода товара (EAN13)</param>
-        public ReceiptInfo FPSaleEx(UInt16 Amount, byte Amount_Status, bool IsOneQuant, Int32 Price, ushort NalogGroup, bool MemoryGoodName, string GoodName, UInt64 StrCode, bool PrintingOfBarCodesOfGoods = false)
+        public override ReceiptInfo FPSaleEx(UInt16 Amount, byte Amount_Status, bool IsOneQuant, Int32 Price, ushort NalogGroup, bool MemoryGoodName, string GoodName, UInt64 StrCode, bool PrintingOfBarCodesOfGoods = false)
         {
             byte[] forsending = new byte[] { 18 };
 
@@ -732,7 +732,7 @@ namespace CentralLib.Protocols
         /// <param name="FiscStatus">= 1 – закрытие чека как нефискальный</param>
         /// <param name="AuthorizationCode">код авторизации при оплате картой через платёжный терминал</param>
         /// <returns>остаток или сдача (бит 31 = 1 – сдача), номер пакета чека в КЛЕФ</returns>
-        public PaymentInfo FPPayment(byte Payment_Status, UInt32 Payment, bool CheckClose, bool FiscStatus, string AuthorizationCode="")
+        public override PaymentInfo FPPayment(byte Payment_Status, UInt32 Payment, bool CheckClose, bool FiscStatus, string AuthorizationCode="")
         {
             byte[] forsending = new byte[] { 20 };
             Payment_Status = byteHelper.SetBit(Payment_Status, 6, !FiscStatus);
@@ -774,21 +774,10 @@ namespace CentralLib.Protocols
 
         #endregion
 
-        #region GetMemmory
-        private byte[] GetMemmory(byte[] AddressOfBlock, byte NumberOfPage, byte SizeOfBlock) //прочитать блок памяти регистратора
-        {
-            byte[] forsending = new byte[] { 28 };
-            forsending = byteHelper.Combine(forsending, new byte[] { AddressOfBlock[1], AddressOfBlock[0] });
-            forsending = byteHelper.Combine(forsending, new byte[] { NumberOfPage, SizeOfBlock });
-            byte[] answer = ExchangeWithFP(forsending);
-            return answer;
-        }
-
-
-        #endregion
+        
 
         #region Не рабочие
-        public string FPGetPayName(byte PayType)
+        public override string FPGetPayName(byte PayType)
         {
             if (WorkProtocol.EP06 != currentProtocol)
             {
@@ -844,7 +833,7 @@ namespace CentralLib.Protocols
         #endregion
 
         #region глобальные установки
-        public void FPSetHeadLine(ushort Password, string StringInfo1, bool StringInfo1DoubleHeight, bool StringInfo1DoubleWidth
+        public override void FPSetHeadLine(ushort Password, string StringInfo1, bool StringInfo1DoubleHeight, bool StringInfo1DoubleWidth
             , string StringInfo2, bool StringInfo2DoubleHeight, bool StringInfo2DoubleWidth
             , string StringInfo3, bool StringInfo3DoubleHeight, bool StringInfo3DoubleWidth
             , string TaxNumber, bool AddTaxInfo)
@@ -892,7 +881,7 @@ namespace CentralLib.Protocols
         #endregion
 
         #region Налоговые ставки
-        public void FPSetTaxRate(ushort Password, Taxes tTaxes)
+        public override void FPSetTaxRate(ushort Password, Taxes tTaxes)
         {
 
 
@@ -993,7 +982,7 @@ namespace CentralLib.Protocols
             byte[] answer = ExchangeWithFP(forsending);
         }
 
-        public void FPGetTaxRate()
+        public override void FPGetTaxRate()
         {
             byte[] forsending = new byte[] { 44 };
             byte[] answer = ExchangeWithFP(forsending);
@@ -1122,7 +1111,7 @@ namespace CentralLib.Protocols
         #endregion
 
         #region Отчеты
-        public void FPArtReport(ushort pass = 0, UInt32? CodeBeginning = null, UInt32? CodeFinishing = null)
+        public override void FPArtReport(ushort pass = 0, UInt32? CodeBeginning = null, UInt32? CodeFinishing = null)
         {
             byte[] forsending = new byte[] { 10 };
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(pass));
@@ -1134,7 +1123,7 @@ namespace CentralLib.Protocols
             byte[] answer = ExchangeWithFP(forsending);
         }
 
-        public void FPDayReport(ushort pass = 0)
+        public override void FPDayReport(ushort pass = 0)
         {
             byte[] forsending = new byte[3];
             byte[] passByte = BitConverter.GetBytes(pass);
@@ -1146,7 +1135,7 @@ namespace CentralLib.Protocols
         }
 
         //public UInt32 FPDayClrReport(ushort pass = 0)
-        public void FPDayClrReport(ushort pass = 0)
+        public override void FPDayClrReport(ushort pass = 0)
         {
             byte[] forsending = new byte[] { 13 };
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(pass));
@@ -1158,7 +1147,7 @@ namespace CentralLib.Protocols
             // return BitConverter.ToUInt32(answer, 0);
         }
 
-        public void FPPeriodicReport(ushort pass, DateTime FirstDay, DateTime LastDay)
+        public override void FPPeriodicReport(ushort pass, DateTime FirstDay, DateTime LastDay)
         {
             byte[] forsending = new byte[9];
             byte[] passByte = BitConverter.GetBytes(pass);
@@ -1175,7 +1164,7 @@ namespace CentralLib.Protocols
             byte[] answer = ExchangeWithFP(forsending);
         }
 
-        public void FPPeriodicReportShort(ushort pass, DateTime FirstDay, DateTime LastDay)
+        public override void FPPeriodicReportShort(ushort pass, DateTime FirstDay, DateTime LastDay)
         {
             byte[] forsending = new byte[9];
             byte[] passByte = BitConverter.GetBytes(pass);
@@ -1192,7 +1181,7 @@ namespace CentralLib.Protocols
             byte[] answer = ExchangeWithFP(forsending);
         }
 
-        public void FPPeriodicReport2(ushort pass, UInt16 FirstNumber, UInt16 LastNumber)
+        public override void FPPeriodicReport2(ushort pass, UInt16 FirstNumber, UInt16 LastNumber)
         {
             byte[] forsending = new byte[7];
             byte[] passByte = BitConverter.GetBytes(pass);
@@ -1211,7 +1200,7 @@ namespace CentralLib.Protocols
         #endregion
 
         #region DateTime
-        public DateTime fpDateTime
+        public override DateTime fpDateTime
         {
             get
             {
@@ -1267,7 +1256,7 @@ namespace CentralLib.Protocols
 
 
         #region customer display
-        public bool showTopString(string Info)
+        public override bool showTopString(string Info)
         {
             Encoding cp866 = Encoding.GetEncoding(866);
             string tempStr = Info.Substring(0, Math.Min(20, Info.Length));
@@ -1276,7 +1265,7 @@ namespace CentralLib.Protocols
             return connFP.statusOperation;
         }
 
-        public bool showBottomString(string Info)
+        public override bool showBottomString(string Info)
         {
             Encoding cp866 = Encoding.GetEncoding(866);
             string tempStr = Info.Substring(0, Math.Min(20, Info.Length));
@@ -1284,22 +1273,6 @@ namespace CentralLib.Protocols
             var answer = ExchangeWithFP(forsending);
             return connFP.statusOperation;
         }
-        #endregion
-
-
-        #region helper
-        #region byte
-
-
-        #endregion
-
-        #region bit
-
-      
-
-
-        #endregion
-
         #endregion
 
     }

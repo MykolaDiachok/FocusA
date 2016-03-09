@@ -9,7 +9,7 @@ using CentralLib.Connections;
 
 namespace CentralLib.Protocols
 {
-    public class BaseProtocol : IDisposable
+    public class BaseProtocol : IDisposable, IProtocols
     {
 
         private DefaultPortCom defaultPortCom;
@@ -106,6 +106,52 @@ namespace CentralLib.Protocols
                 return new strByteReserv(ByteReserv);
             }
         }
+
+        public virtual Taxes currentTaxes
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public virtual DayReport dayReport
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public virtual  DateTime fpDateTime
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public virtual PapStat papStat
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public virtual Status status
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         public WorkProtocol currentProtocol;
         public CentralLib.Connections.ConnectFactory connFP = null;
 
@@ -167,6 +213,20 @@ namespace CentralLib.Protocols
             return answer;
         }
 
+        #region GetMemmory
+        public byte[] GetMemmory(byte[] AddressOfBlock, byte NumberOfPage, byte SizeOfBlock) //прочитать блок памяти регистратора
+        {
+            byte[] forsending = new byte[] { 28 };
+            forsending = byteHelper.Combine(forsending, new byte[] { AddressOfBlock[1], AddressOfBlock[0] });
+            forsending = byteHelper.Combine(forsending, new byte[] { NumberOfPage, SizeOfBlock });
+            byte[] answer = ExchangeWithFP(forsending);
+            return answer;
+        }
+
+
+        #endregion
+
+
         private string getstringProtocol()
         {
             byte[] forsending = new byte[] { 0 };
@@ -208,5 +268,134 @@ namespace CentralLib.Protocols
             return null;
         }
 
+        public virtual void FPArtReport(ushort pass = 0, uint? CodeBeginning = default(uint?), uint? CodeFinishing = default(uint?))
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual uint FPCashIn(uint Summa)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual uint FPCashOut(uint Summa)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void FPCommentLine(string CommentLine, bool OpenRefundReceipt = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void FPCplOnline()
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void FPDayClrReport(ushort pass = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void FPDayReport(ushort pass = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual string FPGetPayName(byte PayType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void FPGetTaxRate()
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void FPLineFeed()
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void FPOpenBox(byte impulse = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual PaymentInfo FPPayment(byte Payment_Status, uint Payment, bool CheckClose, bool FiscStatus, string AuthorizationCode = "")
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual ReceiptInfo FPPayMoneyEx(ushort Amount, byte Amount_Status, bool IsOneQuant, int Price, ushort NalogGroup, bool MemoryGoodName, string GoodName, ulong StrCode, bool PrintingOfBarCodesOfGoods = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void FPPeriodicReport(ushort pass, DateTime FirstDay, DateTime LastDay)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void FPPeriodicReport2(ushort pass, ushort FirstNumber, ushort LastNumber)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void FPPeriodicReportShort(ushort pass, DateTime FirstDay, DateTime LastDay)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void FPPrintVer()
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual uint FPPrintZeroReceipt()
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void FPRegisterCashier(byte CashierID, string Name, ushort Password = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void FPResetOrder()
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual ReceiptInfo FPSaleEx(ushort Amount, byte Amount_Status, bool IsOneQuant, int Price, ushort NalogGroup, bool MemoryGoodName, string GoodName, ulong StrCode, bool PrintingOfBarCodesOfGoods = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void FPSetHeadLine(ushort Password, string StringInfo1, bool StringInfo1DoubleHeight, bool StringInfo1DoubleWidth, string StringInfo2, bool StringInfo2DoubleHeight, bool StringInfo2DoubleWidth, string StringInfo3, bool StringInfo3DoubleHeight, bool StringInfo3DoubleWidth, string TaxNumber, bool AddTaxInfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void FPSetPassword(byte UserID, ushort OldPassword, ushort NewPassword)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void FPSetTaxRate(ushort Password, Taxes tTaxes)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual bool showBottomString(string Info)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual bool showTopString(string Info)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

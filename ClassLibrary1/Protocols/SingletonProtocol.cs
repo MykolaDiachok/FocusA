@@ -8,20 +8,22 @@ namespace CentralLib.Protocols
 {
     public class SingletonProtocol
     {
-        static SingletonProtocol uniqueInstance;
+        static SingletonProtocol uniqueInstance;        
         IProtocols singletonProtocol;
 
 
         protected SingletonProtocol(int port)
         {
+            
             singletonProtocol = new BaseProtocol(port).getCurrentProtocol();
         }
 
-        public static SingletonProtocol Instance(int port)
+        public static SingletonProtocol Instance(int inport)
         {
-            if (uniqueInstance == null)
+            if ((uniqueInstance == null))
             {
-                uniqueInstance = new SingletonProtocol(port);                
+                
+                uniqueInstance = new SingletonProtocol(inport);                
             }
             return uniqueInstance;
         }
