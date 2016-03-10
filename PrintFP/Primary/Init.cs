@@ -294,10 +294,10 @@ namespace PrintFP.Primary
             initRow.ErrorInfo = "";
             initRow.ErrorCode = 0;
             var status = pr.status;
-            var dayReport = pr.dayReport;
+            //var dayReport = pr.dayReport;
             var papstatus = pr.papStat;
-            initRow.PapStat = pr.papStat.ToString();
-            if ((bool)papstatus.ControlPaperIsAlmostEnded)
+            initRow.PapStat = papstatus.ToString();
+            if ((papstatus.ControlPaperIsAlmostEnded!=null) &&((bool)papstatus.ControlPaperIsAlmostEnded))
             {
                 initRow.Error = true;
                 initRow.ErrorInfo = papstatus.ToString();
@@ -314,7 +314,7 @@ namespace PrintFP.Primary
 
                 return false;
             }
-            if ((bool)papstatus.ReceiptPaperIsAlmostEnded)
+            if ((papstatus.ReceiptPaperIsAlmostEnded != null) && ((bool)papstatus.ReceiptPaperIsAlmostEnded))
             {
                 initRow.Error = true;
                 initRow.ErrorInfo = papstatus.ToString();
@@ -332,7 +332,7 @@ namespace PrintFP.Primary
 
             var sStatus = pr.structStatus;
 #if (!DEBUG)
-                            initRow.FPNumber = pr.status.fiscalNumber;
+                            initRow.FPNumber = status.fiscalNumber;
 #endif
             initRow.FiscalNumber = status.fiscalNumber;
             initRow.SmenaOpened = status.sessionIsOpened;
@@ -351,6 +351,10 @@ namespace PrintFP.Primary
             if ((status.sessionIsOpened) && ((bool)sStatus.ExceedingOfWorkingShiftDuration))
             {
                 onlyZReport(pr);
+            }
+            if (status.receiptIsOpened)
+            {
+                pr.FPResetOrder();
             }
             if (sStatus.ByteStatus != 0)
             {
@@ -383,7 +387,7 @@ namespace PrintFP.Primary
                 _focusA.SubmitChanges();
             }
 
-            if ((operation.Operation!=3)||(operation.Operation!=40)||(operation.Operation!=35))
+            if ((((operation.Operation!=3)||(operation.Operation!=40)||(operation.Operation!=35)))&&(!status.sessionIsOpened))
             {
                 pr.FPNullCheck();
             }

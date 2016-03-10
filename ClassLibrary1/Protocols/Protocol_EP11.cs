@@ -22,6 +22,7 @@ namespace CentralLib.Protocols
     /// public partial class Protocols!!!!!!!!
     public class Protocol_EP11 : BaseProtocol, IProtocols
     {
+        
         /// <summary>
         /// Статус последней операции true - завершено, false - сбой
         /// </summary>
@@ -67,7 +68,7 @@ namespace CentralLib.Protocols
         //}
         //public WorkProtocol currentProtocol { get; private set; }
         //private CentralLib.Connections.ConnectFactory connFP = null;
-                
+
         //public string errorInfo { get; protected set; }
         private Status tStatus;
         public override Taxes currentTaxes
@@ -107,7 +108,8 @@ namespace CentralLib.Protocols
         /// <param name="connFP"></param>
         public Protocol_EP11(CentralLib.Connections.DefaultPortCom dComPort):base(dComPort)
         {
-            
+            useCRC16 = true;
+            MaxStringLenght = 75;
             initial();
 
 
@@ -121,7 +123,10 @@ namespace CentralLib.Protocols
         /// <param name="serialPort"></param>
         public Protocol_EP11(int serialPort):base(serialPort)
         {
+            useCRC16 = true;
+            MaxStringLenght = 75;
             initial();
+            
         }
 
 
@@ -178,7 +183,7 @@ namespace CentralLib.Protocols
         /// <summary>
         /// Код: 0. SendStatus 	 	прочитать состояние регистратора 
         /// </summary>
-        private void getStatus()
+        public override void getStatus()
         {
             byte[] forsending = new byte[] { 0 };
             byte[] answer = ExchangeWithFP(forsending);
@@ -403,14 +408,7 @@ namespace CentralLib.Protocols
             return new DayReport(bytesReturn, bytesReturn0, bytesReturn1, bytesReturn2, bytesReturn3);
         }
 
-        /// <summary>
-        ///Код: 14.LineFeed продвижение бумаги на одну строку
-        /// </summary>
-        public override void FPLineFeed()
-        {
-            byte[] forsending = new byte[] { 14 };
-            byte[] answer = ExchangeWithFP(forsending);
-        }
+       
 
         /// <summary>
         /// Код: 32.       PrintVer печать налогового номера и версии программного обеспечения
@@ -465,119 +463,13 @@ namespace CentralLib.Protocols
             byte[] answer = ExchangeWithFP(forsending);
         }
 
-        /// <summary>
-        /// Код: 6.SetCashier               регистрация кассира (оператора)  в ЭККР
-        /// После инициализации ЭККР значения паролей равны нулю (0). При длине имени 0 –  разрегистрация  
-        /// кассира.Количество вводов пароля не более 10.
-        /// </summary>
-        /// <param name="CashierID">Номер</param>
-        /// <param name="Name">Длина имени кассира (= n)0..15</param>
-        /// <param name="Password">Пароль</param>
-        public override void FPRegisterCashier(byte CashierID, string Name, ushort Password = 0)
-        {
-            byte[] forsending = new byte[] { 6 };//SetCashier
-            forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(Password));
-            forsending = byteHelper.Combine(forsending, new byte[] { CashierID });
-            byte length;
-            byte[] stringBytes = byteHelper.CodingBytes(Name, 15, out length);
-
-            forsending = byteHelper.Combine(forsending, new byte[] { length });
-            forsending = byteHelper.Combine(forsending, stringBytes);
-            byte[] answer = ExchangeWithFP(forsending);
-        }
-
-        #endregion
-
-
-        #region внос и вынос денег
-
-        /// <summary>
-        /// Код: 24. Give                       служебная  выдача  наличных из денежного ящика 
-        /// </summary>
-        /// <param name="Summa">сумма инкассации в коп.</param>
-        /// <returns>номер пакета чека в КЛЕФ</returns>
-        public override UInt32 FPCashOut(UInt32 Summa)
-        {
-            byte[] forsending = new byte[] { 24 };
-            forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(Summa));
-            byte[] answer = ExchangeWithFP(forsending);
-            if (answer.Length == 4)
-                return BitConverter.ToUInt32(answer, 0);
-            return 0;
-        }
-
-        /// <summary>
-        /// Код: 16.Avans                          служебное внесение денег в денежный ящик
-        /// </summary>
-        /// <param name="Summa">сумма аванса в коп.</param>
-        /// <returns>номер пакета чека в КЛЕФ</returns>
-        public override UInt32 FPCashIn(UInt32 Summa)
-        {
-            byte[] forsending = new byte[] { 16 };
-            forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(Summa));
-            byte[] answer = ExchangeWithFP(forsending);
-            if (answer.Length == 4)
-                return BitConverter.ToUInt32(answer, 0);
-            return 0;
-        }
-
+        
         #endregion
 
 
         #region Чеки
 
-        /// <summary>
-        /// Код: 15. ResetOrder                обнуление чека
-        /// </summary>
-        public override void FPResetOrder() //обнуление чека
-        {
-            byte[] forsending = new byte[] { 15 };
-            byte[] answer = ExchangeWithFP(forsending);
-        }
-
-        /// <summary>
-        /// Печать нулевого чека
-        /// </summary>
-        /// <returns></returns>
-        public override UInt32 FPPrintZeroReceipt()
-        {
-            byte[] forsending = new byte[] { 11 };//Comment            
-            byte length;
-            byte[] stringBytes = byteHelper.CodingBytes("Нульовий чек", 27, out length);
-            length = byteHelper.SetBit(length, 7, false);
-            forsending = byteHelper.Combine(forsending, new byte[] { length });
-            forsending = byteHelper.Combine(forsending, stringBytes);
-            byte[] answer = ExchangeWithFP(forsending);
-            if (statusOperation)
-            {
-                forsending = new byte[] { 20, 0x03 };//Payment 
-                forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(0 ^ (1 << 31)));
-                answer = ExchangeWithFP(forsending);
-                if (answer.Length == 4)
-                    return BitConverter.ToUInt32(answer, 0);
-            }
-            return 0;
-        }
-
-        /// <summary>
-        /// Код: 11. Comment                  регистрация комментария в фискальном чеке
-        /// Если  бит  7  длины  строки  равен  единице  (1)  при  первой  регистрации  в  чеке,  то  открывается  чек                                                      
-        ///  выплат, иначе будет открыт чек продаж.В остальных случаях бит 7 не устанавливать!  Открыв
-        /// чек комментарием(например, строкой   “НУЛЕВОЙ ЧЕК”)   и закрыв   его командой   20, можно
-        /// напечатать нулевой чек.
-        /// </summary>
-        /// <param name="CommentLine">Строка комментария</param>
-        /// <param name="OpenRefundReceipt">= 1 – открытие чека выплаты</param>
-        public override void FPCommentLine(string CommentLine, bool OpenRefundReceipt = false)
-        {
-            byte[] forsending = new byte[] { 11 };//Comment            
-            byte length;
-            byte[] stringBytes = byteHelper.CodingBytes(CommentLine, 27, out length);
-            length = byteHelper.SetBit(length, 7, OpenRefundReceipt);
-            forsending = byteHelper.Combine(forsending, new byte[] { length });
-            forsending = byteHelper.Combine(forsending, stringBytes);
-            byte[] answer = ExchangeWithFP(forsending);
-        }
+            
 
 
         /// <summary>
@@ -635,7 +527,7 @@ namespace CentralLib.Protocols
                 forsending = byteHelper.Combine(forsending, new byte[] { 255 });
             else
             {
-                forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(GoodName, 75));
+                forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(GoodName, MaxStringLenght));
             }
             forsending = byteHelper.Combine(forsending, byteHelper.ConvertUint64ToArrayByte6(StrCode));
             byte[] answer = ExchangeWithFP(forsending);
@@ -704,7 +596,7 @@ namespace CentralLib.Protocols
                 forsending = byteHelper.Combine(forsending, new byte[] { 255 });
             else
             {
-                forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(GoodName, 75));
+                forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(GoodName, MaxStringLenght));
             }
             forsending = byteHelper.Combine(forsending, byteHelper.ConvertUint64ToArrayByte6(StrCode));
             byte[] answer = ExchangeWithFP(forsending);
@@ -1126,18 +1018,13 @@ namespace CentralLib.Protocols
             byte[] answer = ExchangeWithFP(forsending);
         }
 
-        public override void FPDayReport(ushort pass = 0)
-        {
-            byte[] forsending = new byte[3];
-            byte[] passByte = BitConverter.GetBytes(pass);
-            forsending[0] = 9;
-            forsending[1] = passByte[0];
-            forsending[2] = passByte[1];
-            //forsending = Combine(forsending, BitConverter.GetBytes(pass));
-            byte[] answer = ExchangeWithFP(forsending);
-        }
 
         //public UInt32 FPDayClrReport(ushort pass = 0)
+        /// <summary>
+        /// Код: 13.DayClrReport   печать и регистрация дневного отчета по финансовым операциям с обнулением дневных регистров
+        /// Печать Z-отчета.
+        /// </summary>
+        /// <param name="pass"></param>
         public override void FPDayClrReport(ushort pass = 0)
         {
             byte[] forsending = new byte[] { 13 };
@@ -1202,62 +1089,7 @@ namespace CentralLib.Protocols
         }
         #endregion
 
-        #region DateTime
-        public override DateTime fpDateTime
-        {
-            get
-            {
-
-                byte[] answer = ExchangeWithFP(new byte[] { 1 });
-
-                if (connFP.statusOperation)
-                {
-                    string hexday = answer[0].ToString("X");
-                    int _day = Math.Min(Math.Max((int)Convert.ToInt16(hexday), 1), 31);
-
-                    string hexmonth = answer[1].ToString("X");
-                    int _month = Math.Min(Math.Max((int)Convert.ToInt16(hexmonth), 1), 12);
-
-                    string hexyear = answer[2].ToString("X");
-                    int _year = Convert.ToInt16(hexyear);
-
-
-                    byte[] answerTime = ExchangeWithFP(new byte[] { 3 });
-                    if (connFP.statusOperation)
-                    {
-
-                        string hexhour = answerTime[0].ToString("X");
-                        int _hour = Math.Min(Math.Max((int)Convert.ToInt16(hexhour), 0), 23);
-
-                        string hexminute = answerTime[1].ToString("X");
-                        int _minute = Math.Min(Math.Max((int)Convert.ToInt16(hexminute), 0), 59);
-
-                        string hexsecond = answerTime[2].ToString("X");
-                        int _second = Math.Min(Math.Max((int)Convert.ToInt16(hexsecond), 0), 59);
-
-                        return new DateTime(2000 + _year, _month, _day, _hour, _minute, _second);
-                    }
-                }
-                return new DateTime();
-            }
-            set
-            {
-                byte dd = Convert.ToByte(Convert.ToInt32(value.ToString("dd"), 16));
-                byte MM = Convert.ToByte(Convert.ToInt32(value.ToString("MM"), 16));
-                byte yy = Convert.ToByte(Convert.ToInt32(value.ToString("yy"), 16));
-                byte[] answer = ExchangeWithFP(new byte[] { 2, dd, MM, yy });
-                if (connFP.statusOperation)
-                {
-                    byte hh = Convert.ToByte(Convert.ToInt32(value.ToString("HH"), 16));
-                    byte mm = Convert.ToByte(Convert.ToInt32(value.ToString("mm"), 16));
-                    byte ss = Convert.ToByte(Convert.ToInt32(value.ToString("ss"), 16));
-                    byte[] answerTime = ExchangeWithFP(new byte[] { 4, hh, mm, ss });
-                }
-            }
-        }
-        #endregion
-
-
+        
         #region customer display
         public override bool showTopString(string Info)
         {

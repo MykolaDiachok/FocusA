@@ -25,7 +25,8 @@ namespace CentralLib.Helper
         EP07,
         EP08,
         EP09,
-        EP11 //http://www.ics-market.com.ua/ru/oborudovanie/fiskalnoe-oborudovanie/fiskalnye-registratory/download/2771/1874/40
+        EP11, //http://www.ics-market.com.ua/ru/oborudovanie/fiskalnoe-oborudovanie/fiskalnye-registratory/download/2771/1874/40
+        OP02 //http://www.ics-market.com.ua/ru/oborudovanie/fiskalnoe-oborudovanie/download/1955/456/40
     }
 
     public enum FPSpeed

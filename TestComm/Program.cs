@@ -19,19 +19,23 @@ namespace TestComm
 
            
 
-            BaseProtocol pr = SingletonProtocol.Instance(4).GetProtocols();
-            //bool op;
-            pr.FPNullCheck();
-            pr.FPResetOrder();
-            var tR= pr.FPSaleEx(1, 0, false, 995, 0, false, "Сигарети L&M Loft Sea Blue  Харкiв п. МРЦ 10,00", 3, false);
-            var ss = pr.FPPayment(3, 5000, false, true);
-            Console.WriteLine("in box: {0}", pr.GetMoneyInBox());
+            BaseProtocol pr = SingletonProtocol.Instance(2).GetProtocols();
+            //pr.FPResetOrder();
+            //pr.FPDayReport();
 
-            pr.FPResetOrder();
-            tR = pr.FPPayMoneyEx(1, 0, false, 995, 0, false, "Сигарети L&M Loft Sea Blue  Харкiв п. МРЦ 10,00", 3,false);
-            ss = pr.FPPayment(3, 995, false, true);
-            Console.WriteLine("in box: {0}", pr.GetMoneyInBox());
-            pr.FPCplCutter();
+            //pr.FPDayClrReport();
+            //bool op;
+            //pr.FPNullCheck();
+            // 
+            var tR = pr.FPSaleEx(1, 0, false, 1000, 0, false, "123456789012345678901234567890123456789012345678901234567890", 6, false);
+            var ss = pr.FPPayment(3, 5000, false, true);
+            //Console.WriteLine("in box: {0}", pr.GetMoneyInBox());
+
+            //pr.FPResetOrder();
+            //tR = pr.FPPayMoneyEx(1, 0, false, 995, 0, false, "Сигарети L&M Loft Sea Blue  Харкiв п. МРЦ 10,00", 3,false);
+            //ss = pr.FPPayment(3, 995, false, true);
+            //Console.WriteLine("in box: {0}", pr.GetMoneyInBox());
+            //pr.FPCplCutter();
             //Console.WriteLine("{0}",pr.FPPayment(1, 1000, false, true));
             //Console.WriteLine("{0}", pr.FPPayment(2, 1000, false, true));
             //Console.WriteLine("{0}", pr.FPPayment(3, 3000, true, true));

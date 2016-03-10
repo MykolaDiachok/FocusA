@@ -53,6 +53,7 @@ namespace PrintFP
             rStatus = infoPr.Good;
             _timer = new System.Timers.Timer();
             _timer.Interval = (Properties.Settings.Default.TimerIntervalSec * 1000);
+            //_timer.Interval = (100);
             _timer.Elapsed += (sender, e) => { HandleTimerElapsed(); };
             _timer.Enabled = true;
 

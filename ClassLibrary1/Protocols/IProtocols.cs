@@ -19,6 +19,7 @@ namespace CentralLib.Protocols
         strByteReserv structReserv { get; }
         strByteResult structResult { get; }
         strByteStatus structStatus { get; }
+        
         //bool useCRC16 { get; }
 
         void Dispose();
@@ -41,6 +42,15 @@ namespace CentralLib.Protocols
         void FPPeriodicReportShort(ushort pass, DateTime FirstDay, DateTime LastDay);
         void FPPrintVer();
         uint FPPrintZeroReceipt();
+
+        /// <summary>
+        /// Код: 6.SetCashier               регистрация кассира (оператора)  в ЭККР
+        /// После инициализации ЭККР значения паролей равны нулю (0). При длине имени 0 –  разрегистрация  
+        /// кассира.Количество вводов пароля не более 10.
+        /// </summary>
+        /// <param name="CashierID">Номер</param>
+        /// <param name="Name">Длина имени кассира (= n)0..15</param>
+        /// <param name="Password">Пароль</param>
         void FPRegisterCashier(byte CashierID, string Name, ushort Password = 0);
         void FPResetOrder();
         ReceiptInfo FPSaleEx(ushort Amount, byte Amount_Status, bool IsOneQuant, int Price, ushort NalogGroup, bool MemoryGoodName, string GoodName, ulong StrCode, bool PrintingOfBarCodesOfGoods = false);

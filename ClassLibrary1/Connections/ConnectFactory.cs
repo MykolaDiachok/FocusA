@@ -1,4 +1,5 @@
-﻿using CentralLib.Helper;
+﻿
+using CentralLib.Helper;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -117,6 +118,8 @@ namespace CentralLib.Connections
             Console.WriteLine("подготовка к отправке:{0}", PrintByteArray(inputbyte));         
 #endif
             await base.BaseStream.WriteAsync(inputbyte, 0, inputbyte.Length);
+            //base.Write(inputbyte, 0, inputbyte.Length);
+
 #if Debug
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("отправлено");
@@ -141,12 +144,15 @@ namespace CentralLib.Connections
 #endif
                     Thread.Sleep(600);
                     bufferSize = base.BytesToRead;
+                    result_fromPort = new byte[bufferSize];// на поиск ошибки в этой строке потратил 3 часа.... не пиши синкр
                     if (bufferSize == 0)
                     {
                         break;
                     }
                 }
                 int x = await base.BaseStream.ReadAsync(result_fromPort, 0, bufferSize);
+                //base.Read(result_fromPort, 0, bufferSize);
+
 #if Debug
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("получено:{0}", PrintByteArray(result_fromPort));
@@ -281,7 +287,7 @@ namespace CentralLib.Connections
             };
 
             Task<byte[]> answer = function(input);
-            //Task<byte[]> answer = ExchangeFP(prepareForSend(input, useCRC16));
+            //byte[] answer = ExchangeFP(prepareForSend(input, useCRC16));
             //return await answer;
             try
             {

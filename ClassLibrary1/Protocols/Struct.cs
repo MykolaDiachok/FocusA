@@ -400,15 +400,15 @@ namespace CentralLib.Protocols
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            if ((bool)ErrorOfConnectionWithPrinter)
+            if ((ErrorOfConnectionWithPrinter!=null) &&((bool)ErrorOfConnectionWithPrinter))
                 sb.Append("ошибка связи с принтером;");
-            if ((bool)ReceiptPaperIsAlmostEnded)
+            if ((ReceiptPaperIsAlmostEnded != null) && ((bool)ReceiptPaperIsAlmostEnded))
                 sb.Append("чековая лента почти заканчивается;");
-            if ((bool)ControlPaperIsAlmostEnded)
+            if ((ControlPaperIsAlmostEnded != null) && ((bool)ControlPaperIsAlmostEnded))
                 sb.Append("контрольная лента почти заканчивается;");
-            if ((bool)ReceiptPaperIsFinished)
+            if ((ReceiptPaperIsFinished != null) && ((bool)ReceiptPaperIsFinished))
                 sb.Append("чековая лента закончилась;");
-            if ((bool)ControlPaperIsFinished)
+            if ((ControlPaperIsFinished != null) && ((bool)ControlPaperIsFinished))
                 sb.Append("контрольная лента закончилась;");
             return sb.ToString();
         }
