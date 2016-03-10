@@ -42,7 +42,7 @@ namespace PrintFP.Primary
                             //using (Protocol_EP11 pr = new Protocol_EP11(initRow.Port))
                             using (var pr = (BaseProtocol)SingletonProtocol.Instance(initRow.Port).GetProtocols())
                             {
-                                if (!InitialSet(_focusA, initRow, pr))
+                                if (!InitialSet(_focusA, initRow, pr, operation))
                                 {
                                     return;
                                 }
@@ -68,8 +68,10 @@ namespace PrintFP.Primary
                                 }
                                 else if (operation.Operation == 15) //out money
                                 {
+                                    UInt32 rest = pr.GetMoneyInBox();
+                                   
                                     var tblCashIO = getCashIO(_focusA, operation);
-                                    pr.FPCashOut((uint)tblCashIO.Money);
+                                    pr.FPCashOut(Math.Max(rest, (uint)tblCashIO.Money));
                                     //tblCashIO.ByteReserv = pr.ByteReserv;
                                     tblCashIO.ByteResult = pr.ByteResult;
                                     tblCashIO.ByteStatus = pr.ByteStatus;
@@ -183,6 +185,10 @@ namespace PrintFP.Primary
                                 }
                                 else if (operation.Operation == 39) //Z
                                 {
+                                    UInt32 rest = pr.GetMoneyInBox();
+                                    if (rest!=0)
+                                        pr.FPCashOut(rest);
+                                    //var status = pr.get
                                     pr.FPDayClrReport();
                                 }
                                 else if (operation.Operation == 40) //periodic report
@@ -278,10 +284,11 @@ namespace PrintFP.Primary
         /// <summary>
         /// Первичная инициализация и подготовка ФР
         /// </summary>
-        /// <param name="_focusA"></param>
-        /// <param name="initRow"></param>
-        /// <param name="pr"></param>
-        private bool InitialSet(DataClasses1DataContext _focusA, tbl_ComInit initRow, BaseProtocol pr)
+        /// <param name="_focusA">база</param>
+        /// <param name="initRow">строка инициализации</param>
+        /// <param name="pr">протокол обмена</param>
+        /// /// <param name="operation">текущая операция</param>
+        private bool InitialSet(DataClasses1DataContext _focusA, tbl_ComInit initRow, BaseProtocol pr, tbl_Operation operation)
         {
             initRow.Error = false;
             initRow.ErrorInfo = "";
@@ -375,14 +382,18 @@ namespace PrintFP.Primary
                 
                 _focusA.SubmitChanges();
             }
+
+            if ((operation.Operation!=3)||(operation.Operation!=40)||(operation.Operation!=35))
+            {
+                pr.FPNullCheck();
+            }
             initRow.CurrentSystemDateTime = DateTime.Now;
             initRow.ByteStatus = pr.ByteStatus;
             initRow.ByteStatusInfo = pr.structStatus.ToString();
             initRow.ByteReserv = pr.ByteReserv;
             initRow.ByteReservInfo = pr.structReserv.ToString();
             initRow.ByteResult = pr.ByteResult;
-            initRow.ByteResultInfo = pr.structResult.ToString();
-            
+            initRow.ByteResultInfo = pr.structResult.ToString();            
             _focusA.SubmitChanges();
             return !initRow.Error;
         }

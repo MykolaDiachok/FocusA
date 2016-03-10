@@ -26,6 +26,7 @@ namespace CentralLib.Protocols
         uint FPCashIn(uint Summa);
         uint FPCashOut(uint Summa);
         void FPCommentLine(string CommentLine, bool OpenRefundReceipt = false);
+        void FPNullCheck();
         void FPCplOnline();
         void FPDayClrReport(ushort pass = 0);
         void FPDayReport(ushort pass = 0);
@@ -48,5 +49,19 @@ namespace CentralLib.Protocols
         void FPSetTaxRate(ushort Password, Taxes tTaxes);
         bool showBottomString(string Info);
         bool showTopString(string Info);
+
+        /// <summary>
+        /// Код: 33.
+        /// GetBox                          сумма наличных в денежном ящике
+        /// </summary>
+        /// <returns></returns>
+        UInt32 GetMoneyInBox();
+        /// <summary>
+        /// ///Код: 46.  
+        /// CplCutter запрет/разрешение на использование обрезчика
+        ///Вызов команды меняет значение параметра на противоположный.
+        /// </summary>
+        /// <returns></returns>
+        bool FPCplCutter();
     }
 }

@@ -403,5 +403,52 @@ namespace CentralLib.Protocols
         {
             throw new NotImplementedException();
         }
+
+        /// <summary>
+        /// Код: 33.
+        /// GetBox  сумма наличных в денежном ящике
+        /// </summary>
+        /// <returns></returns>
+        public UInt32 GetMoneyInBox()
+        {
+            byte[] forsending = new byte[] { 33 };
+            byte[] answer = ExchangeWithFP(forsending);
+            if (answer.Length==5)
+            {
+                return BitConverter.ToUInt32(answer, 0);
+            }
+            throw new ApplicationException("Сумма в кассе не определена");
+            return 0;
+        }
+        /// <summary>
+        /// ///Код: 46.  
+        /// CplCutter запрет/разрешение на использование обрезчика
+        ///Вызов команды меняет значение параметра на противоположный.
+        /// </summary>
+        /// <returns></returns>
+        public bool FPCplCutter()
+        {
+            byte[] forsending = new byte[] { 46 };
+            byte[] answer = ExchangeWithFP(forsending);
+            return statusOperation;
+        }
+
+        public void FPNullCheck()
+        {
+            byte[] forsending = new byte[] { 11 };//Comment            
+            byte length;
+            byte[] stringBytes = byteHelper.CodingBytes("Нульовий чек", 27, out length);
+            length = byteHelper.SetBit(length, 7, false);
+            forsending = byteHelper.Combine(forsending, new byte[] { length });
+            forsending = byteHelper.Combine(forsending, stringBytes);
+            byte[] answer = ExchangeWithFP(forsending);
+            if (statusOperation)
+            {
+                forsending = new byte[] { 20, 0x03 };//Payment 
+                forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(0 ^ (1 << 31)));
+                answer = ExchangeWithFP(forsending);
+            }
+            
+        }
     }
 }
