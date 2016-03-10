@@ -100,10 +100,15 @@ namespace PrintFP.Primary
                                     foreach(var rowCheck in tableCheck)
                                     {
                                         var rowSum = pr.FPSaleEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, (ushort)rowCheck.NalogGroup, false, rowCheck.GoodName, (ulong)rowCheck.packname);
+                                        if (rowCheck.RowSum != rowSum.CostOfGoodsOrService)
+                                        {
+                                            logger.Error("Отличается сумма, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
+                                        }
                                         rowCheck.ByteReserv = pr.ByteReserv;
                                         rowCheck.ByteResult = pr.ByteResult;
                                         rowCheck.ByteStatus = pr.ByteStatus;
                                         rowCheck.Error = !pr.statusOperation;
+                                        headCheck.FPSumm = rowSum.SumAtReceipt;
                                     }
                                     if (headCheck.Payment0>0)
                                     {
@@ -152,10 +157,15 @@ namespace PrintFP.Primary
                                     foreach (var rowCheck in tableCheck)
                                     {
                                         var rowSum = pr.FPPayMoneyEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, (ushort)rowCheck.NalogGroup, false, rowCheck.GoodName, (ulong)rowCheck.packname);
+                                        if (rowCheck.RowSum!=rowSum.CostOfGoodsOrService)
+                                        {
+                                            logger.Error("Отличается сумма, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
+                                        }
                                         rowCheck.ByteReserv = pr.ByteReserv;
                                         rowCheck.ByteResult = pr.ByteResult;
                                         rowCheck.ByteStatus = pr.ByteStatus;
                                         rowCheck.Error = !pr.statusOperation;
+                                        headCheck.FPSumm = rowSum.SumAtReceipt;
                                     }
                                     if (headCheck.Payment0 > 0)
                                     {
@@ -177,6 +187,7 @@ namespace PrintFP.Primary
                                     headCheck.ByteResult = pr.ByteResult;
                                     headCheck.ByteStatus = pr.ByteStatus;
                                     headCheck.Error = !pr.statusOperation;
+                                    
                                     headCheck.CheckClose = true;
                                 }
                                 else if (operation.Operation == 35) //X
