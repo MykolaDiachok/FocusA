@@ -210,3 +210,14 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
+*.config
+PrintFP/bin/Debug/PrintFP.exe
+*.config
+PrintFP/bin/Debug/PrintFP.pdb
+*.cache
+PrintFP/obj/Debug/PrintFP.csproj.FileListAbsolute.txt
+*.exe
+PrintFP/obj/Debug/PrintFP.pdb
+PrintFP/Properties/Settings.Designer.cs
+*.settings
+*.cache

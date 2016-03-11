@@ -26,8 +26,7 @@ namespace PrintFP.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=FpWork;Integrated Security=Tru" +
-            "e;Connect Timeout=30")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=focus-a;Initial Catalog=FPWork;User ID=sa;Password=1СПредприятие82")]
         public string FpWorkConnectionString {
             get {
                 return ((string)(this["FpWorkConnectionString"]));
