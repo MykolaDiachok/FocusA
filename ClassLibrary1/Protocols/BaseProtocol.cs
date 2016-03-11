@@ -122,12 +122,38 @@ namespace CentralLib.Protocols
             }
         }
 
-        public virtual DayReport dayReport
+        
+
+        private DayReport tDayReport;
+        public virtual  DayReport dayReport
         {
             get
             {
-                throw new NotImplementedException();
+                if (lastByteCommand != 42)
+                    tDayReport = getDayReport();
+                return tDayReport;
             }
+        }
+
+        private DayReport getDayReport()
+        {
+            byte[] bytesReturn;
+            {
+                byte[] forsending = new byte[] { 42 };
+                byte[] answer = ExchangeWithFP(forsending);
+                if ((connFP.statusOperation) && (answer.Length > 0))
+                {
+                    bytesReturn = answer;
+                }
+                else
+                {
+                    this.statusOperation = false;
+                    return new DayReport();
+                }
+            }
+           
+
+            return new DayReport(bytesReturn);
         }
 
         #region DateTime
