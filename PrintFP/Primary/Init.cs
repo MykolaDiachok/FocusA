@@ -71,7 +71,7 @@ namespace PrintFP.Primary
                                     UInt32 rest = pr.GetMoneyInBox();
                                    
                                     var tblCashIO = getCashIO(_focusA, operation);
-                                    pr.FPCashOut(Math.Max(rest, (uint)tblCashIO.Money));
+                                    pr.FPCashOut(Math.Min(rest, (uint)tblCashIO.Money));
                                     //tblCashIO.ByteReserv = pr.ByteReserv;
                                     tblCashIO.ByteResult = pr.ByteResult;
                                     tblCashIO.ByteStatus = pr.ByteStatus;
@@ -102,13 +102,19 @@ namespace PrintFP.Primary
                                         var rowSum = pr.FPSaleEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, (ushort)rowCheck.NalogGroup, false, rowCheck.GoodName, (ulong)rowCheck.packname);
                                         if (rowCheck.RowSum != rowSum.CostOfGoodsOrService)
                                         {
-                                            logger.Error("Отличается сумма, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
+                                            logger.Error("Отличается суммапо строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
+                                            throw new ApplicationException(String.Format("Отличается суммапо строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment));
                                         }
                                         rowCheck.ByteReserv = pr.ByteReserv;
                                         rowCheck.ByteResult = pr.ByteResult;
                                         rowCheck.ByteStatus = pr.ByteStatus;
                                         rowCheck.Error = !pr.statusOperation;
                                         headCheck.FPSumm = rowSum.SumAtReceipt;
+                                    }
+                                    if (headCheck.FPSumm!=headCheck.CheckSum)
+                                    {
+                                        logger.Error("Отличается сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id);
+                                        throw new ApplicationException(String.Format("Отличается сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id));
                                     }
                                     if (headCheck.Payment0>0)
                                     {
@@ -159,13 +165,19 @@ namespace PrintFP.Primary
                                         var rowSum = pr.FPPayMoneyEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, (ushort)rowCheck.NalogGroup, false, rowCheck.GoodName, (ulong)rowCheck.packname);
                                         if (rowCheck.RowSum!=rowSum.CostOfGoodsOrService)
                                         {
-                                            logger.Error("Отличается сумма, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
+                                            logger.Error("Отличается суммапо строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
+                                            throw new ApplicationException(String.Format("Отличается суммапо строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment));
                                         }
                                         rowCheck.ByteReserv = pr.ByteReserv;
                                         rowCheck.ByteResult = pr.ByteResult;
                                         rowCheck.ByteStatus = pr.ByteStatus;
                                         rowCheck.Error = !pr.statusOperation;
                                         headCheck.FPSumm = rowSum.SumAtReceipt;
+                                    }
+                                    if (headCheck.FPSumm != headCheck.CheckSum)
+                                    {
+                                        logger.Error("Отличается сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id);
+                                        throw new ApplicationException(String.Format("Отличается сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id));
                                     }
                                     if (headCheck.Payment0 > 0)
                                     {

@@ -364,7 +364,7 @@ namespace SyncHameleon
 
                     List<tbl_SALE> listSales = new List<tbl_SALE>();
                     int rowsort = 1;
-                    int sumcheck = 0;
+                    //int sumcheck = 0;
                     long idcheck = 0;
                     foreach (var rowCheckLines in forAddChekLines)
                     {
