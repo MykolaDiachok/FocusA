@@ -498,6 +498,42 @@ namespace CentralLib.Protocols
 
         }
 
+        public DayReport(byte[] bytesReturn)
+        {
+            this.CounterOfSaleReceipts = 0;
+            this.CounterOfSalesByTaxGroupsAndTypesOfPayments = new SumTaxGroupsAndTypesOfPayments();
+            this.DailyMarkupBySale = 0;
+            this.DailyDiscountBySale = 0;
+            this.CounterOfPayoutReceipts = 0;
+            this.CountersOfPayoutByTaxGroupsAndTypesOfPayments = new SumTaxGroupsAndTypesOfPayments();
+            this.DailyMarkupByPayouts = 0;
+            this.DailyDiscountByPayouts = 0;
+            this.DailySumOfServiceCashGivingOut = 0;
+            this.CurrentNumberOfZReport = 0;
+            this.CounterOfSalesReceipt = 0;
+            this.CounterOfPaymentReceipt = 0;
+
+            this.DateTimeOfEndOfShift = DateTime.Now;
+            this.DateOfEndOfShift = this.DateTimeOfEndOfShift.ToString("dd.MM.yy");
+            this.TimeOfEndOfShift = this.DateTimeOfEndOfShift.ToString("HH:mm");                
+            this.dtDateOfTheLastDailyReport = DateTime.Now;
+            this.DateOfTheLastDailyReport = null;
+            this.SumOfTaxByTaxGroupsForOverlayVAT = new SumTaxByTaxGroups();
+            this.CounterOfArticles = 0;                      
+            this.QuantityOfCancelSalesReceipt = 0;
+            this.QuantityOfCancelPaymentReceipt = 0;
+            this.SumOfCancelSalesReceipt = 0;
+            this.SumOfCancelPaymentReceipt = 0;
+            this.QuantityOfCancelSales = 0;
+            this.QuantityOfCancelPayments = 0;
+            this.SumOfCancelSales = 0;
+            this.SumOfCancelPayments = 0;
+
+
+            this.DailySumOfServiceCashEntering = 0;
+            
+        }
+
         /// <summary>
         /// счетчик чеков продаж
         /// </summary>
