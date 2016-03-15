@@ -25,5 +25,11 @@ namespace CentralLib.Protocols
             useCRC16 = false;
         }
 
+        public Protocol_EP06(string IpAdress, int port):base(IpAdress,port)
+        {
+            MaxStringLenght = 75;
+            useCRC16 = false;
+        }
+
     }
 }

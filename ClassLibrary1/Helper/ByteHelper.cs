@@ -11,6 +11,9 @@ namespace CentralLib.Helper
     {
         public UInt32 Max3ArrayBytes = BitConverter.ToUInt32(new byte[] { 255, 255, 255, 0 }, 0);
         public UInt64 Max6ArrayBytes = BitConverter.ToUInt64(new byte[] { 255, 255, 255, 255, 255, 255, 0, 0 }, 0);
+        public byte[] bytesBegin = { (byte)WorkByte.DLE, (byte)WorkByte.STX };
+        public byte[] bytesEnd = { (byte)WorkByte.DLE, (byte)WorkByte.ETX };
+
         /// <summary>
         /// Для объединение массивов байт
         /// </summary>
@@ -262,7 +265,197 @@ namespace CentralLib.Helper
                 return "";
         }
 
+        #region forProtocol
+        public byte[] prepareForSend(int ConsecutiveNumber, byte[] BytesForSend, bool useCRC16 = false, bool repeatError = false) // тут передают только код и параметры, получают готовую строку для отправки
+        {
+            //this.glbytesPrepare = BytesForSend;
+
+            byte[] prBytes = Combine(new byte[] { (byte)WorkByte.DLE, (byte)WorkByte.STX, (byte)ConsecutiveNumber }, BytesForSend);
+            prBytes = Combine(prBytes, new byte[] { 0x00, (byte)WorkByte.DLE, (byte)WorkByte.ETX });
+            prBytes[prBytes.Length - 3] = getchecksum(prBytes);
+
+            for (int pos = 2; pos < prBytes.Length - 2; pos++)
+            //for (int pos = 2; pos <= _out.Count - 3; pos++)
+            {
+                if (prBytes[pos] == (byte)WorkByte.DLE)
+                {
+                    prBytes = prBytes.Take(pos)
+                    .Concat(new byte[] { (byte)WorkByte.DLE })
+                    .Concat(prBytes.Skip(pos))
+                    .ToArray();
+                    //   prBytes..Insert(pos + 1, DLE);
+                    pos++;
+                }
+            }
+            if (useCRC16)
+                prBytes = returnArrayBytesWithCRC16(prBytes);
+            return prBytes;
+
+        }
 
 
+        public byte[] returnBytesWithoutSufixAndPrefix(byte[] inputbytes, bool useCRC16 = false)
+        {
+            int lenght = inputbytes.Length - 7 - 3 - ((useCRC16) ? 2 : 0);
+            byte[] outputBytes = new byte[lenght];
+            System.Buffer.BlockCopy(inputbytes, 7, outputBytes, 0, lenght);
+            return outputBytes;
+        }
+
+        #region checksum
+        public byte getchecksum(List<byte> buf)
+        {
+            int i, n;
+            byte lobyte, cs;
+            uint sum, res;
+
+            n = buf.Count - 3;
+            sum = 0;
+            cs = 0x00;
+            lobyte = 0x00;
+
+            for (i = 2; i < n; i++)
+                sum += buf[i];
+
+            do
+            {
+                res = sum + cs;
+                cs++;
+                lobyte = (byte)(res & 0xFF);
+            }
+            while (lobyte != 0x00);
+            return (byte)(cs - 1);
+        }
+
+        public byte getchecksum(byte[] buf)
+        {
+            int i, sum, n, res;
+            byte lobyte, cs;
+
+            n = buf.Length - 3;
+            sum = 0;
+            cs = 0x00;
+            lobyte = 0x00;
+
+            for (i = 2; i < n; i++)
+                //for (i = 0; i < buf.Length; ++i)
+                sum += Convert.ToInt16(buf[i]);
+
+            do
+            {
+                res = sum + cs;
+                cs++;
+                lobyte = (byte)(res & 0xFF);
+            }
+            while (lobyte != 0x00);
+            return (byte)(cs - 1);
+        }
+
+        public int getchecksum(byte[] buf, int len)
+        {
+            int i, sum, n, res;
+            byte lobyte, cs;
+
+            n = len - 3;
+            sum = 0;
+            cs = 0x00;
+            lobyte = 0x00;
+
+            for (i = 2; i < n; i++)
+                //for (i = 0; i < buf.Length; ++i)
+                sum += Convert.ToInt16(buf[i]);
+
+            do
+            {
+                res = sum + cs;
+                cs++;
+                lobyte = (byte)(res & 0xFF);
+            }
+            while (lobyte != 0x00);
+            return cs - 1;
+        }
+        #endregion
+
+        #region CRC16
+        private ushort[] table = new ushort[256];
+
+        public ushort ComputeChecksum(params byte[] bytes)
+        {
+            ushort crc = 0;
+            for (int i = 0; i < bytes.Length; ++i)
+            {
+                byte index = (byte)(crc ^ bytes[i]);
+                crc = (ushort)((crc >> 8) ^ table[index]);
+            }
+            return crc;
+        }
+
+        public byte[] ComputeChecksumBytes(params byte[] bytes)
+        {
+            ushort crc = ComputeChecksum(bytes);
+            return BitConverter.GetBytes(crc);
+        }
+
+        public void initialCrc16()
+        {
+            ushort polynomial = (ushort)0x8408;
+            ushort value;
+            ushort temp;
+            for (ushort i = 0; i < table.Length; ++i)
+            {
+                value = 0;
+                temp = i;
+                for (byte j = 0; j < 8; ++j)
+                {
+                    if (((value ^ temp) & 0x0001) != 0)
+                    {
+                        value = (ushort)((value >> 1) ^ polynomial);
+                    }
+                    else
+                    {
+                        value >>= 1;
+                    }
+                    temp >>= 1;
+                }
+                table[i] = value;
+            }
+        }
+
+
+        public byte[] returnArrayBytesWithCRC16(byte[] inBytes)
+        {
+
+            //byte[] bytebegin = { DLE, STX };
+            //byte[] byteend = { DLE, ETX };
+
+            byte[] tempb = returnWithOutDublicateDLE(inBytes);
+            var searchBegin = PatternAt(tempb, bytesBegin);
+            if (searchBegin == null)
+                return null;
+
+            var searchEnd = PatternAt(tempb, bytesEnd);
+            if (searchEnd == null)
+                return null;
+
+            var newArr = tempb.Skip((int)searchBegin + 2).Take((int)searchEnd - 2).ToArray();
+
+            byte[] a = new byte[newArr.Length + 1];
+            newArr.CopyTo(a, 0);
+            a[newArr.Length] = (byte)WorkByte.ETX;
+
+
+            //var control = tempb.Skip((int)searchEnd + 2).Take(2).ToArray();
+
+
+            byte[] crcBytes = ComputeChecksumBytes(a);
+            byte[] retBytes = new byte[inBytes.Length + 2];
+            inBytes.CopyTo(retBytes, 0);
+            retBytes[retBytes.Length - 2] = crcBytes[0];
+            retBytes[retBytes.Length - 1] = crcBytes[1];
+            return retBytes;
+        }
+
+        #endregion
+        #endregion
     }
 }

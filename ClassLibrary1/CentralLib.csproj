@@ -65,8 +65,10 @@
     <Compile Include="Connections\ConnectFP_EP11.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Connections\ConnectNetFactory.cs" />
+    <Compile Include="Connections\ConnectNetFP_EP06.cs" />
+    <Compile Include="Connections\ConnectNetFP_EP11.cs" />
     <Compile Include="Helper\Enum.cs" />
-    <Compile Include="Connections\ConnectionFP.cs" />
     <Compile Include="Connections\DeafaultPortCom.cs" />
     <Compile Include="Helper\BitHelper.cs" />
     <Compile Include="Helper\ByteHelper.cs" />

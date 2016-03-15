@@ -22,7 +22,8 @@ namespace CentralLib.Protocols
     /// public partial class Protocols!!!!!!!!
     public class Protocol_EP11 : BaseProtocol, IProtocols
     {
-        
+        private IConnectFactory connFP = null;
+
         /// <summary>
         /// Статус последней операции true - завершено, false - сбой
         /// </summary>
@@ -129,6 +130,13 @@ namespace CentralLib.Protocols
             
         }
 
+        public Protocol_EP11(string IpAdress,int port):base(IpAdress,port)
+        {
+            useCRC16 = true;
+            MaxStringLenght = 75;
+            initial();
+
+        }
 
         /// <summary>
         /// Основная функция обмена для протокола, сюда передаем массив байтов, на выходе массив байтов ответа ФР, при этом передаются только данные.
@@ -136,49 +144,49 @@ namespace CentralLib.Protocols
         /// </summary>
         /// <param name="inputByte"></param>
         /// <returns></returns>
-//        private byte[] ExchangeWithFP(byte[] inputByte)
-//        {
-//            byte[] answer;
-//            base.lastByteCommand = inputByte[0];
-//            answer = connFP.dataExchange(inputByte, useCRC16, false);
-//            if (!connFP.statusOperation) //repetition if error
-//            {
-//                Thread.Sleep(800);
-//#if Debug
-//                Console.ForegroundColor = ConsoleColor.Yellow;
-//                Console.WriteLine("ошибка первое ожидание");
-//                ///Console.ReadKey();
-//#endif
-//                answer = connFP.dataExchange(inputByte, useCRC16, true);
-//            }
-//            if (!connFP.statusOperation) //repetition if error
-//            {
-//                //TODO: большая проблема искать в чем причина
-//                Thread.Sleep(800);
-//                answer = connFP.dataExchange(inputByte, useCRC16, true);
-//#if Debug
-//                Console.ForegroundColor = ConsoleColor.DarkYellow;
-//                Console.WriteLine("Вторая ошибка");
-//                Console.ReadKey();
-//#endif
-//            }
-//            this.ByteStatus = connFP.ByteStatus;
-//            this.ByteResult = connFP.ByteResult;
-//            this.ByteReserv = connFP.ByteReserv;
-//            this.errorInfo = connFP.errorInfo;
+        //        private byte[] ExchangeWithFP(byte[] inputByte)
+        //        {
+        //            byte[] answer;
+        //            base.lastByteCommand = inputByte[0];
+        //            answer = connFP.dataExchange(inputByte, useCRC16, false);
+        //            if (!connFP.statusOperation) //repetition if error
+        //            {
+        //                Thread.Sleep(800);
+        //#if Debug
+        //                Console.ForegroundColor = ConsoleColor.Yellow;
+        //                Console.WriteLine("ошибка первое ожидание");
+        //                ///Console.ReadKey();
+        //#endif
+        //                answer = connFP.dataExchange(inputByte, useCRC16, true);
+        //            }
+        //            if (!connFP.statusOperation) //repetition if error
+        //            {
+        //                //TODO: большая проблема искать в чем причина
+        //                Thread.Sleep(800);
+        //                answer = connFP.dataExchange(inputByte, useCRC16, true);
+        //#if Debug
+        //                Console.ForegroundColor = ConsoleColor.DarkYellow;
+        //                Console.WriteLine("Вторая ошибка");
+        //                Console.ReadKey();
+        //#endif
+        //            }
+        //            this.ByteStatus = connFP.ByteStatus;
+        //            this.ByteResult = connFP.ByteResult;
+        //            this.ByteReserv = connFP.ByteReserv;
+        //            this.errorInfo = connFP.errorInfo;
 
-//            this.statusOperation = connFP.statusOperation;
-//#if DebugErrorInfo
-//            Console.WriteLine("Send:{0}", PrintByteArrayX(inputByte));
-//            Console.WriteLine("Resive:{0}", PrintByteArrayX(answer));
-//            Console.WriteLine("statusOperation:{0}", statusOperation);
-//            Console.WriteLine("errorInfo:{0}", errorInfo);
-//            Console.WriteLine("ByteStatus:{0}", ByteStatus);
-//            Console.WriteLine("ByteResult:{0}", ByteResult);
-//            Console.WriteLine("ByteReserv:{0}", ByteReserv);
-//#endif
-//            return answer;
-//        }
+        //            this.statusOperation = connFP.statusOperation;
+        //#if DebugErrorInfo
+        //            Console.WriteLine("Send:{0}", PrintByteArrayX(inputByte));
+        //            Console.WriteLine("Resive:{0}", PrintByteArrayX(answer));
+        //            Console.WriteLine("statusOperation:{0}", statusOperation);
+        //            Console.WriteLine("errorInfo:{0}", errorInfo);
+        //            Console.WriteLine("ByteStatus:{0}", ByteStatus);
+        //            Console.WriteLine("ByteResult:{0}", ByteResult);
+        //            Console.WriteLine("ByteReserv:{0}", ByteReserv);
+        //#endif
+        //            return answer;
+        //        }
 
         /// <summary>
         /// Код: 0. SendStatus 	 	прочитать состояние регистратора 

@@ -22,7 +22,9 @@ namespace CentralLib.Connections
         byte[] dataExchange(byte[] input, bool useCRC16 = false, bool repeatError = false);
         byte[] dataExchange(byte[] input);
 
-
+        bool IsOpen { get; }
+        void Open();
+        void Close();
 
     }
 }

@@ -32,6 +32,15 @@ namespace CentralLib.Protocols
             this.defaultPortCom = initialPort;
             defaultInitial(initialPort);
         }
+        public string IpAdress { get; private set; }
+        public int port { get; private set; }
+
+        public BaseProtocol(string IpAdress, int port)
+        {
+            this.IpAdress = IpAdress;
+            this.port = port;
+            this.connFP = new ConnectNetFactory(IpAdress, port, 40);
+        }
 
         private void defaultInitial(DefaultPortCom initialPort)
         {
@@ -343,7 +352,7 @@ namespace CentralLib.Protocols
 
 
         public WorkProtocol currentProtocol;
-        public CentralLib.Connections.ConnectFactory connFP = null;
+        private IConnectFactory connFP = null;
 
         public string errorInfo;
 
@@ -445,23 +454,47 @@ namespace CentralLib.Protocols
             {
                 this.useCRC16 = true;
                 this.currentProtocol = WorkProtocol.EP11;
-                this.connFP = new CentralLib.Connections.ConnectFP_EP11(this.defaultPortCom);
-                return new Protocol_EP11(this.defaultPortCom);
+                if (this.defaultPortCom != null)
+                {
+                    this.connFP = new CentralLib.Connections.ConnectFP_EP11(this.defaultPortCom);
+                    return new Protocol_EP11(this.defaultPortCom);
+                }
+                else
+                {
+                    this.connFP = new ConnectNetFP_EP11(this.IpAdress, this.port);
+                    return new Protocol_EP11(this.IpAdress, this.port);
+                }
             }
-            else if ((tPr.Length > 2)&&((tPr.Substring(0, 2) == "ЕП")))
+            else if ((tPr.Length > 2) && ((tPr.Substring(0, 2) == "ЕП")))
             //((tPr == "ЕП-06")||((tPr.Length>2) &&((tPr.Substring(1,2)== "ЕП")||(tPr.Substring(1, 2) == "ОП")))) //Если не 11 и есть инфо по ЕП то считаем что  это 6 протокол
             {
                 this.useCRC16 = false;
                 this.currentProtocol = WorkProtocol.EP06;
-                this.connFP = new CentralLib.Connections.ConnectFP_EP06(this.defaultPortCom);
-                return new Protocol_EP06(this.defaultPortCom);
+                if (this.defaultPortCom != null)
+                {
+                    this.connFP = new CentralLib.Connections.ConnectFP_EP06(this.defaultPortCom);
+                    return new Protocol_EP06(this.defaultPortCom);
+                }
+                else
+                {
+                    this.connFP = new ConnectNetFP_EP06(this.IpAdress, this.port);
+                    return new Protocol_EP06(this.IpAdress, this.port);
+                }
             }
             else if (tPr == "ОП-02")
             {
                 this.useCRC16 = false;
                 this.currentProtocol = WorkProtocol.OP02;
-                this.connFP = new CentralLib.Connections.ConnectFP_EP06(this.defaultPortCom);
-                return new Protocol_OP02(this.defaultPortCom);
+                if (this.defaultPortCom != null)
+                {
+                    this.connFP = new CentralLib.Connections.ConnectFP_EP06(this.defaultPortCom);
+                    return new Protocol_OP02(this.defaultPortCom);
+                }
+                else
+                {
+                    this.connFP = new ConnectNetFP_EP06(this.IpAdress, this.port);
+                    return new Protocol_OP02(this.IpAdress, this.port);
+                } 
             }
 
                 throw new ApplicationException("Протокол не определен, работа программы не возможна");

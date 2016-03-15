@@ -18,6 +18,12 @@ namespace CentralLib.Protocols
             singletonProtocol = new BaseProtocol(port).getCurrentProtocol();
         }
 
+        protected SingletonProtocol(string IpAdress, int port)
+        {
+
+            singletonProtocol = new BaseProtocol(IpAdress, port).getCurrentProtocol();
+        }
+
         public static SingletonProtocol Instance(int inport)
         {
             if ((uniqueInstance == null))
@@ -27,7 +33,16 @@ namespace CentralLib.Protocols
             }
             return uniqueInstance;
         }
-        
+
+        public static SingletonProtocol Instance(string IpAdress, int port)
+        {
+            if ((uniqueInstance == null))
+            {
+
+                uniqueInstance = new SingletonProtocol(IpAdress,port);
+            }
+            return uniqueInstance;
+        }
 
         public BaseProtocol GetProtocols()
         {

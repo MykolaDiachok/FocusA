@@ -22,5 +22,11 @@ namespace CentralLib.Protocols
             MaxStringLenght = 50;
             useCRC16 = false;
         }
+
+        public Protocol_OP02(string IpAdress, int port):base(IpAdress,port)
+        {
+            MaxStringLenght = 50;
+            useCRC16 = false;
+        }
     }
 }
