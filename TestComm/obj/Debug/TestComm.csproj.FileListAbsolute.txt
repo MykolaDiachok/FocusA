@@ -16,3 +16,4 @@ I:\FocusA\TestComm\bin\Debug\CentralLib.pdb
 I:\FocusA\TestComm\bin\Debug\NBug.xml
 I:\FocusA\TestComm\bin\Debug\NLog.xml
 I:\FocusA\TestComm\bin\Debug\Npgsql.xml
+I:\FocusA\TestComm\bin\Debug\NLog.config

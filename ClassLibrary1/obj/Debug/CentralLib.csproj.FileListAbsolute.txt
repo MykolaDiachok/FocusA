@@ -22,3 +22,4 @@ C:\Projects\FocusA\ClassLibrary1\bin\Debug\Npgsql.xml
 C:\Projects\FocusA\ClassLibrary1\obj\Debug\CentralLib.csprojResolveAssemblyReference.cache
 C:\Projects\FocusA\ClassLibrary1\obj\Debug\CentralLib.dll
 C:\Projects\FocusA\ClassLibrary1\obj\Debug\CentralLib.pdb
+I:\FocusA\ClassLibrary1\bin\Debug\NLog.config

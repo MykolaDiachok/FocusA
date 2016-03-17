@@ -12,6 +12,7 @@ namespace CentralLib.Connections
 {
     class ConnectNetFactory : IConnectFactory, IDisposable
     {
+        private NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         public byte[] bytesBegin = { (byte)WorkByte.DLE, (byte)WorkByte.STX };
         public byte[] bytesEnd = { (byte)WorkByte.DLE, (byte)WorkByte.ETX };
 
@@ -64,6 +65,22 @@ namespace CentralLib.Connections
             //сохранено для поддержки
         }
 
+        public bool PingHost(string _HostURI, int _PortNumber)
+        {
+            try
+            {
+                TcpClient client = new TcpClient(_HostURI, _PortNumber);
+                client.Close();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                //MessageBox.Show("Error pinging host:'" + _HostURI + ":" + _PortNumber.ToString() + "'");
+                logger.Fatal(ex, "Error pinging host:'" + _HostURI + ":" + _PortNumber.ToString() + "'");
+                return false;
+            }
+        }
+
 
         /// <summary>
         /// 
@@ -93,11 +110,18 @@ namespace CentralLib.Connections
             //    setError("Не возможно подключиться к порту:" + base.PortName.ToString());
             //    throw new ArgumentException(this.errorInfo);
             //}
+            if (!PingHost(IpAdress, port))
+            {
+                setError("Ошибка подключения к серверу ip:" + this.IpAdress + ":" + port.ToString());
+                throw new ApplicationException("Ошибка подключения к серверу");
+            }
             byte[] unsigned = null;
             using (TcpClient client = new TcpClient())
             {
+                
                 await client.ConnectAsync(IPAddress.Parse(IpAdress), port);
-
+                client.ReceiveTimeout = 5000;
+                client.SendTimeout = 5000;
 #if Debug
                 Console.ForegroundColor = ConsoleColor.Blue;
                 Console.WriteLine("подготовка к отправке:{0}", byteHelper.PrintByteArrayX(inputbyte));
@@ -279,6 +303,7 @@ namespace CentralLib.Connections
             this.ByteReserv = ByteReserv;
             this.statusOperation = false;
             this.errorInfo += errorInfo + "; ";
+            logger.Error(errorInfo);
         }
 
         void IDisposable.Dispose()
