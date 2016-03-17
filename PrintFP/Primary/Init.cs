@@ -7,6 +7,7 @@ using NLog;
 using NLog.Config;
 using System.Data.Linq;
 using CentralLib.Protocols;
+using System.Threading;
 
 namespace PrintFP.Primary
 {
@@ -27,13 +28,17 @@ namespace PrintFP.Primary
                 {
                     DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
                     DateTime tEnd = DateTime.ParseExact(initRow.DateTimeStop.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
+                    DateTime now = DateTime.Now;
+                    now.AddSeconds((double)initRow.DeltaTime);
                     Table<tbl_Operation> tableOperation = _focusA.GetTable<tbl_Operation>();
                     var operation = (from op in tableOperation
                                      where op.FPNumber == (int)initRow.FPNumber
                                      && !op.Closed && !(bool)op.Disable
                                      && op.DateTime >= initRow.DateTimeBegin && op.DateTime <= initRow.DateTimeStop
+                                      && op.DateTime <= getintDateTime(now)
                                      //TODO добавить определение текущего времени и разницы
                                      select op).OrderBy(o => o.DateTime).ThenBy(o=>o.Operation).FirstOrDefault();
+                    logger.Trace("init:{0}", now);
                     if (operation != null)
                     {
 
@@ -48,7 +53,9 @@ namespace PrintFP.Primary
                                 }
                                 if (operation.Operation == 3) // set cachier
                                 {
+                                    
                                     var tblCashier = getCashier(_focusA, operation);
+                                    logger.Trace("set cachier:{0}", tblCashier.Name_Cashier);
                                     pr.FPRegisterCashier(0, tblCashier.Name_Cashier);
                                     tblCashier.ByteReserv = pr.ByteReserv;
                                     tblCashier.ByteResult = pr.ByteResult;
@@ -59,6 +66,7 @@ namespace PrintFP.Primary
                                 else if (operation.Operation == 10) //in money
                                 {
                                     var tblCashIO = getCashIO(_focusA, operation);
+                                    logger.Trace("in money:{0}", tblCashIO.Money);
                                     pr.FPCashIn((uint)tblCashIO.Money);
                                     //tblCashIO.ByteReserv = pr.ByteReserv;
                                     tblCashIO.ByteResult = pr.ByteResult;
@@ -71,6 +79,7 @@ namespace PrintFP.Primary
                                     UInt32 rest = pr.GetMoneyInBox();
                                    
                                     var tblCashIO = getCashIO(_focusA, operation);
+                                    logger.Trace("out money. in base:{0}; in box{1}, make:{2}", tblCashIO.Money, rest, Math.Min(rest, (uint)tblCashIO.Money));
                                     pr.FPCashOut(Math.Min(rest, (uint)tblCashIO.Money));
                                     //tblCashIO.ByteReserv = pr.ByteReserv;
                                     tblCashIO.ByteResult = pr.ByteResult;
@@ -97,8 +106,10 @@ namespace PrintFP.Primary
                                                       && tableSales.SRECNUM == headCheck.SRECNUM
                                                       && tableSales.NumPayment == headCheck.id
                                                       select tableSales);
+                                    logger.Trace("Check begin #{0}", headCheck.id);
                                     foreach(var rowCheck in tableCheck)
                                     {
+                                        logger.Trace("Check #{0} row#{1} name:{2}", headCheck.id,rowCheck.SORT, rowCheck.GoodName);
                                         var rowSum = pr.FPSaleEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, (ushort)rowCheck.NalogGroup, false, rowCheck.GoodName, (ulong)rowCheck.packname);
                                         if (rowCheck.RowSum != rowSum.CostOfGoodsOrService)
                                         {
@@ -119,25 +130,29 @@ namespace PrintFP.Primary
                                     if (headCheck.Payment0>0)
                                     {
                                         pr.FPPayment(0,(uint)headCheck.Payment0, false, true);
+                                        logger.Trace("Check #{0} Payment0:{1}", headCheck.id, (uint)headCheck.Payment0);
                                     }
                                     if (headCheck.Payment1 > 0)
                                     {
                                         pr.FPPayment(1, (uint)headCheck.Payment1, false, true);
+                                        logger.Trace("Check #{0} Payment1:{1}", headCheck.id, (uint)headCheck.Payment1);
                                     }
                                     if (headCheck.Payment2 > 0)
                                     {
                                         pr.FPPayment(2, (uint)headCheck.Payment2, false, true);
+                                        logger.Trace("Check #{0} Payment2:{1}", headCheck.id, (uint)headCheck.Payment2);
                                     }
                                     if (headCheck.Payment3 > 0)
                                     {
                                         pr.FPPayment(3, (uint)headCheck.Payment3, false, true);
+                                        logger.Trace("Check #{0} Payment3:{1}", headCheck.id, (uint)headCheck.Payment3);
                                     }
                                     headCheck.ByteReserv = pr.ByteReserv;
                                     headCheck.ByteResult = pr.ByteResult;
                                     headCheck.ByteStatus = pr.ByteStatus;
                                     headCheck.Error = !pr.statusOperation;
                                     headCheck.CheckClose = true;
-                                    
+                                    logger.Trace("Check close #{0}", headCheck.id);
                                     //pr.FPPayment();
                                 }
                                 else if (operation.Operation == 5) //payment
@@ -160,12 +175,14 @@ namespace PrintFP.Primary
                                                       && tableSales.SRECNUM == headCheck.SRECNUM
                                                       && tableSales.NumPayment == headCheck.id
                                                       select tableSales);
+                                    logger.Trace("Check payment begin #{0}", headCheck.id);
                                     foreach (var rowCheck in tableCheck)
                                     {
+                                        logger.Trace("Check payment #{0} row#{1} name:{2}", headCheck.id, rowCheck.SORT, rowCheck.GoodName);
                                         var rowSum = pr.FPPayMoneyEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, (ushort)rowCheck.NalogGroup, false, rowCheck.GoodName, (ulong)rowCheck.packname);
                                         if (rowCheck.RowSum!=rowSum.CostOfGoodsOrService)
                                         {
-                                            logger.Error("Отличается суммапо строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
+                                            logger.Error("Отличается сумма по строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
                                             throw new ApplicationException(String.Format("Отличается суммапо строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment));
                                         }
                                         rowCheck.ByteReserv = pr.ByteReserv;
@@ -182,18 +199,22 @@ namespace PrintFP.Primary
                                     if (headCheck.Payment0 > 0)
                                     {
                                         pr.FPPayment(0, (uint)headCheck.Payment0, false, true);
+                                        logger.Trace("Check payment #{0} Payment0:{1}", headCheck.id, (uint)headCheck.Payment0);
                                     }
                                     if (headCheck.Payment1 > 0)
                                     {
                                         pr.FPPayment(1, (uint)headCheck.Payment1, false, true);
+                                        logger.Trace("Check payment #{0} Payment1:{1}", headCheck.id, (uint)headCheck.Payment1);
                                     }
                                     if (headCheck.Payment2 > 0)
                                     {
                                         pr.FPPayment(2, (uint)headCheck.Payment2, false, true);
+                                        logger.Trace("Check payment #{0} Payment2:{1}", headCheck.id, (uint)headCheck.Payment2);
                                     }
                                     if (headCheck.Payment3 > 0)
                                     {
                                         pr.FPPayment(3, (uint)headCheck.Payment3, false, true);
+                                        logger.Trace("Check payment #{0} Payment3:{1}", headCheck.id, (uint)headCheck.Payment3);
                                     }
                                     headCheck.ByteReserv = pr.ByteReserv;
                                     headCheck.ByteResult = pr.ByteResult;
@@ -201,22 +222,30 @@ namespace PrintFP.Primary
                                     headCheck.Error = !pr.statusOperation;
                                     
                                     headCheck.CheckClose = true;
+
+                                    logger.Trace("Check payment close #{0}", headCheck.id);
                                 }
                                 else if (operation.Operation == 35) //X
                                 {
-                                    pr.FPDayReport();
+                                    logger.Trace("print X");
+                                   pr.FPDayReport();
                                 }
                                 else if (operation.Operation == 39) //Z
                                 {
                                     UInt32 rest = pr.GetMoneyInBox();
-                                    if (rest!=0)
+                                    if (rest != 0)
+                                    {
+                                        logger.Trace("out money:{0}", rest);
                                         pr.FPCashOut(rest);
+                                    }
+                                    Thread.Sleep(30 * 1000);
                                     //var status = pr.get
+                                    logger.Trace("print Z");
                                     pr.FPDayClrReport();
                                 }
                                 else if (operation.Operation == 40) //periodic report
                                 {
-
+                                    logger.Trace("print periodic report");
                                 }
 
                                 setStatuses(operation, initRow, pr);
@@ -423,6 +452,14 @@ namespace PrintFP.Primary
             initRow.ByteResultInfo = pr.structResult.ToString();            
             _focusA.SubmitChanges();
             return !initRow.Error;
+        }
+
+
+        private long getintDateTime(DateTime inDateTime)
+        {
+            //string sinDateTime = inDateTime.ToString("yyyyMMddHHmmss");
+
+            return inDateTime.Year * 10000000000 + inDateTime.Month * 100000000 + inDateTime.Day * 1000000 + inDateTime.Hour * 10000 + inDateTime.Minute * 100 + inDateTime.Second;
         }
     }
 }

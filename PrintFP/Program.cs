@@ -75,6 +75,7 @@ namespace PrintFP
             {
                 logger.Fatal(ex, "Завершена работа FP");
                 rStatus = infoPr.CriticalError;
+                Thread.Sleep(30 * 1000);
             }
             finally
             {
