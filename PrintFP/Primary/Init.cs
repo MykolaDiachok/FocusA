@@ -28,24 +28,32 @@ namespace PrintFP.Primary
                 {
                     DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
                     DateTime tEnd = DateTime.ParseExact(initRow.DateTimeStop.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
-                    DateTime now = DateTime.Now;
-                    now.AddSeconds((double)initRow.DeltaTime);
+
+                    DateTime worktime = DateTime.Now.AddSeconds((double)initRow.DeltaTime);
                     Table<tbl_Operation> tableOperation = _focusA.GetTable<tbl_Operation>();
                     var operation = (from op in tableOperation
                                      where op.FPNumber == (int)initRow.FPNumber
                                      && !op.Closed && !(bool)op.Disable
                                      && op.DateTime >= initRow.DateTimeBegin && op.DateTime <= initRow.DateTimeStop
-                                      && op.DateTime <= getintDateTime(now)
+                                      && op.DateTime <= getintDateTime(worktime)
                                      //TODO добавить определение текущего времени и разницы
-                                     select op).OrderBy(o => o.DateTime).ThenBy(o=>o.Operation).FirstOrDefault();
-                    logger.Trace("init:{0}", now);
+                                     select op).OrderBy(o => o.DateTime).ThenBy(o => o.Operation).FirstOrDefault();
+                    //logger.Trace("init:{0}", worktime);
                     if (operation != null)
                     {
 
                         try
                         {
                             //using (Protocol_EP11 pr = new Protocol_EP11(initRow.Port))
-                            using (var pr = (BaseProtocol)SingletonProtocol.Instance(initRow.Port).GetProtocols())
+                            BaseProtocol searchProtocol;
+                            if ((initRow.MoxaIP.Trim().Length != 0) && ((int)initRow.MoxaPort > 0))
+                            {
+                                searchProtocol = (BaseProtocol)SingletonProtocol.Instance(initRow.MoxaIP, (int)initRow.MoxaPort).GetProtocols();
+                            }
+                            else
+                                searchProtocol = (BaseProtocol)SingletonProtocol.Instance(initRow.Port).GetProtocols();
+
+                            using (var pr = searchProtocol)
                             {
                                 if (!InitialSet(_focusA, initRow, pr, operation))
                                 {
@@ -53,7 +61,7 @@ namespace PrintFP.Primary
                                 }
                                 if (operation.Operation == 3) // set cachier
                                 {
-                                    
+
                                     var tblCashier = getCashier(_focusA, operation);
                                     logger.Trace("set cachier:{0}", tblCashier.Name_Cashier);
                                     pr.FPRegisterCashier(0, tblCashier.Name_Cashier);
@@ -77,7 +85,7 @@ namespace PrintFP.Primary
                                 else if (operation.Operation == 15) //out money
                                 {
                                     UInt32 rest = pr.GetMoneyInBox();
-                                   
+
                                     var tblCashIO = getCashIO(_focusA, operation);
                                     logger.Trace("out money. in base:{0}; in box{1}, make:{2}", tblCashIO.Money, rest, Math.Min(rest, (uint)tblCashIO.Money));
                                     pr.FPCashOut(Math.Min(rest, (uint)tblCashIO.Money));
@@ -91,11 +99,11 @@ namespace PrintFP.Primary
                                     Table<tbl_Payment> tblPayment = _focusA.GetTable<tbl_Payment>();
                                     Table<tbl_SALE> tblSales = _focusA.GetTable<tbl_SALE>();
                                     var headCheck = (from table in tblPayment
-                                                   where table.FPNumber == operation.FPNumber
-                                                   && table.DATETIME == operation.DateTime
-                                                   && table.id == operation.NumSlave
-                                                   && table.Operation == operation.Operation
-                                                   select table).FirstOrDefault();
+                                                     where table.FPNumber == operation.FPNumber
+                                                     && table.DATETIME == operation.DateTime
+                                                     && table.id == operation.NumSlave
+                                                     && table.Operation == operation.Operation
+                                                     select table).FirstOrDefault();
                                     headCheck.ForWork = true;
                                     var tableCheck = (from tableSales in tblSales
                                                       where tableSales.DATETIME == headCheck.DATETIME
@@ -106,30 +114,48 @@ namespace PrintFP.Primary
                                                       && tableSales.SRECNUM == headCheck.SRECNUM
                                                       && tableSales.NumPayment == headCheck.id
                                                       select tableSales);
-                                    logger.Trace("Check begin #{0}", headCheck.id);
-                                    foreach(var rowCheck in tableCheck)
+                                    //logger.Trace("Check begin #{0}", headCheck.id);
+                                    //List<string, int> listGoodsName = new List<string, int>();
+                                    Dictionary<ulong, int> listgoods = new Dictionary<ulong, int>();
+                                    foreach (var rowCheck in tableCheck)
                                     {
-                                        logger.Trace("Check #{0} row#{1} name:{2}", headCheck.id,rowCheck.SORT, rowCheck.GoodName);
-                                        var rowSum = pr.FPSaleEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, (ushort)rowCheck.NalogGroup, false, rowCheck.GoodName, (ulong)rowCheck.packname);
+                                        string forPrint = rowCheck.GoodName;
+                                        logger.Trace("Check #{0} row#{1} name:{2}", headCheck.id, rowCheck.SORT, forPrint);
+                                        ReceiptInfo rowSum;
+                                        if ((listgoods.ContainsKey((ulong)rowCheck.packname))&&(listgoods[(ulong)rowCheck.packname]!= rowCheck.Price))
+                                        {
+                                            ulong packname = (ulong)rowCheck.packname+ulong.Parse(rowCheck.StrCode)*((ulong)rowCheck.SORT*1000000);
+                                            rowSum = pr.FPSaleEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, (ushort)rowCheck.NalogGroup, false, forPrint+" #"+ rowCheck.SORT.ToString(), packname);
+                                        }
+                                        else
+                                        {
+                                            listgoods.Add((ulong)rowCheck.packname, rowCheck.Price);
+                                            rowSum = pr.FPSaleEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, (ushort)rowCheck.NalogGroup, false, forPrint, (ulong)rowCheck.packname);
+                                        }
+                                        
+
+                                        
+                                        rowCheck.ByteReserv = pr.ByteReserv;
+                                        rowCheck.ByteResult = pr.ByteResult;
+                                        rowCheck.ByteStatus = pr.ByteStatus;
+                                        rowCheck.Error = !pr.statusOperation;
+                                        rowCheck.FPSum = rowSum.CostOfGoodsOrService;
+                                        headCheck.FPSumm = rowSum.SumAtReceipt;
                                         if (rowCheck.RowSum != rowSum.CostOfGoodsOrService)
                                         {
                                             logger.Error("Отличается суммапо строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
                                             throw new ApplicationException(String.Format("Отличается суммапо строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment));
                                         }
-                                        rowCheck.ByteReserv = pr.ByteReserv;
-                                        rowCheck.ByteResult = pr.ByteResult;
-                                        rowCheck.ByteStatus = pr.ByteStatus;
-                                        rowCheck.Error = !pr.statusOperation;
-                                        headCheck.FPSumm = rowSum.SumAtReceipt;
+                                        
                                     }
-                                    if (headCheck.FPSumm!=headCheck.CheckSum)
+                                    if (headCheck.FPSumm != headCheck.CheckSum)
                                     {
                                         logger.Error("Отличается сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id);
                                         throw new ApplicationException(String.Format("Отличается сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id));
                                     }
-                                    if (headCheck.Payment0>0)
+                                    if (headCheck.Payment0 > 0)
                                     {
-                                        pr.FPPayment(0,(uint)headCheck.Payment0, false, true);
+                                        pr.FPPayment(0, (uint)headCheck.Payment0, false, true);
                                         logger.Trace("Check #{0} Payment0:{1}", headCheck.id, (uint)headCheck.Payment0);
                                     }
                                     if (headCheck.Payment1 > 0)
@@ -152,7 +178,7 @@ namespace PrintFP.Primary
                                     headCheck.ByteStatus = pr.ByteStatus;
                                     headCheck.Error = !pr.statusOperation;
                                     headCheck.CheckClose = true;
-                                    logger.Trace("Check close #{0}", headCheck.id);
+                                    //logger.Trace("Check close #{0}", headCheck.id);
                                     //pr.FPPayment();
                                 }
                                 else if (operation.Operation == 5) //payment
@@ -175,12 +201,12 @@ namespace PrintFP.Primary
                                                       && tableSales.SRECNUM == headCheck.SRECNUM
                                                       && tableSales.NumPayment == headCheck.id
                                                       select tableSales);
-                                    logger.Trace("Check payment begin #{0}", headCheck.id);
+                                    //logger.Trace("Check payment begin #{0}", headCheck.id);
                                     foreach (var rowCheck in tableCheck)
                                     {
                                         logger.Trace("Check payment #{0} row#{1} name:{2}", headCheck.id, rowCheck.SORT, rowCheck.GoodName);
                                         var rowSum = pr.FPPayMoneyEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, (ushort)rowCheck.NalogGroup, false, rowCheck.GoodName, (ulong)rowCheck.packname);
-                                        if (rowCheck.RowSum!=rowSum.CostOfGoodsOrService)
+                                        if (rowCheck.RowSum != rowSum.CostOfGoodsOrService)
                                         {
                                             logger.Error("Отличается сумма по строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
                                             throw new ApplicationException(String.Format("Отличается суммапо строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment));
@@ -220,15 +246,15 @@ namespace PrintFP.Primary
                                     headCheck.ByteResult = pr.ByteResult;
                                     headCheck.ByteStatus = pr.ByteStatus;
                                     headCheck.Error = !pr.statusOperation;
-                                    
+
                                     headCheck.CheckClose = true;
 
-                                    logger.Trace("Check payment close #{0}", headCheck.id);
+                                    //logger.Trace("Check payment close #{0}", headCheck.id);
                                 }
                                 else if (operation.Operation == 35) //X
                                 {
                                     logger.Trace("print X");
-                                   pr.FPDayReport();
+                                    pr.FPDayReport();
                                 }
                                 else if (operation.Operation == 39) //Z
                                 {
@@ -295,9 +321,9 @@ namespace PrintFP.Primary
         {
             Table<tbl_Cashier> tableCashier = _focusA.GetTable<tbl_Cashier>();
             var tReturn = (from table in tableCashier
-                           where table.FPNumber==tOp.FPNumber
-                           && table.DATETIME==tOp.DateTime
-                           && table.id==tOp.NumSlave
+                           where table.FPNumber == tOp.FPNumber
+                           && table.DATETIME == tOp.DateTime
+                           && table.id == tOp.NumSlave
                            && table.Operation == tOp.Operation
                            select table).FirstOrDefault();
             return tReturn;
@@ -330,7 +356,7 @@ namespace PrintFP.Primary
             if (pr.statusOperation)
                 tOp.Closed = true;
             tOp.InWork = true;
-            
+
         }
 
         /// <summary>
@@ -349,7 +375,7 @@ namespace PrintFP.Primary
             //var dayReport = pr.dayReport;
             var papstatus = pr.papStat;
             initRow.PapStat = papstatus.ToString();
-            if ((papstatus.ControlPaperIsAlmostEnded!=null) &&((bool)papstatus.ControlPaperIsAlmostEnded))
+            if ((papstatus.ControlPaperIsAlmostEnded != null) && ((bool)papstatus.ControlPaperIsAlmostEnded))
             {
                 initRow.Error = true;
                 initRow.ErrorInfo = papstatus.ToString();
@@ -360,7 +386,7 @@ namespace PrintFP.Primary
                 initRow.ByteReservInfo = pr.structReserv.ToString();
                 initRow.ByteResult = pr.ByteResult;
                 initRow.ByteResultInfo = pr.structResult.ToString();
-                
+
                 _focusA.SubmitChanges();
                 pr.showTopString("Контрольная лента закончилась!");
 
@@ -376,7 +402,7 @@ namespace PrintFP.Primary
                 initRow.ByteReserv = pr.ByteReserv;
                 initRow.ByteReservInfo = pr.structReserv.ToString();
                 initRow.ByteResult = pr.ByteResult;
-                initRow.ByteResultInfo = pr.structResult.ToString();                
+                initRow.ByteResultInfo = pr.structResult.ToString();
                 _focusA.SubmitChanges();
                 pr.showTopString("Чековая лента закончилась!");
                 return false;
@@ -427,7 +453,7 @@ namespace PrintFP.Primary
 
                 logger.Error(ex, "Error get date from fiscal printer");
                 initRow.Error = true;
-                initRow.ErrorInfo = string.Format("Error:{0};St={1};Rt={2};Rv={3}", ex.Message+" #"+ "Error get date from fiscal printer", pr.structStatus.ToString(), pr.structResult.ToString(), pr.structReserv.ToString());
+                initRow.ErrorInfo = string.Format("Error:{0};St={1};Rt={2};Rv={3}", ex.Message + " #" + "Error get date from fiscal printer", pr.structStatus.ToString(), pr.structResult.ToString(), pr.structReserv.ToString());
                 initRow.CurrentSystemDateTime = DateTime.Now;
                 initRow.ByteStatus = pr.ByteStatus;
                 initRow.ByteStatusInfo = pr.structStatus.ToString();
@@ -435,11 +461,11 @@ namespace PrintFP.Primary
                 initRow.ByteReservInfo = pr.structReserv.ToString();
                 initRow.ByteResult = pr.ByteResult;
                 initRow.ByteResultInfo = pr.structResult.ToString();
-                
+
                 _focusA.SubmitChanges();
             }
 
-            if ((((operation.Operation!=3)||(operation.Operation!=40)||(operation.Operation!=35)))&&(!status.sessionIsOpened))
+            if ((((operation.Operation != 3) || (operation.Operation != 40) || (operation.Operation != 35))) && (!status.sessionIsOpened))
             {
                 pr.FPNullCheck();
             }
@@ -449,7 +475,7 @@ namespace PrintFP.Primary
             initRow.ByteReserv = pr.ByteReserv;
             initRow.ByteReservInfo = pr.structReserv.ToString();
             initRow.ByteResult = pr.ByteResult;
-            initRow.ByteResultInfo = pr.structResult.ToString();            
+            initRow.ByteResultInfo = pr.structResult.ToString();
             _focusA.SubmitChanges();
             return !initRow.Error;
         }

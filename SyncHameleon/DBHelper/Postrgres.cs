@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using System.Collections;
 using System.Data;
 using NpgsqlTypes;
+using System.Threading;
 
 namespace SyncHameleon
 {
@@ -73,6 +74,7 @@ namespace SyncHameleon
             _timer.Stop();
             SelectChecksOperation();
             SelectLogOperation();
+            Thread.Sleep(1000);
             _timer.Start();
         }
 

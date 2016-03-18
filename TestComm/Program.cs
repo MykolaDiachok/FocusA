@@ -126,10 +126,10 @@ namespace TestComm
 
 
             //BaseProtocol pr = SingletonProtocol.Instance(4).GetProtocols();
-            BaseProtocol pr = SingletonProtocol.Instance("192.168.1.98",4001).GetProtocols();
-            pr.FPDayClrReport();
+            BaseProtocol pr = SingletonProtocol.Instance(10).GetProtocols();
+            //pr.FPDayClrReport();
             ////pr.FPResetOrder();
-            //pr.FPDayReport();
+            pr.FPDayReport();
             pr.Dispose();
 
 

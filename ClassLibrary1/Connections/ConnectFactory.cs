@@ -89,10 +89,10 @@ namespace CentralLib.Connections
                 setError("Не возможно подключиться к порту:" + base.PortName.ToString());
                 throw new ArgumentException(this.errorInfo);
             }
-//#if Debug
+#if Debug
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("подготовка к отправке:{0}", byteHelper.PrintByteArrayX(inputbyte));         
-//#endif
+#endif
             await base.BaseStream.WriteAsync(inputbyte, 0, inputbyte.Length);
             //base.Write(inputbyte, 0, inputbyte.Length);
 
@@ -224,8 +224,23 @@ namespace CentralLib.Connections
             }
             //this.bytesOutput = unsigned;
             //TODO: доработать проверку CRC && CRC16
+
+
             unsigned = byteHelper.returnWithOutDublicateDLE(unsigned);
             this.glbytesResponse = unsigned;
+            
+
+            byte byteCheckSum = unsigned[unsigned.Length - 3];
+            unsigned[unsigned.Length - 3] = 0;
+
+            if (byteCheckSum != byteHelper.getchecksum(unsigned))
+            {
+                //не совпала чек сумма
+                this.statusOperation = false;
+                setError("Не правильная чек сумма обмена, Ком порт:" + this.PortName);
+                throw new ArgumentException(this.errorInfo);
+            }
+
             this.statusOperation = true;
             this.ByteStatus = unsigned[4];
             this.ByteResult = unsigned[5];
