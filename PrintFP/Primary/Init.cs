@@ -122,7 +122,8 @@ namespace PrintFP.Primary
                                         string forPrint = rowCheck.GoodName;
                                         logger.Trace("Check #{0} row#{1} name:{2}", headCheck.id, rowCheck.SORT, forPrint);
                                         ReceiptInfo rowSum;
-                                        if ((listgoods.ContainsKey((ulong)rowCheck.packname))&&(listgoods[(ulong)rowCheck.packname]!= rowCheck.Price))
+                                        //if ((listgoods.ContainsKey((ulong)rowCheck.packname))&&(listgoods[(ulong)rowCheck.packname]!= rowCheck.Price))
+                                        if (listgoods.ContainsKey((ulong)rowCheck.packname))
                                         {
                                             ulong packname = (ulong)rowCheck.packname+ulong.Parse(rowCheck.StrCode)*((ulong)rowCheck.SORT*1000000);
                                             rowSum = pr.FPSaleEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, (ushort)rowCheck.NalogGroup, false, forPrint+" #"+ rowCheck.SORT.ToString(), packname);
