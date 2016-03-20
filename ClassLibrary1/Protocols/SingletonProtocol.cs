@@ -24,6 +24,11 @@ namespace CentralLib.Protocols
             singletonProtocol = new BaseProtocol(IpAdress, port).getCurrentProtocol();
         }
 
+        /// <summary>
+        /// инициализация протокола через ком порт
+        /// </summary>
+        /// <param name="inport"></param>
+        /// <returns></returns>
         public static SingletonProtocol Instance(int inport)
         {
             if ((uniqueInstance == null))
@@ -34,6 +39,12 @@ namespace CentralLib.Protocols
             return uniqueInstance;
         }
 
+        /// <summary>
+        /// Инициализация протокола через ip
+        /// </summary>
+        /// <param name="IpAdress"></param>
+        /// <param name="port"></param>
+        /// <returns></returns>
         public static SingletonProtocol Instance(string IpAdress, int port)
         {
             if ((uniqueInstance == null))

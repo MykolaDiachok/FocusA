@@ -148,7 +148,7 @@ namespace CentralLib.Connections
 
 
                     byte[] result = new byte[] { };
-                    bool beginPresent = false;
+                    
                     for (int x = 1; x < 10; x++)
                     {
                         if ((inputbyte[2] == 13) || (inputbyte[2] == 9)) // Если отчеты то ждем 2 раза долше

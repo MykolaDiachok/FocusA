@@ -617,6 +617,8 @@ namespace SyncHameleon
                         }
                     }
                     StopwatchHelper.Stop("Select LOG:" + initRow.RealNumber);
+                    //initRow.DateTimeSyncDB = DateTime.Now;
+                    //_focusA.SubmitChanges();
                 }
                 
             }

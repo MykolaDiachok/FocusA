@@ -498,7 +498,7 @@ namespace CentralLib.Protocols
             }
 
                 throw new ApplicationException("Протокол не определен, работа программы не возможна");
-            return null;
+            //return null;
         }
 
         public virtual void FPArtReport(ushort pass = 0, uint? CodeBeginning = default(uint?), uint? CodeFinishing = default(uint?))
@@ -916,7 +916,7 @@ namespace CentralLib.Protocols
                 return BitConverter.ToUInt32(answer, 0);
             }
             throw new ApplicationException("Сумма в кассе не определена");
-            return 0;
+            //return 0;
         }
         /// <summary>
         /// ///Код: 46.  
@@ -929,6 +929,15 @@ namespace CentralLib.Protocols
             byte[] forsending = new byte[] { 46 };
             byte[] answer = ExchangeWithFP(forsending);
             return statusOperation;
+        }
+
+        /// <summary>
+        /// Установка обрезчика, в начале запрашиваем данные о состоянии, после включаем
+        /// </summary>
+        /// <param name="Enable">Если true то включаем, если false то нет</param>
+        public virtual bool setFPCplCutter(bool Enable)
+        {
+            throw new NotImplementedException();
         }
 
         public void FPNullCheck()

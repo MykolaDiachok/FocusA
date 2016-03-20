@@ -126,7 +126,7 @@ namespace TestComm
 
 
             //BaseProtocol pr = SingletonProtocol.Instance(4).GetProtocols();
-            BaseProtocol pr = SingletonProtocol.Instance(10).GetProtocols();
+            BaseProtocol pr = SingletonProtocol.Instance("192.168.255.132",4002).GetProtocols();
             //pr.FPDayClrReport();
             ////pr.FPResetOrder();
             pr.FPDayReport();

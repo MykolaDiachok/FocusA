@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 12.125, 14.125" name="DataClassesFocusA">
+<ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 14.375, 13.75" name="DataClassesFocusA">
   <DataContextMoniker Name="/DataClassesFocusADataContext" />
   <nestedChildShapes>
     <classShape Id="9ee40c2a-d038-4408-8f1b-223e15263f73" absoluteBounds="7, 4, 2, 3.3093082682291666">
@@ -14,7 +14,7 @@
         <elementListCompartment Id="42b91e24-798d-4cbc-9241-0bad21f79687" absoluteBounds="9.64, 1.71, 1.9700000000000002, 2.1724039713541665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <associationConnector edgePoints="[(10.625 : 3.98240397135417); (10.625 : 5.65465413411458); (9 : 5.65465413411458)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+    <associationConnector edgePoints="[(10.625 : 3.98240397135417); (10.625 : 5.65465413411458); (9 : 5.65465413411458)]" fixedFrom="NotFixed" fixedTo="NotFixed">
       <AssociationMoniker Name="/DataClassesFocusADataContext/tbl_CashIO/tbl_CashIO_tbl_Operation" />
       <nodes>
         <classShapeMoniker Id="e34d53b8-7466-4bdd-82a7-bfe8b724e029" />
@@ -27,26 +27,20 @@
         <elementListCompartment Id="2ac36a28-fa8e-48fa-907a-31db44d40bcd" absoluteBounds="6.64, 1.085, 1.9700000000000002, 2.5570068359375" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <associationConnector edgePoints="[(8.15625 : 3.7420068359375); (8.15625 : 4)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+    <associationConnector edgePoints="[(8.15625 : 3.7420068359375); (8.15625 : 4)]" fixedFrom="NotFixed" fixedTo="NotFixed">
       <AssociationMoniker Name="/DataClassesFocusADataContext/tbl_Cashier/tbl_Cashier_tbl_Operation" />
       <nodes>
         <classShapeMoniker Id="f0f0e4f6-a2ef-4bf8-96d3-c717d05e07db" />
         <classShapeMoniker Id="9ee40c2a-d038-4408-8f1b-223e15263f73" />
       </nodes>
     </associationConnector>
-    <classShape Id="cd61d6bb-94d0-4443-94e5-60964b532af9" absoluteBounds="9.875, 6.75, 2, 7.1553369140625">
-      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_ComInit" />
-      <nestedChildShapes>
-        <elementListCompartment Id="eccf6404-c2b0-48fa-8aef-19bb684a41ec" absoluteBounds="9.89, 7.21, 1.9700000000000002, 6.5953369140625" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
-      </nestedChildShapes>
-    </classShape>
     <classShape Id="b5bd4b4c-1131-43b0-8e43-6077c0f02df8" absoluteBounds="4.125, 3.375, 2, 8.3091455078125">
       <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_Payment" />
       <nestedChildShapes>
         <elementListCompartment Id="9b5f4b4e-9803-4e69-bb93-a2d3f7c0381f" absoluteBounds="4.14, 3.835, 1.9700000000000002, 7.7491455078125009" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <associationConnector edgePoints="[(6.125 : 10.6673404947917); (8 : 10.6673404947917); (8 : 7.30930826822917)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+    <associationConnector edgePoints="[(6.125 : 10.6673404947917); (8 : 10.6673404947917); (8 : 7.30930826822917)]" fixedFrom="NotFixed" fixedTo="NotFixed">
       <AssociationMoniker Name="/DataClassesFocusADataContext/tbl_Payment/tbl_Payment_tbl_Operation" />
       <nodes>
         <classShapeMoniker Id="b5bd4b4c-1131-43b0-8e43-6077c0f02df8" />
@@ -59,12 +53,18 @@
         <elementListCompartment Id="a2684bc0-2b9f-410d-bdcf-75c45e841b77" absoluteBounds="1.3899999999999997, 2.835, 1.9700000000000002, 6.403035481770833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <associationConnector edgePoints="[(4.125 : 6.35651774088542); (3.375 : 6.35651774088542)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+    <associationConnector edgePoints="[(4.125 : 6.35651774088542); (3.375 : 6.35651774088542)]" fixedFrom="NotFixed" fixedTo="NotFixed">
       <AssociationMoniker Name="/DataClassesFocusADataContext/tbl_Payment/tbl_Payment_tbl_SALE" />
       <nodes>
         <classShapeMoniker Id="b5bd4b4c-1131-43b0-8e43-6077c0f02df8" />
         <classShapeMoniker Id="5641946f-9101-4116-9f9b-4dac48183b6e" />
       </nodes>
     </associationConnector>
+    <classShape Id="a81ad965-9e67-474b-8fe1-fcd8bb3ceb65" absoluteBounds="12.125, 5.375, 2, 8.1168440755208326">
+      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_ComInit" />
+      <nestedChildShapes>
+        <elementListCompartment Id="fba350f3-fa92-447b-8339-5383d513ff33" absoluteBounds="12.14, 5.835, 1.9700000000000002, 7.556844075520833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
   </nestedChildShapes>
 </ordesignerObjectsDiagram>

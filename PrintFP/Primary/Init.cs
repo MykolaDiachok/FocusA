@@ -294,6 +294,8 @@ namespace PrintFP.Primary
                         }
 
                     }
+                    initRow.DateTimeSyncFP = DateTime.Now;
+                    _focusA.SubmitChanges();
                 }
 
             }

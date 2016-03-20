@@ -454,6 +454,22 @@ namespace CentralLib.Protocols
             byte[] answer = ExchangeWithFP(forsending);
         }
 
+        #region Cutter
+        /// <summary>
+        /// Установка обрезчика, в начале запрашиваем данные о состоянии, после включаем
+        /// </summary>
+        /// <param name="Enable">Если true то включаем, если false то нет</param>
+        public override bool setFPCplCutter(bool Enable)
+        {
+            if((Enable)&&(status.paperCuttingForbidden))            
+                FPCplCutter();
+            if ((!Enable) && (!status.paperCuttingForbidden))
+                FPCplCutter();
+            return statusOperation;
+        }
+
+        #endregion
+
         #region установка кассира
 
         /// <summary>
