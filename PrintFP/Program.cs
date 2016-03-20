@@ -27,8 +27,8 @@ namespace PrintFP
             //startJob = DateTime.Now;
 #if (!DEBUG)
                 logger.Info("Enable NBug");
-                AppDomain.CurrentDomain.UnhandledException += Handler.UnhandledException;
-                TaskScheduler.UnobservedTaskException += Handler.UnobservedTaskException;
+                //AppDomain.CurrentDomain.UnhandledException += Handler.UnhandledException;
+                //TaskScheduler.UnobservedTaskException += Handler.UnobservedTaskException;
 #endif
             new OptionSet()
                .Add("fp=|fpnumber=", fp => fpnumber = fp)

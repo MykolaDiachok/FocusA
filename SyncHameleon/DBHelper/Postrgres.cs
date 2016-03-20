@@ -121,6 +121,10 @@ namespace SyncHameleon
                     DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
                     DateTime tEnd = DateTime.ParseExact(initRow.DateTimeStop.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
                     var connection = Properties.Settings.Default.Npgsql;//System.Configuration.ConfigurationManager.ConnectionStrings["Test"].ConnectionString;
+                    NpgsqlConnectionStringBuilder constr = new NpgsqlConnectionStringBuilder(connection);
+                    constr.CommandTimeout = 30;                    
+                    constr.InternalCommandTimeout = 15;
+                    constr.Timeout = 15;
                     using (var conn = new NpgsqlConnection(connection))
                     {
                         //logger.Trace("NpgsqlConnection:{0}", connection);
@@ -236,6 +240,7 @@ namespace SyncHameleon
             using (var cmd = new NpgsqlCommand())
             {
                 cmd.Connection = conn;
+                cmd.CommandTimeout = 15;
                 cmd.CommandText = @"select *
 			                                from sales.checks checks                                            
 			                                where checks.id_workplace = :RealNumber                                                
@@ -288,6 +293,7 @@ namespace SyncHameleon
                 using (var cmdCheck_lines = new NpgsqlCommand())
                 {
                     cmdCheck_lines.Connection = conn;
+                    cmd.CommandTimeout = 15;
                     cmdCheck_lines.CommandText = @"select check_lines.*,goods_attrs.print_name_goods , series.name_series, goods.id_tax, unit.name_unit, unit.type_unit
 			                                            from sales.check_lines check_lines
 											            left join front.goods_attrs goods_attrs
@@ -498,9 +504,14 @@ namespace SyncHameleon
                     DateTime tEnd = DateTime.ParseExact(initRow.DateTimeStop.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
                     var connection = Properties.Settings.Default.Npgsql;//System.Configuration.ConfigurationManager.ConnectionStrings["Test"].ConnectionString;
                     StopwatchHelper.Start("Select LOG:"+ initRow.RealNumber);
-                    using (var conn = new NpgsqlConnection(connection))
+                    NpgsqlConnectionStringBuilder connstr = new NpgsqlConnectionStringBuilder(connection);
+                    connstr.CommandTimeout = 30;
+                    connstr.Timeout = 15;
+                    connstr.InternalCommandTimeout = 30;                    
+                    using (var conn = new NpgsqlConnection(connstr))
                     {
                         //logger.Trace("NpgsqlConnection:{0}", connection);
+                        
                         conn.Open();
                         //getCashier(conn);                        
                         using (var cmd = new NpgsqlCommand())
@@ -670,6 +681,7 @@ namespace SyncHameleon
                 //TODO не работает в этом гребанном postgress!!!!!!!!!!!!!!!!!!
 
                 cmd.Connection = conn;
+                cmd.CommandTimeout = 30;
                 cmd.CommandText = "select id_employee, name_employee from front.employees where id_employee=@id_employee";
                 cmd.Parameters.AddWithValue("id_employee", id_employee);
                 using (var reader = cmd.ExecuteReader())
