@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 
 namespace CentralLib.Connections
 {
-    interface IConnectFactory
+    public interface IConnectFactory
     {
+        
         byte ByteReserv { get; set; }
         byte ByteResult { get; set; }
         byte ByteStatus { get; set; }

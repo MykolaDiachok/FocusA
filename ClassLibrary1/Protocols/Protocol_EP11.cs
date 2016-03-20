@@ -110,9 +110,10 @@ namespace CentralLib.Protocols
         public Protocol_EP11(CentralLib.Connections.DefaultPortCom dComPort):base(dComPort)
         {
             useCRC16 = true;
+            connFP = new CentralLib.Connections.ConnectFP_EP11(dComPort);
             MaxStringLenght = 75;
             initial();
-
+            
 
         }
 
@@ -133,6 +134,7 @@ namespace CentralLib.Protocols
         public Protocol_EP11(string IpAdress,int port):base(IpAdress,port)
         {
             useCRC16 = true;
+            connFP = new ConnectNetFP_EP11(IpAdress, port);
             MaxStringLenght = 75;
             initial();
 
@@ -196,7 +198,7 @@ namespace CentralLib.Protocols
             byte[] forsending = new byte[] { 0 };
             byte[] answer = ExchangeWithFP(forsending);
 
-            if ((connFP.statusOperation) && (answer.Length > 21))
+            if ((statusOperation) && (answer.Length > 21))
             {
                 string hexday = answer[21].ToString("X");
                 int _day = Math.Min(Math.Max((int)Convert.ToInt16(hexday), 1), 31);

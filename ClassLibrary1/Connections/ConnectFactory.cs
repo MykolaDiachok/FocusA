@@ -228,12 +228,16 @@ namespace CentralLib.Connections
 
             unsigned = byteHelper.returnWithOutDublicateDLE(unsigned);
             this.glbytesResponse = unsigned;
-            
 
-            byte byteCheckSum = unsigned[unsigned.Length - 3];
-            unsigned[unsigned.Length - 3] = 0;
+            int indexCheckSum = 3;
+            if (useCRC16)
+            {
+                indexCheckSum = 5;
+            }
+            byte byteCheckSum = unsigned[unsigned.Length - indexCheckSum];
+            unsigned[unsigned.Length - indexCheckSum] = 0;
 
-            if (byteCheckSum != byteHelper.getchecksum(unsigned))
+            if (byteCheckSum != byteHelper.getchecksum(unsigned,useCRC16))
             {
                 //не совпала чек сумма
                 this.statusOperation = false;

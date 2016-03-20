@@ -125,9 +125,17 @@ namespace TestComm
 
 
 
-            //BaseProtocol pr = SingletonProtocol.Instance(4).GetProtocols();
-            BaseProtocol pr = SingletonProtocol.Instance("192.168.255.132",4002).GetProtocols();
-            //pr.FPDayClrReport();
+            BaseProtocol pr = SingletonProtocol.Instance(4).GetProtocols();
+            //BaseProtocol pr = SingletonProtocol.Instance("192.168.255.132",4002).GetProtocols();
+            pr.setFPCplCutter(true);
+            pr.FPNullCheck();
+            pr.FPNullCheck();
+            pr.setFPCplCutter(false);
+            pr.FPNullCheck();
+            pr.FPNullCheck();
+            pr.setFPCplCutter(true);
+            pr.FPDayClrReport();
+            pr.setFPCplCutter(false);
             ////pr.FPResetOrder();
             pr.FPDayReport();
             pr.Dispose();

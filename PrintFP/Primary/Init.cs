@@ -259,6 +259,7 @@ namespace PrintFP.Primary
                                 }
                                 else if (operation.Operation == 39) //Z
                                 {
+                                    pr.setFPCplCutter(true);
                                     UInt32 rest = pr.GetMoneyInBox();
                                     if (rest != 0)
                                     {
@@ -375,7 +376,8 @@ namespace PrintFP.Primary
             initRow.ErrorInfo = "";
             initRow.ErrorCode = 0;
             var status = pr.status;
-            //var dayReport = pr.dayReport;
+            pr.setFPCplCutter(false);
+                //var dayReport = pr.dayReport;
             var papstatus = pr.papStat;
             initRow.PapStat = papstatus.ToString();
             if ((papstatus.ControlPaperIsAlmostEnded != null) && ((bool)papstatus.ControlPaperIsAlmostEnded))

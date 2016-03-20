@@ -327,20 +327,22 @@ namespace CentralLib.Helper
             return (byte)(cs - 1);
         }
 
-        public byte getchecksum(byte[] buf)
+        public byte getchecksum(byte[] buf, bool useCRC16=false)
         {
+            byte[] workBuffer = buf;
+            if (useCRC16)
+                workBuffer = buf.Take(buf.Length-2).ToArray();
             int i, sum, n, res;
             byte lobyte, cs;
 
-            n = buf.Length - 3;
+            n = workBuffer.Length - 3;
             sum = 0;
             cs = 0x00;
             lobyte = 0x00;
 
             for (i = 2; i < n; i++)
                 //for (i = 0; i < buf.Length; ++i)
-                sum += Convert.ToInt16(buf[i]);
-
+                sum += Convert.ToInt16(workBuffer[i]);
             do
             {
                 res = sum + cs;

@@ -352,8 +352,9 @@ namespace CentralLib.Protocols
 
 
         public WorkProtocol currentProtocol;
-        private IConnectFactory connFP = null;
+        public IConnectFactory connFP { get; set; }
 
+        
         public string errorInfo;
 
         public byte? lastByteCommand = null;
