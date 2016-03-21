@@ -941,10 +941,10 @@ namespace CentralLib.Protocols
         {
             byte[] forsending = new byte[] { 28, 0x1A, 0x30, 16, 1 };
             byte[] answer = ExchangeWithFP(forsending);
-            bool csetCutter = byteHelper.GetBit(answer[0], 3);
-            if ((Enable) && (!csetCutter))
+            bool csetCutterFobbiden = byteHelper.GetBit(answer[0], 3); // true запрещена, false разрешена
+            if ((Enable) && (csetCutterFobbiden))
                 FPCplCutter();
-            else if ((!Enable) && (csetCutter))
+            else if ((!Enable) && (!csetCutterFobbiden))
                 FPCplCutter();
             return statusOperation;
         }
