@@ -214,3 +214,4 @@ ModelManifest.xml
 PrintFP/bin/Debug/PrintFP.pdb
 *.pdb
 .vs/FocusA/v14/.suo
+PrintFP/bin/Debug/PrintFP.exe.config

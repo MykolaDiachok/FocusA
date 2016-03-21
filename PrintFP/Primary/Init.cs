@@ -26,7 +26,7 @@ namespace PrintFP.Primary
                                select list);
                 foreach (var initRow in comInit)
                 {
-                    DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture).AddHours(-1);
+                    DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture).AddHours(-5);
                     DateTime tEnd = DateTime.ParseExact(initRow.DateTimeStop.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
 
                     DateTime worktime = DateTime.Now.AddSeconds((double)initRow.DeltaTime);
@@ -34,7 +34,8 @@ namespace PrintFP.Primary
                     var operation = (from op in tableOperation
                                      where op.FPNumber == (int)initRow.FPNumber
                                      && !op.Closed && !(bool)op.Disable
-                                     && op.DateTime >= initRow.DateTimeBegin && op.DateTime <= initRow.DateTimeStop
+                                     //&& op.DateTime >= initRow.DateTimeBegin && op.DateTime <= initRow.DateTimeStop
+                                     && op.DateTime >= getintDateTime(tBegin) && op.DateTime <= initRow.DateTimeStop
                                       && op.DateTime <= getintDateTime(worktime)
                                      //TODO добавить определение текущего времени и разницы
                                      select op).OrderBy(o => o.DateTime).ThenBy(o => o.Operation).FirstOrDefault();
@@ -270,6 +271,7 @@ namespace PrintFP.Primary
                                     //var status = pr.get
                                     logger.Trace("print Z");
                                     pr.FPDayClrReport();
+                                    pr.setFPCplCutter(false);
                                 }
                                 else if (operation.Operation == 40) //periodic report
                                 {

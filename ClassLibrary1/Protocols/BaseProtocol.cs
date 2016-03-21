@@ -934,11 +934,19 @@ namespace CentralLib.Protocols
 
         /// <summary>
         /// Установка обрезчика, в начале запрашиваем данные о состоянии, после включаем
+        /// Мдя, в документация порадовала в одной нет данных, во второй есть....
         /// </summary>
         /// <param name="Enable">Если true то включаем, если false то нет</param>
         public virtual bool setFPCplCutter(bool Enable)
         {
-            throw new NotImplementedException();
+            byte[] forsending = new byte[] { 28, 0x1A, 0x30, 16, 1 };
+            byte[] answer = ExchangeWithFP(forsending);
+            bool csetCutter = byteHelper.GetBit(answer[0], 3);
+            if ((Enable) && (!csetCutter))
+                FPCplCutter();
+            else if ((!Enable) && (csetCutter))
+                FPCplCutter();
+            return statusOperation;
         }
 
         public void FPNullCheck()

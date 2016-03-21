@@ -32,21 +32,7 @@ namespace CentralLib.Protocols
         }
 
 
-        /// <summary>
-        /// Установка обрезчика, в начале запрашиваем данные о состоянии, после включаем
-        /// </summary>
-        /// <param name="Enable">Если true то включаем, если false то нет</param>
-        public override bool setFPCplCutter(bool Enable)
-        {
-            byte[] forsending = new byte[] { 28, 0x1A, 0x30 };
-            byte[] answer = ExchangeWithFP(forsending);
-            bool csetCutter = byteHelper.GetBit(answer[0], 3);
-            if ((Enable) && (csetCutter))
-                FPCplCutter();
-            else if ((!Enable)&&(!csetCutter))
-                FPCplCutter();
-            return statusOperation;
-        }
+      
 
     }
 }
