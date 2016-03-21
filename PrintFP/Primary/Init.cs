@@ -26,7 +26,7 @@ namespace PrintFP.Primary
                                select list);
                 foreach (var initRow in comInit)
                 {
-                    DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture).AddHours(-5);
+                    DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture).AddHours(-1);
                     DateTime tEnd = DateTime.ParseExact(initRow.DateTimeStop.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
 
                     DateTime worktime = DateTime.Now.AddSeconds((double)initRow.DeltaTime);
