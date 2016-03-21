@@ -1,4 +1,0 @@
-NBugTrace: Starting to handle a System.AppDomain.UnhandledException.
-NBugTrace: Starting to generate a bug report for the exception.
-NBugTrace: Creating report file to entry assembly directory path: C:\Projects\FocusA\SyncHameleon\bin\Release\Exception_131005584157481099.zip
-NBugTrace: Created a new report file. Currently the number of report files queued to be send is: 1
