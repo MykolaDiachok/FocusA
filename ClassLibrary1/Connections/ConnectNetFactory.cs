@@ -152,7 +152,7 @@ namespace CentralLib.Connections
 
                     int positionPacketEnd = -1;
                     int tCurrentPos = 7;
-                    int tPostEnd = -1;
+                    //int tPostEnd = -1;
 
 
 
@@ -248,7 +248,7 @@ namespace CentralLib.Connections
                     //}
                     positionPacketEnd = -1;
                     tCurrentPos = positionPacketBegin + 7;
-                    tPostEnd = -1;
+                    //tPostEnd = -1;
                     //do
                     //{
                     //    tCurrentPos++;

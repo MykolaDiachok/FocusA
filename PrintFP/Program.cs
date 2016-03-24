@@ -24,9 +24,10 @@ namespace PrintFP
 
         static int Main(string[] args)
         {
-            //startJob = DateTime.Now;
+
+            startJob = DateTime.Now;
 #if (!DEBUG)
-                logger.Info("Enable NBug");
+                //logger.Info("Enable NBug");
                 //AppDomain.CurrentDomain.UnhandledException += Handler.UnhandledException;
                 //TaskScheduler.UnobservedTaskException += Handler.UnobservedTaskException;
 #endif
