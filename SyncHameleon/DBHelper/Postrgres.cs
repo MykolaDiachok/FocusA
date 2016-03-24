@@ -125,6 +125,7 @@ namespace SyncHameleon
                     constr.CommandTimeout = 30;                    
                     constr.InternalCommandTimeout = 15;
                     constr.Timeout = 15;
+                    constr.KeepAlive = 180;
                     using (var conn = new NpgsqlConnection(connection))
                     {
                         //logger.Trace("NpgsqlConnection:{0}", connection);
@@ -507,7 +508,8 @@ namespace SyncHameleon
                     NpgsqlConnectionStringBuilder connstr = new NpgsqlConnectionStringBuilder(connection);
                     connstr.CommandTimeout = 30;
                     connstr.Timeout = 15;
-                    connstr.InternalCommandTimeout = 30;                    
+                    connstr.InternalCommandTimeout = 30;
+                    connstr.KeepAlive = 180;
                     using (var conn = new NpgsqlConnection(connstr))
                     {
                         //logger.Trace("NpgsqlConnection:{0}", connection);
