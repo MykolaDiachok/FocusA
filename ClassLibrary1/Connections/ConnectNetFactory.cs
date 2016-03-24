@@ -49,7 +49,7 @@ namespace CentralLib.Connections
             byteHelper.initialCrc16();
             this.errorInfo = "";
             this.ConsecutiveNumber = 0;
-            this.waiting = 600;
+            this.waiting = 200;
         }
 
 
@@ -102,16 +102,15 @@ namespace CentralLib.Connections
                 this.ConsecutiveNumber++;
             }
             this.glbytesForSend = inputbyte;
-            int taskTry = 0;
-        //if (!base.IsOpen)
-        //    base.Open();
-        //if (!base.IsOpen)
-        //{
-        //    setError("Не возможно подключиться к порту:" + base.PortName.ToString());
-        //    throw new ArgumentException(this.errorInfo);
-        //}
-        Begin:
-            taskTry++;
+            int taskTry = -1;
+            //if (!base.IsOpen)
+            //    base.Open();
+            //if (!base.IsOpen)
+            //{
+            //    setError("Не возможно подключиться к порту:" + base.PortName.ToString());
+            //    throw new ArgumentException(this.errorInfo);
+            //}
+            //logger.Trace("Begin>>>>");
             if (!PingHost(IpAdress, port))
             {
                 setError("Ошибка подключения к серверу ip:" + this.IpAdress + ":" + port.ToString());
@@ -130,6 +129,16 @@ namespace CentralLib.Connections
 #endif
                 using (var networkStream = client.GetStream())
                 {
+                Begin:
+                    if (taskTry > 10)
+                    {
+                        string sf = String.Format("Выполнено {0} циклов, ответа нет {1}:{2}", this.IpAdress, port.ToString());
+                        setError(sf);
+                        logger.Trace(sf);
+                        throw new ApplicationException(this.errorInfo);
+                    }
+                    taskTry++;
+                    //logger.Trace("try{1}, send to FP:{0}", byteHelper.PrintByteArrayX(inputbyte), taskTry);
                     await networkStream.WriteAsync(inputbyte, 0, inputbyte.Length);
                     await networkStream.FlushAsync();
                     //base.Write(inputbyte, 0, inputbyte.Length);
@@ -148,22 +157,37 @@ namespace CentralLib.Connections
 
 
                     byte[] result = new byte[] { };
-                    
+
                     for (int x = 1; x < 10; x++)
                     {
-                        if ((inputbyte[2] == 13) || (inputbyte[2] == 9)) // Если отчеты то ждем 2 раза долше
+                        int coef = x;
+                        if ((inputbyte[2] == 13) || (inputbyte[2] == 9)) // Если отчеты то ждем 2 раза дольше
                         {
-                            Thread.Sleep(x * 2 * this.waiting);
+                            coef = x * 2;
+
+
                         }
-                        Thread.Sleep(x * this.waiting);
+                        Thread.Sleep(coef * this.waiting);
+                        //logger.Trace("ожидание в цикле {1} = {0}", coef * this.waiting,x);
+
 
                         int twait = 0;
                         while (networkStream.DataAvailable)
                         {
+                            //logger.Trace("DataAvailable");
                             byte[] result_fromPort = new byte[1024];
                             int bufferSize = await networkStream.ReadAsync(result_fromPort, 0, result_fromPort.Length);
                             if (bufferSize <= 0)
                                 break;
+                            byte[] byteRead = result_fromPort.Take(bufferSize).ToArray();
+                            //logger.Trace("DataAvailable:{0}",byteHelper.PrintByteArrayX(byteRead));
+                            if ((byteRead.Length == 1) && (byteRead[0] == (byte)WorkByte.NAK))
+                            {
+                                //logger.Trace("NAK={0}", byteRead[0]);
+                                Thread.Sleep(100);
+                                await networkStream.FlushAsync();
+                                goto Begin;
+                            }
                             int count_wait = 0;
                             for (int tByte = 0; tByte < bufferSize; tByte++)
                             {
@@ -174,36 +198,47 @@ namespace CentralLib.Connections
                             }
                             if (bufferSize == 1 && ((result_fromPort[0] == (byte)WorkByte.ACK) || (result_fromPort[0] == (byte)WorkByte.SYN)))
                             {
-                                Thread.Sleep(1000);
+                                Thread.Sleep(200);
+                                //logger.Trace("byte read:{0}, sleep:{1}", result_fromPort[0], 200);
                             }
                             else if ((bufferSize < 10) || (bufferSize == count_wait) || ((count_wait > 0) && (bufferSize / count_wait < 2)))
                             {
                                 twait++;
-                                Thread.Sleep(twait * 600);
+                                Thread.Sleep(twait * 400);
+                                //logger.Trace("bytes read:{0}, sleep:{1}",  byteHelper.PrintByteArrayX(byteRead), 400);
                             }
                             if (twait > 10) break;
-                            result = byteHelper.Combine(result, result_fromPort.Take(bufferSize).ToArray());
+                            result = byteHelper.Combine(result, byteRead);
                         };
 
                         int psPacketBegin = byteHelper.ByteSearch(result, BytesBegin);
                         int psPacketEnd = byteHelper.ByteSearch(result, bytesEnd, psPacketBegin);
                         if ((psPacketBegin > 0) && (psPacketEnd > 0))
+                        {
+                            //logger.Trace("Good read");
                             break;
-
-
+                        }
+                        if ((x > 5) && (result.Length < 10))
+                        {
+                            Thread.Sleep(100);
+                            await networkStream.FlushAsync();
+                            goto Begin;
+                        }
                     }
-                    networkStream.Close();
-                    client.Close();
+                    //networkStream.Close();
+                    //client.Close();
 
-
+                    //logger.Warn("full bytes read:{0}", byteHelper.PrintByteArrayX(result));
                     int positionPacketBegin = byteHelper.ByteSearch(result, BytesBegin);
 
                     if (positionPacketBegin < 0)
                     {
-                        if (taskTry < 3)
+                        if (taskTry < 10)
                         {
                             setError("В байтах ответа по операции " + inputbyte[2].ToString() + " не найдено \"начало\", ip:" + this.IpAdress + ":" + port.ToString() + " ответ:" + byteHelper.PrintByteArrayX(result));
                             logger.Trace("Повторяем отправку байт");
+                            Thread.Sleep(100);
+                            await networkStream.FlushAsync();
                             goto Begin;
                         }
                         setError("В байтах ответа по операции " + inputbyte[2].ToString() + " не найдено \"начало\", ip:" + this.IpAdress + ":" + port.ToString() + " ответ:" + byteHelper.PrintByteArrayX(result));
@@ -214,26 +249,35 @@ namespace CentralLib.Connections
                     positionPacketEnd = -1;
                     tCurrentPos = positionPacketBegin + 7;
                     tPostEnd = -1;
-                    do
-                    {
-                        tCurrentPos++;
-                        tPostEnd = byteHelper.ByteSearch(result, bytesEnd, tCurrentPos);
-                        if (tPostEnd != -1)
-                        {
-                            tCurrentPos = tPostEnd;
+                    //do
+                    //{
+                    //    tCurrentPos++;
+                    //    tPostEnd = byteHelper.ByteSearch(result, bytesEnd, tCurrentPos);
+                    //    if (tPostEnd != -1)
+                    //    {
+                    //        tCurrentPos = tPostEnd;
 
-                            if (result[tPostEnd - 1] != (byte)WorkByte.DLE)
-                            {
-                                positionPacketEnd = tPostEnd;
-                                break;
-                            }
-                            else if ((result[tPostEnd - 1] == (byte)WorkByte.DLE) && (result[tPostEnd - 2] == (byte)WorkByte.DLE))
-                            {
-                                positionPacketEnd = tPostEnd;
-                                // break; 
-                            }
+                    //        if (result[tPostEnd - 1] != (byte)WorkByte.DLE)
+                    //        {
+                    //            positionPacketEnd = tPostEnd;
+                    //            break;
+                    //        }
+                    //        else if ((result[tPostEnd - 1] == (byte)WorkByte.DLE) && (result[tPostEnd - 2] == (byte)WorkByte.DLE))
+                    //        {
+                    //            positionPacketEnd = tPostEnd;
+                    //            // break; 
+                    //        }
+                    //    }
+                    //} while (tCurrentPos < result.Length);
+                    for (int curPos = result.Length - 1; curPos > tCurrentPos; curPos--)
+                    {
+                        if ((result[curPos] == (byte)WorkByte.ETX) && (result[curPos - 1] == (byte)WorkByte.DLE))
+                        {
+                            positionPacketEnd = curPos - 1;
+                            break;
                         }
-                    } while (tCurrentPos < result.Length);
+                    }
+
                     if (positionPacketEnd < 0)
                     {
                         setError("В байтах ответа по операции " + inputbyte[2].ToString() + " не найдено \"конец\", ip:" + this.IpAdress + ":" + port.ToString() + " ответ:" + byteHelper.PrintByteArrayX(result));
@@ -262,12 +306,18 @@ namespace CentralLib.Connections
 
                     if (byteCheckSum != byteHelper.getchecksum(unsigned))
                     {
-                        //не совпала чек сумма
+                        StringBuilder sb = new StringBuilder();
+                        sb.AppendFormat("Не правильная check сумма {2}!={3} обмена, ip:{0}:{1}", this.IpAdress, port, byteCheckSum, byteHelper.getchecksum(unsigned));
                         this.statusOperation = false;
-                        setError("Не правильная чек сумма обмена, ip:" + this.IpAdress + ":" + port.ToString());
-                        throw new ArgumentException(this.errorInfo);
-                    }
+                        setError(sb.ToString());
+                        await networkStream.FlushAsync();
+                        goto Begin;
+                        //не совпала чек сумма
 
+
+                        //throw new ArgumentException(this.errorInfo);
+                    }
+                    //logger.Warn("End<<<<<<<<");
                     this.statusOperation = true;
                     this.ByteStatus = unsigned[4];
                     this.ByteResult = unsigned[5];

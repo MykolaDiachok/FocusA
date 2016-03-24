@@ -14,12 +14,6 @@
         <elementListCompartment Id="d3bd27a7-8112-4d61-9597-bb226999f3ab" absoluteBounds="10.39, 1.085, 1.9700000000000002, 2.5570068359375" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <classShape Id="0ed9def4-cd20-4382-87ba-1342c0f8eea5" absoluteBounds="7.75, 0.5, 2, 2.7324039713541666">
-      <DataClassMoniker Name="/DataClasses1DataContext/tbl_CashIO" />
-      <nestedChildShapes>
-        <elementListCompartment Id="b7d1cb21-7e50-4643-9ad1-0f161ce386fd" absoluteBounds="7.7650000000000006, 0.96, 1.9700000000000002, 2.1724039713541665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
-      </nestedChildShapes>
-    </classShape>
     <classShape Id="da26527b-377c-440c-b9cb-1fe4508ed7c8" absoluteBounds="3, 0.5, 2, 8.3091455078125">
       <DataClassMoniker Name="/DataClasses1DataContext/tbl_Payment" />
       <nestedChildShapes>
@@ -38,7 +32,7 @@
         <elementListCompartment Id="c75e57e9-51d4-4f31-b3f8-4f27e2a1c3a9" absoluteBounds="0.76499999999999968, 1.21, 1.9700000000000002, 6.5953369140625" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <associationConnector edgePoints="[(3 : 4.32766845703125); (2.75 : 4.32766845703125)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+    <associationConnector edgePoints="[(3 : 4.32766845703125); (2.75 : 4.32766845703125)]" fixedFrom="NotFixed" fixedTo="NotFixed">
       <AssociationMoniker Name="/DataClasses1DataContext/tbl_Payment/tbl_Payment_tbl_SALE" />
       <nodes>
         <classShapeMoniker Id="da26527b-377c-440c-b9cb-1fe4508ed7c8" />
@@ -55,6 +49,12 @@
       <DataClassMoniker Name="/DataClasses1DataContext/tbl_ComInitDefault" />
       <nestedChildShapes>
         <elementListCompartment Id="78c513ec-061f-4f08-8cda-676121301453" absoluteBounds="5.515, 7.71, 1.9700000000000002, 2.364705403645833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="9e8c99e8-6a11-4b5c-b307-94c0f04ec005" absoluteBounds="7.875, 0.875, 2, 2.9247054036458331">
+      <DataClassMoniker Name="/DataClasses1DataContext/tbl_CashIO" />
+      <nestedChildShapes>
+        <elementListCompartment Id="e25d1cce-a9f3-4c46-8dfe-23ee6c379fb9" absoluteBounds="7.8900000000000006, 1.335, 1.9700000000000002, 2.364705403645833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
   </nestedChildShapes>

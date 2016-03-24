@@ -16,6 +16,7 @@ namespace PrintFP.Primary
         private Logger logger = LogManager.GetCurrentClassLogger();
         public Init(string fpnumber, string server)
         {
+            //logger.Trace("Init fp:{0}; server:{1}", fpnumber, server);
             using (DataClasses1DataContext _focusA = new DataClasses1DataContext())
             {
                 Table<tbl_ComInit> tablePayment = _focusA.GetTable<tbl_ComInit>();
@@ -24,12 +25,14 @@ namespace PrintFP.Primary
                                && list.CompName.ToLower() == server.ToLower()
                                && list.FPNumber == int.Parse(fpnumber)
                                select list);
+                //logger.Trace("cominit:{0}",comInit.ToString());
                 foreach (var initRow in comInit)
                 {
                     DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture).AddHours(-1);
                     DateTime tEnd = DateTime.ParseExact(initRow.DateTimeStop.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
-
                     DateTime worktime = DateTime.Now.AddSeconds((double)initRow.DeltaTime);
+                    // logger.Trace("Fp={0};Begin:{1};End:{2}", initRow.FPNumber, tBegin, getintDateTime(worktime));
+
                     Table<tbl_Operation> tableOperation = _focusA.GetTable<tbl_Operation>();
                     var operation = (from op in tableOperation
                                      where op.FPNumber == (int)initRow.FPNumber
@@ -75,9 +78,11 @@ namespace PrintFP.Primary
                                 else if (operation.Operation == 10) //in money
                                 {
                                     var tblCashIO = getCashIO(_focusA, operation);
-                                    logger.Trace("in money:{0}", tblCashIO.Money);
-                                    pr.FPCashIn((uint)tblCashIO.Money);
+                                    logger.Trace("in money:{0}, fp:{1}", tblCashIO.Money, 30000);
+                                    //pr.FPCashIn((uint)tblCashIO.Money);
+                                    pr.FPCashIn(30000);
                                     //tblCashIO.ByteReserv = pr.ByteReserv;
+                                    tblCashIO.MoneyFP = 30000;
                                     tblCashIO.ByteResult = pr.ByteResult;
                                     tblCashIO.ByteStatus = pr.ByteStatus;
                                     tblCashIO.Error = !pr.statusOperation;
@@ -88,8 +93,10 @@ namespace PrintFP.Primary
                                     UInt32 rest = pr.GetMoneyInBox();
 
                                     var tblCashIO = getCashIO(_focusA, operation);
-                                    logger.Trace("out money. in base:{0}; in box{1}, make:{2}", tblCashIO.Money, rest, Math.Min(rest, (uint)tblCashIO.Money));
-                                    pr.FPCashOut(Math.Min(rest, (uint)tblCashIO.Money));
+                                    var outMoney = Math.Min(rest, (uint)tblCashIO.Money);
+                                    logger.Trace("out money. in base:{0}; in box{1}, make:{2}", tblCashIO.Money, rest, outMoney);
+                                    pr.FPCashOut(outMoney);
+                                    tblCashIO.MoneyFP = (int)outMoney;
                                     //tblCashIO.ByteReserv = pr.ByteReserv;
                                     tblCashIO.ByteResult = pr.ByteResult;
                                     tblCashIO.ByteStatus = pr.ByteStatus;
@@ -126,17 +133,17 @@ namespace PrintFP.Primary
                                         //if ((listgoods.ContainsKey((ulong)rowCheck.packname))&&(listgoods[(ulong)rowCheck.packname]!= rowCheck.Price))
                                         if (listgoods.ContainsKey((ulong)rowCheck.packname))
                                         {
-                                            ulong packname = (ulong)rowCheck.packname+ulong.Parse(rowCheck.StrCode)*((ulong)rowCheck.SORT*1000000);
-                                            rowSum = pr.FPSaleEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, (ushort)rowCheck.NalogGroup, false, forPrint+" #"+ rowCheck.SORT.ToString(), packname);
+                                            ulong packname = (ulong)rowCheck.packname + ulong.Parse(rowCheck.StrCode) * ((ulong)rowCheck.SORT * 1000000);
+                                            rowSum = pr.FPSaleEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, (ushort)rowCheck.NalogGroup, false, forPrint + " #" + rowCheck.SORT.ToString(), packname);
                                         }
                                         else
                                         {
                                             listgoods.Add((ulong)rowCheck.packname, rowCheck.Price);
                                             rowSum = pr.FPSaleEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, (ushort)rowCheck.NalogGroup, false, forPrint, (ulong)rowCheck.packname);
                                         }
-                                        
 
-                                        
+
+
                                         rowCheck.ByteReserv = pr.ByteReserv;
                                         rowCheck.ByteResult = pr.ByteResult;
                                         rowCheck.ByteStatus = pr.ByteStatus;
@@ -145,14 +152,14 @@ namespace PrintFP.Primary
                                         headCheck.FPSumm = rowSum.SumAtReceipt;
                                         if (rowCheck.RowSum != rowSum.CostOfGoodsOrService)
                                         {
-                                            logger.Error("Отличается суммапо строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
+                                            logger.Error("Отличается сумма по строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
                                             throw new ApplicationException(String.Format("Отличается суммапо строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment));
                                         }
-                                        
+
                                     }
                                     if (headCheck.FPSumm != headCheck.CheckSum)
                                     {
-                                        logger.Error("Отличается сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id);
+                                        logger.Error("Отличается общая сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id);
                                         throw new ApplicationException(String.Format("Отличается сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id));
                                     }
                                     if (headCheck.Payment0 > 0)
@@ -379,7 +386,7 @@ namespace PrintFP.Primary
             initRow.ErrorCode = 0;
             var status = pr.status;
             pr.setFPCplCutter(false);
-                //var dayReport = pr.dayReport;
+            //var dayReport = pr.dayReport;
             var papstatus = pr.papStat;
             initRow.PapStat = papstatus.ToString();
             if ((papstatus.ControlPaperIsAlmostEnded != null) && ((bool)papstatus.ControlPaperIsAlmostEnded))
@@ -416,9 +423,9 @@ namespace PrintFP.Primary
             }
 
             var sStatus = pr.structStatus;
-#if (!DEBUG)
-                            initRow.FPNumber = Int32.Parse(status.fiscalNumber);
-#endif
+            //#if (!DEBUG)
+            //                            initRow.FPNumber = Int32.Parse(status.fiscalNumber);
+            //#endif
             initRow.FiscalNumber = status.fiscalNumber;
             initRow.SmenaOpened = status.sessionIsOpened;
             initRow.SerialNumber = status.serialNumber;
