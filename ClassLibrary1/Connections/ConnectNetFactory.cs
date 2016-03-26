@@ -213,7 +213,7 @@ namespace CentralLib.Connections
 
                         int psPacketBegin = byteHelper.ByteSearch(result, BytesBegin);
                         int psPacketEnd = byteHelper.ByteSearch(result, bytesEnd, psPacketBegin);
-                        if ((psPacketBegin > 0) && (psPacketEnd > 0))
+                        if ((result.Length>9) && (psPacketBegin > 0) && (psPacketEnd > 0))
                         {
                             //logger.Trace("Good read");
                             break;
@@ -224,6 +224,12 @@ namespace CentralLib.Connections
                             await networkStream.FlushAsync();
                             goto Begin;
                         }
+                    }
+
+                    if (result.Length<9)
+                    {
+                        setError("Не полный ответ сервера");
+                        throw new ArgumentException(this.errorInfo);
                     }
                     //networkStream.Close();
                     //client.Close();

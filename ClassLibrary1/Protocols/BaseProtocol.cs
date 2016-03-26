@@ -866,7 +866,11 @@ namespace CentralLib.Protocols
             }
             forsending = byteHelper.Combine(forsending, byteHelper.ConvertUint64ToArrayByte6(StrCode));
             byte[] answer = ExchangeWithFP(forsending);
-            if ((statusOperation) && (answer.Length == 8))
+            if (answer.Length!=8)
+            {
+                throw new ApplicationException(String.Format("не правильный ответ сервера на строку чека, нужно 8 - ответ {0}!!!!", answer.Length));
+            }
+            else if ((statusOperation) && (answer.Length == 8))
             {
                 ReceiptInfo _checkinfo = new ReceiptInfo();
                 _checkinfo.CostOfGoodsOrService = BitConverter.ToInt32(answer, 0);
