@@ -14,8 +14,13 @@ namespace SyncOpenStore
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello");
+
+
+            DBHelper.DBLoaderSQLtoSQL dbsync = new DBHelper.DBLoaderSQLtoSQL("sql","123");
+            dbsync.StartSync();
             Console.ReadKey();
+            dbsync.StopSync();
+
         }
     }
 }
