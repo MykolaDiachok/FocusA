@@ -59,10 +59,10 @@
         <elementListCompartment Id="5a15f936-df28-4811-925d-dad4d01490d7" absoluteBounds="9.64, 1.21, 1.9700000000000002, 2.364705403645833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <classShape Id="d25d3d94-03df-418d-bcaf-337ce45f1403" absoluteBounds="9.875, 4.625, 2, 2.7324039713541666">
+    <classShape Id="3bf43b2e-2af0-47de-9860-fa89bacf008a" absoluteBounds="9.5, 4.375, 2, 2.7324039713541666">
       <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_SyncDB" />
       <nestedChildShapes>
-        <elementListCompartment Id="196daece-4dd8-4d73-b8fb-50998e4cbeda" absoluteBounds="9.89, 5.085, 1.9700000000000002, 2.1724039713541665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+        <elementListCompartment Id="d572bbee-5830-4bd0-bbeb-529c5c070d90" absoluteBounds="9.515, 4.835, 1.9700000000000002, 2.1724039713541665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
   </nestedChildShapes>

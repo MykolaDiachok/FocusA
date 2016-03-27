@@ -1,0 +1,150 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="CashDesk_OS" Class="DataClassesOSDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="AppSettings" ConnectionString="Data Source=focus2;Initial Catalog=CashDesk_OS;User ID=sa" SettingsObjectName="SyncOpenStore.Properties.Settings" SettingsPropertyName="CashDesk_OSConnectionString" Provider="System.Data.SqlClient" />
+  <Table Name="dbo.SESS" Member="SESSes">
+    <Type Name="SESS">
+      <Column Name="SESSID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="SYSTEMID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="SAREAID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="WORKDAYID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="SESSSTART" Type="System.String" DbType="VarChar(14) NOT NULL" CanBeNull="false" />
+      <Column Name="SESSCASHIN" Type="System.Decimal" DbType="Decimal(18,6) NOT NULL" CanBeNull="false" />
+      <Column Name="SESSCASHINIT" Type="System.Decimal" DbType="Decimal(18,6) NOT NULL" CanBeNull="false" />
+      <Column Name="CASHIERID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="DELFLAG" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="UPDATENUM" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="UPDATENUM2" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Association Name="SESS_CASHIO" Member="CASHIOs" ThisKey="SESSID,SYSTEMID,SAREAID" OtherKey="SESSID,SYSTEMID,SAREAID" Type="CASHIO" />
+      <Association Name="WORKDAY_SESS" Member="WORKDAY" ThisKey="WORKDAYID,SYSTEMID,SAREAID" OtherKey="WORKDAYID,SYSTEMID,SAREAID" Type="WORKDAY" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.CASHIER" Member="CASHIERs">
+    <Type Name="CASHIER">
+      <Column Name="CASHIERID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="CASHIERGRPID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="CASHIERKEY" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="CASHIERPASSWORD" Type="System.String" DbType="NVarChar(30)" CanBeNull="true" />
+      <Column Name="CASHIERNAME" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="CASHIERDISABLED" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="CASHIERSAREACONTROL" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="DELFLAG" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="UPDATENUM" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+    </Type>
+  </Table>
+  <Table Name="dbo.SALES" Member="SALEs">
+    <Type Name="SALE">
+      <Column Name="SALESNUM" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="SESSID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="PRCLEVELID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="SYSTEMID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="TXTBINID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="SAREAID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="SALESTAG" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="SALESTIME" Type="System.String" DbType="VarChar(14)" CanBeNull="true" />
+      <Column Name="FRECNUM" Type="System.String" DbType="NVarChar(30)" CanBeNull="true" />
+      <Column Name="SRECNUM" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="SALESBARC" Type="System.String" DbType="NVarChar(30)" CanBeNull="true" />
+      <Column Name="SALESDISC" Type="System.Decimal" DbType="Decimal(18,6)" CanBeNull="true" />
+      <Column Name="SALESPRICE" Type="System.Decimal" DbType="Decimal(18,6)" CanBeNull="true" />
+      <Column Name="SALESSUM" Type="System.Decimal" DbType="Decimal(18,6)" CanBeNull="true" />
+      <Column Name="BONUSSUM" Type="System.Decimal" DbType="Decimal(18,6)" CanBeNull="true" />
+      <Column Name="SALESCOUNT" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="SALESCODE" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="SALESTYPE" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="SALESCANC" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="SALESFLAGS" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="SALESREFUND" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="ARTID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="PACKNAME" Type="System.String" DbType="NVarChar(30)" CanBeNull="true" />
+      <Column Name="PACKID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="PACKCOUNT" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="CASHIERID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="SALESATTRI" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="SALESATTRS" Type="System.String" DbType="NVarChar(100)" CanBeNull="true" />
+      <Column Name="SALESEXTCOUNT" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="DELFLAG" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="CLNTID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="SALESBONUS" Type="System.Decimal" DbType="Decimal(18,6)" CanBeNull="true" />
+      <Column Name="SYSTEMTYPE" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="UPDATENUM" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="UPDATENUM2" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="FIRMID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ParentSRecNum" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="CURRENCYID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="CURRENCYRATE" Type="System.Decimal" DbType="Decimal(18,6)" CanBeNull="true" />
+      <Column Name="CURRENCYSALESSUM" Type="System.Decimal" DbType="Decimal(18,6)" CanBeNull="true" />
+      <Column Name="DISCPOLICYID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="BONUSPOLICYID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="OFFERIDFORBONUS" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="OFFERIDFORDISC" Type="System.Int32" DbType="Int" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.WORKDAY" Member="WORKDAYs">
+    <Type Name="WORKDAY">
+      <Column Name="WORKDAYID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="SYSTEMID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="SAREAID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="WORKDAYSTART" Type="System.String" DbType="VarChar(14) NOT NULL" CanBeNull="false" />
+      <Column Name="CASHIERID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="DELFLAG" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="UPDATENUM" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="UPDATENUM2" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Association Name="WORKDAY_SESS" Member="SESSes" ThisKey="WORKDAYID,SYSTEMID,SAREAID" OtherKey="WORKDAYID,SYSTEMID,SAREAID" Type="SESS" />
+      <Association Name="WORKDAY_ZREP" Member="ZREPs" ThisKey="WORKDAYID,SYSTEMID,SAREAID" OtherKey="WORKDAYID,SYSTEMID,SAREAID" Type="ZREP" />
+    </Type>
+  </Table>
+  <Table Name="dbo.ZREP" Member="ZREPs">
+    <Type Name="ZREP">
+      <Column Name="ZREPID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="WORKDAYID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="SYSTEMID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="SAREAID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="CASHIERID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="ZREPFPSN" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="ZREPFISCNUM" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="ZREPSALES" Type="System.String" DbType="NVarChar(100)" CanBeNull="true" />
+      <Column Name="ZREPREFS" Type="System.String" DbType="NVarChar(100)" CanBeNull="true" />
+      <Column Name="ZREPTIME" Type="System.String" DbType="VarChar(14) NOT NULL" CanBeNull="false" />
+      <Column Name="DELFLAG" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="UPDATENUM" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="UPDATENUM2" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="FIRMID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="SALESCOUNT" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Association Name="WORKDAY_ZREP" Member="WORKDAY" ThisKey="WORKDAYID,SYSTEMID,SAREAID" OtherKey="WORKDAYID,SYSTEMID,SAREAID" Type="WORKDAY" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.CASHIO" Member="CASHIOs">
+    <Type Name="CASHIO">
+      <Column Name="CASHIOID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="SESSID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="SYSTEMID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="SAREAID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="TXTBINID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="CASHIERID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="CASHIOSUM" Type="System.Decimal" DbType="Decimal(18,6)" CanBeNull="true" />
+      <Column Name="CASHIOFINAL" Type="System.Decimal" DbType="Decimal(18,6)" CanBeNull="true" />
+      <Column Name="CASHIOINP" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="CASHIOTIME" Type="System.String" DbType="VarChar(14)" CanBeNull="true" />
+      <Column Name="DELFLAG" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="UPDATENUM" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="UPDATENUM2" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="FIRMID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="CURRENCYID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="CURRENCYRATE" Type="System.Decimal" DbType="Decimal(18,6)" CanBeNull="true" />
+      <Column Name="CASHIOCURRENCYSUM" Type="System.Decimal" DbType="Decimal(18,6)" CanBeNull="true" />
+      <Association Name="SESS_CASHIO" Member="SESS" ThisKey="SESSID,SYSTEMID,SAREAID" OtherKey="SESSID,SYSTEMID,SAREAID" Type="SESS" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.DCARD" Member="DCARDs">
+    <Type Name="DCARD">
+      <Column Name="DCARDID" Type="System.String" DbType="NVarChar(30) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="CLNTID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="DCARDCODE" Type="System.String" DbType="NVarChar(30) NOT NULL" CanBeNull="false" />
+      <Column Name="DCARDNAME" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="ISPAYMENT" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="DELFLAG" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="PINCODE" Type="System.String" DbType="VarChar(256)" CanBeNull="true" />
+      <Column Name="UPDATENUM" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="LOCKED" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+    </Type>
+  </Table>
+</Database>

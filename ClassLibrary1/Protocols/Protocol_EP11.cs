@@ -22,7 +22,7 @@ namespace CentralLib.Protocols
     /// public partial class Protocols!!!!!!!!
     public class Protocol_EP11 : BaseProtocol, IProtocols
     {
-        private IConnectFactory connFP = null;
+        //private IConnectFactory connFP = null;
 
         /// <summary>
         /// Статус последней операции true - завершено, false - сбой
