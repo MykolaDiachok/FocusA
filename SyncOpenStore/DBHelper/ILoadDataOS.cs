@@ -12,10 +12,10 @@ namespace SyncOpenStore.DBHelper
     interface ILoadDataOS
     {
         
-        string SQLServer { get;  }
+       
         string FPNumber { get;  }
 
-        void Init(string sqlServer, string FPNumber);
+        void Init(string FPNumber);
         void LoadDataFor_tbl_CashierBefore();
         void LoadDataFor_tbl_Cashier();
         void LoadDataFor_tbl_CashierAfter();

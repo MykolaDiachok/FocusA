@@ -16,7 +16,7 @@ namespace SyncOpenStore
         {
 
 
-            DBHelper.DBLoaderSQLtoSQL dbsync = new DBHelper.DBLoaderSQLtoSQL("sql","123");
+            DBHelper.DBLoaderSQLtoSQL dbsync = new DBHelper.DBLoaderSQLtoSQL("10014193");
             dbsync.StartSync();
             Console.ReadKey();
             dbsync.StopSync();

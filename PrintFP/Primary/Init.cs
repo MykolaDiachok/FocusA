@@ -460,6 +460,15 @@ namespace PrintFP.Primary
             {
                 initRow.CurrentDate = pr.fpDateTime.ToString("dd.MM.yy");
                 initRow.CurrentTime = pr.fpDateTime.ToString("HH:mm:ss");
+
+                TimeSpan ts = pr.fpDateTime - DateTime.Now;
+
+                if ((!status.sessionIsOpened)&&(ts.Minutes!=0))
+                {
+                    pr.fpDateTime = DateTime.Now;
+                }
+                initRow.CurrentDate = pr.fpDateTime.ToString("dd.MM.yy");
+                initRow.CurrentTime = pr.fpDateTime.ToString("HH:mm:ss");
                 initRow.PapStat = papstatus.ToString();
             }
             catch (Exception ex)

@@ -8,7 +8,7 @@ namespace SyncOpenStore.DBHelper
 {
     interface ISync
     {
-        string SQLServer { get; }
+       
         string FPNumber { get;  }
         DateTime startJob { get;  }
         DateTime stopJob { get;  }
