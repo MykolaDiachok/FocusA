@@ -51,6 +51,9 @@ namespace PrintFP
     partial void Inserttbl_CashIO(tbl_CashIO instance);
     partial void Updatetbl_CashIO(tbl_CashIO instance);
     partial void Deletetbl_CashIO(tbl_CashIO instance);
+    partial void Inserttbl_ART(tbl_ART instance);
+    partial void Updatetbl_ART(tbl_ART instance);
+    partial void Deletetbl_ART(tbl_ART instance);
     #endregion
 		
 		public DataClasses1DataContext() : 
@@ -144,6 +147,14 @@ namespace PrintFP
 			get
 			{
 				return this.GetTable<tbl_CashIO>();
+			}
+		}
+		
+		public System.Data.Linq.Table<tbl_ART> tbl_ARTs
+		{
+			get
+			{
+				return this.GetTable<tbl_ART>();
 			}
 		}
 	}
@@ -4325,6 +4336,236 @@ namespace PrintFP
 					this._ByteResult = value;
 					this.SendPropertyChanged("ByteResult");
 					this.OnByteResultChanged();
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.tbl_ART")]
+	public partial class tbl_ART : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private long _id;
+		
+		private System.Nullable<int> _Code;
+		
+		private string _ARTNAME;
+		
+		private System.Nullable<int> _PackCode;
+		
+		private System.Nullable<System.Guid> _PackGuid;
+		
+		private System.Nullable<int> _NalogGroup;
+		
+		private string _NameForCheck;
+		
+		private int _FPNumber;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnidChanging(long value);
+    partial void OnidChanged();
+    partial void OnCodeChanging(System.Nullable<int> value);
+    partial void OnCodeChanged();
+    partial void OnARTNAMEChanging(string value);
+    partial void OnARTNAMEChanged();
+    partial void OnPackCodeChanging(System.Nullable<int> value);
+    partial void OnPackCodeChanged();
+    partial void OnPackGuidChanging(System.Nullable<System.Guid> value);
+    partial void OnPackGuidChanged();
+    partial void OnNalogGroupChanging(System.Nullable<int> value);
+    partial void OnNalogGroupChanged();
+    partial void OnNameForCheckChanging(string value);
+    partial void OnNameForCheckChanged();
+    partial void OnFPNumberChanging(int value);
+    partial void OnFPNumberChanged();
+    #endregion
+		
+		public tbl_ART()
+		{
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_id", AutoSync=AutoSync.OnInsert, DbType="BigInt NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public long id
+		{
+			get
+			{
+				return this._id;
+			}
+			set
+			{
+				if ((this._id != value))
+				{
+					this.OnidChanging(value);
+					this.SendPropertyChanging();
+					this._id = value;
+					this.SendPropertyChanged("id");
+					this.OnidChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Code", DbType="Int")]
+		public System.Nullable<int> Code
+		{
+			get
+			{
+				return this._Code;
+			}
+			set
+			{
+				if ((this._Code != value))
+				{
+					this.OnCodeChanging(value);
+					this.SendPropertyChanging();
+					this._Code = value;
+					this.SendPropertyChanged("Code");
+					this.OnCodeChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_ARTNAME", DbType="NVarChar(75)")]
+		public string ARTNAME
+		{
+			get
+			{
+				return this._ARTNAME;
+			}
+			set
+			{
+				if ((this._ARTNAME != value))
+				{
+					this.OnARTNAMEChanging(value);
+					this.SendPropertyChanging();
+					this._ARTNAME = value;
+					this.SendPropertyChanged("ARTNAME");
+					this.OnARTNAMEChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_PackCode", DbType="Int")]
+		public System.Nullable<int> PackCode
+		{
+			get
+			{
+				return this._PackCode;
+			}
+			set
+			{
+				if ((this._PackCode != value))
+				{
+					this.OnPackCodeChanging(value);
+					this.SendPropertyChanging();
+					this._PackCode = value;
+					this.SendPropertyChanged("PackCode");
+					this.OnPackCodeChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_PackGuid", DbType="UniqueIdentifier")]
+		public System.Nullable<System.Guid> PackGuid
+		{
+			get
+			{
+				return this._PackGuid;
+			}
+			set
+			{
+				if ((this._PackGuid != value))
+				{
+					this.OnPackGuidChanging(value);
+					this.SendPropertyChanging();
+					this._PackGuid = value;
+					this.SendPropertyChanged("PackGuid");
+					this.OnPackGuidChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_NalogGroup", DbType="Int")]
+		public System.Nullable<int> NalogGroup
+		{
+			get
+			{
+				return this._NalogGroup;
+			}
+			set
+			{
+				if ((this._NalogGroup != value))
+				{
+					this.OnNalogGroupChanging(value);
+					this.SendPropertyChanging();
+					this._NalogGroup = value;
+					this.SendPropertyChanged("NalogGroup");
+					this.OnNalogGroupChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_NameForCheck", DbType="NVarChar(75)")]
+		public string NameForCheck
+		{
+			get
+			{
+				return this._NameForCheck;
+			}
+			set
+			{
+				if ((this._NameForCheck != value))
+				{
+					this.OnNameForCheckChanging(value);
+					this.SendPropertyChanging();
+					this._NameForCheck = value;
+					this.SendPropertyChanged("NameForCheck");
+					this.OnNameForCheckChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="Int NOT NULL")]
+		public int FPNumber
+		{
+			get
+			{
+				return this._FPNumber;
+			}
+			set
+			{
+				if ((this._FPNumber != value))
+				{
+					this.OnFPNumberChanging(value);
+					this.SendPropertyChanging();
+					this._FPNumber = value;
+					this.SendPropertyChanged("FPNumber");
+					this.OnFPNumberChanged();
 				}
 			}
 		}

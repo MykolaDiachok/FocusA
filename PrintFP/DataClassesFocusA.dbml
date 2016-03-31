@@ -196,4 +196,16 @@
       <Column Name="ByteResult" Type="System.Int32" DbType="Int" CanBeNull="true" />
     </Type>
   </Table>
+  <Table Name="dbo.tbl_ART" Member="tbl_ARTs">
+    <Type Name="tbl_ART">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="Code" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ARTNAME" Type="System.String" DbType="NVarChar(75)" CanBeNull="true" />
+      <Column Name="PackCode" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="PackGuid" Type="System.Guid" DbType="UniqueIdentifier" CanBeNull="true" />
+      <Column Name="NalogGroup" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="NameForCheck" Type="System.String" DbType="NVarChar(75)" CanBeNull="true" />
+      <Column Name="FPNumber" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+    </Type>
+  </Table>
 </Database>

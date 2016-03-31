@@ -127,21 +127,22 @@ namespace PrintFP.Primary
                                     Dictionary<ulong, int> listgoods = new Dictionary<ulong, int>();
                                     foreach (var rowCheck in tableCheck)
                                     {
-                                        string forPrint = rowCheck.GoodName;
-                                        logger.Trace("Check #{0} row#{1} name:{2}", headCheck.id, rowCheck.SORT, forPrint);
+                                        //string forPrint = rowCheck.GoodName;                                        
                                         ReceiptInfo rowSum;
                                         //if ((listgoods.ContainsKey((ulong)rowCheck.packname))&&(listgoods[(ulong)rowCheck.packname]!= rowCheck.Price))
+                                        ulong packcode = (ulong)rowCheck.packname.GetValueOrDefault();
                                         if (listgoods.ContainsKey((ulong)rowCheck.packname))
                                         {
-                                            ulong packname = (ulong)rowCheck.packname + ulong.Parse(rowCheck.StrCode) * ((ulong)rowCheck.SORT * 1000000);
-                                            rowSum = pr.FPSaleEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, (ushort)rowCheck.NalogGroup, false, forPrint + " #" + rowCheck.SORT.ToString(), packname);
+                                            packcode = (ulong)rowCheck.packname + ulong.Parse(rowCheck.StrCode) * ((ulong)rowCheck.SORT * 1000000);                                            
                                         }
                                         else
                                         {
-                                            listgoods.Add((ulong)rowCheck.packname, rowCheck.Price);
-                                            rowSum = pr.FPSaleEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, (ushort)rowCheck.NalogGroup, false, forPrint, (ulong)rowCheck.packname);
+                                            listgoods.Add((ulong)rowCheck.packname, rowCheck.Price);                                            
                                         }
 
+                                        Art art = new Art(int.Parse(rowCheck.StrCode), rowCheck.GoodName, packcode, (ushort)rowCheck.NalogGroup, rowCheck.FPNumber,_focusA);
+                                        logger.Trace("Check #{0} row#{1} name:{2} pr:{3}", headCheck.id, rowCheck.SORT, art.ARTNAME, rowCheck.Price);
+                                        rowSum = pr.FPSaleEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, art.NalogGroup, false, art.ARTNAME, art.PackCode);
 
 
                                         rowCheck.ByteReserv = pr.ByteReserv;
@@ -211,10 +212,25 @@ namespace PrintFP.Primary
                                                       && tableSales.NumPayment == headCheck.id
                                                       select tableSales);
                                     //logger.Trace("Check payment begin #{0}", headCheck.id);
+                                    Dictionary<ulong, int> listgoods = new Dictionary<ulong, int>();
                                     foreach (var rowCheck in tableCheck)
-                                    {
-                                        logger.Trace("Check payment #{0} row#{1} name:{2}", headCheck.id, rowCheck.SORT, rowCheck.GoodName);
-                                        var rowSum = pr.FPPayMoneyEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, (ushort)rowCheck.NalogGroup, false, rowCheck.GoodName, (ulong)rowCheck.packname);
+                                    {                                        
+
+                                        ulong packcode = (ulong)rowCheck.packname.GetValueOrDefault();
+                                        if (listgoods.ContainsKey((ulong)rowCheck.packname))
+                                        {
+                                            packcode = (ulong)rowCheck.packname + ulong.Parse(rowCheck.StrCode) * ((ulong)rowCheck.SORT * 1000000);
+                                        }
+                                        else
+                                        {
+                                            listgoods.Add((ulong)rowCheck.packname, rowCheck.Price);
+                                        }
+
+                                        Art art = new Art(int.Parse(rowCheck.StrCode), rowCheck.GoodName, packcode, (ushort)rowCheck.NalogGroup, rowCheck.FPNumber, _focusA);
+                                        logger.Trace("Check payment #{0} row#{1} name:{2} pr:{3}", headCheck.id, rowCheck.SORT, art.ARTNAME, rowCheck.Price);
+
+                                        var rowSum = pr.FPPayMoneyEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, art.NalogGroup, false, art.ARTNAME, art.PackCode);
+
                                         if (rowCheck.RowSum != rowSum.CostOfGoodsOrService)
                                         {
                                             logger.Error("Отличается сумма по строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
@@ -279,6 +295,9 @@ namespace PrintFP.Primary
                                     logger.Trace("print Z");
                                     pr.FPDayClrReport();
                                     pr.setFPCplCutter(false);
+                                    Table<tbl_ART> tbl_ART = _focusA.GetTable<tbl_ART>();
+                                    tbl_ART.DeleteAllOnSubmit(tbl_ART.AsEnumerable().Where(r => r.FPNumber == int.Parse(fpnumber)).ToList());
+                                    _focusA.SubmitChanges();
                                 }
                                 else if (operation.Operation == 40) //periodic report
                                 {
@@ -458,14 +477,20 @@ namespace PrintFP.Primary
             }
             try
             {
-                initRow.CurrentDate = pr.fpDateTime.ToString("dd.MM.yy");
+                string curdate = pr.fpDateTime.ToString("dd.MM.yy");
+                initRow.CurrentDate = curdate;
                 initRow.CurrentTime = pr.fpDateTime.ToString("HH:mm:ss");
 
-                TimeSpan ts = pr.fpDateTime - DateTime.Now;
-
+                TimeSpan ts = pr.fpDateTime - DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault());
+                //TODO подумать как если день назад, а не только вперед....
+                if ((!status.sessionIsOpened) && (DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault()).ToString("dd.MM.yy") != curdate))
+                {
+                    pr.fpDateTime = DateTime.Parse(String.Format("{0} 23:59:59",initRow.CurrentDate));
+                    Thread.Sleep(2000);
+                }
                 if ((!status.sessionIsOpened)&&(ts.Minutes!=0))
                 {
-                    pr.fpDateTime = DateTime.Now;
+                    pr.fpDateTime = DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault());
                 }
                 initRow.CurrentDate = pr.fpDateTime.ToString("dd.MM.yy");
                 initRow.CurrentTime = pr.fpDateTime.ToString("HH:mm:ss");

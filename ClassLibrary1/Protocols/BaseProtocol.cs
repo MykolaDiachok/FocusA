@@ -205,16 +205,19 @@ namespace CentralLib.Protocols
             }
             set
             {
-                byte dd = Convert.ToByte(Convert.ToInt32(value.ToString("dd"), 16));
-                byte MM = Convert.ToByte(Convert.ToInt32(value.ToString("MM"), 16));
-                byte yy = Convert.ToByte(Convert.ToInt32(value.ToString("yy"), 16));
-                byte[] answer = ExchangeWithFP(new byte[] { 2, dd, MM, yy });
+                byte hh = Convert.ToByte(Convert.ToInt32(value.ToString("HH"), 16));
+                byte mm = Convert.ToByte(Convert.ToInt32(value.ToString("mm"), 16));
+                byte ss = Convert.ToByte(Convert.ToInt32(value.ToString("ss"), 16));
+                byte[] answerTime = ExchangeWithFP(new byte[] { 4, hh, mm, ss });
+
+                
+                
                 if (connFP.statusOperation)
                 {
-                    byte hh = Convert.ToByte(Convert.ToInt32(value.ToString("HH"), 16));
-                    byte mm = Convert.ToByte(Convert.ToInt32(value.ToString("mm"), 16));
-                    byte ss = Convert.ToByte(Convert.ToInt32(value.ToString("ss"), 16));
-                    byte[] answerTime = ExchangeWithFP(new byte[] { 4, hh, mm, ss });
+                    byte dd = Convert.ToByte(Convert.ToInt32(value.ToString("dd"), 16));
+                    byte MM = Convert.ToByte(Convert.ToInt32(value.ToString("MM"), 16));
+                    byte yy = Convert.ToByte(Convert.ToInt32(value.ToString("yy"), 16));
+                    byte[] answer = ExchangeWithFP(new byte[] { 2, dd, MM, yy });
                 }
             }
         }
@@ -868,7 +871,7 @@ namespace CentralLib.Protocols
             byte[] answer = ExchangeWithFP(forsending);
             if (answer.Length!=8)
             {
-                throw new ApplicationException(String.Format("не правильный ответ сервера на строку чека, нужно 8 - ответ {0}!!!!", answer.Length));
+                throw new ApplicationException(String.Format("не правильный ответ сервера на строку чека, нужно 8 байт - ответ {0}!!!!", answer.Length));
             }
             else if ((statusOperation) && (answer.Length == 8))
             {

@@ -12,6 +12,7 @@ using System.Net.Sockets;
 using CentralLib.Helper;
 using System.Net;
 using System.IO;
+using System.Data.Linq;
 
 namespace TestComm
 {
@@ -106,6 +107,12 @@ namespace TestComm
 
         }
 
+        private static long getintDateTime(DateTime inDateTime)
+        {
+            //string sinDateTime = inDateTime.ToString("yyyyMMddHHmmss");
+
+            return inDateTime.Year * 10000000000 + inDateTime.Month * 100000000 + inDateTime.Day * 1000000 + inDateTime.Hour * 10000 + inDateTime.Minute * 100 + inDateTime.Second;
+        }
 
         static void Main(string[] args)
         {
@@ -113,6 +120,52 @@ namespace TestComm
 
             byteHelper = new ByteHelper();
             ConsecutiveNumber = 1;
+
+            using (DataClassesFocusADataContext _focusA = new DataClassesFocusADataContext())
+            {
+                Table<tbl_ComInit> tbl_ComInit = _focusA.GetTable<tbl_ComInit>();
+                Table<tbl_SALE> tbl_Sales = _focusA.GetTable<tbl_SALE>();
+                Table<tbl_ART> tbl_ART = _focusA.GetTable<tbl_ART>();
+                var initRow = (from init in tbl_ComInit
+                                where init.FPNumber == 10010014
+                               select init).FirstOrDefault();
+                DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture).AddHours(-1);
+                DateTime tEnd = DateTime.ParseExact(initRow.DateTimeStop.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
+
+                var artfromSALES = (from sales in tbl_Sales
+                                   where sales.FPNumber == 10010014
+                                   && sales.DATETIME>= initRow.DateTimeBegin && sales.DATETIME<=initRow.DateTimeStop
+                                   select new { FPNumber=sales.FPNumber, Code = int.Parse(sales.StrCode), ARTNAME = sales.GoodName, PackCode =sales.packname, PackGuid = sales.PackGuid, NalogGroup =sales.NalogGroup, NameForCheck = sales.GoodName, DATETIME = sales.DATETIME})
+                                   .OrderBy(o=>o.DATETIME);
+                                   
+                foreach(var rowart in artfromSALES)
+                {
+                    var rowArt = (from tArt in tbl_ART
+                                  where tArt.PackCode == rowart.PackCode
+                                  && tArt.FPNumber==rowart.FPNumber
+                                  select tArt).FirstOrDefault();
+                    if (rowArt==null)
+                    {
+                        tbl_ART newArt = new tbl_ART
+                        {
+                            Code =rowart.Code,
+                            ARTNAME= rowart.ARTNAME,
+                            PackCode= rowart.PackCode,
+                            PackGuid= rowart.PackGuid,
+                            NalogGroup = rowart.NalogGroup,
+                            NameForCheck = rowart.NameForCheck,
+                            FPNumber = rowart.FPNumber
+                        };
+                        _focusA.tbl_ARTs.InsertOnSubmit(newArt);
+                        _focusA.SubmitChanges();
+                    }
+                }
+                Console.WriteLine("Enter....");
+                Console.ReadKey();
+                //tbl_ART.DeleteAllOnSubmit(tbl_ART.AsEnumerable().Where(r => r.FPNumber == initRow.FPNumber).ToList());
+                //_focusA.SubmitChanges();
+            }
+
             //StartClient();
 
             //подготовка к отправке: 10 02 00 1C 00 1E C6 10 03
@@ -125,20 +178,20 @@ namespace TestComm
 
 
 
-            BaseProtocol pr = SingletonProtocol.Instance(4).GetProtocols();
-            //BaseProtocol pr = SingletonProtocol.Instance("192.168.1.98",4001).GetProtocols();            
-            pr.setFPCplCutter(true);
-            pr.FPNullCheck();
-            pr.FPNullCheck();
-            pr.setFPCplCutter(false);
-            pr.FPNullCheck();
-            pr.FPNullCheck();
-            pr.setFPCplCutter(true);
-            pr.FPDayClrReport();
-            pr.setFPCplCutter(false);
-            ////pr.FPResetOrder();
-            pr.FPDayReport();
-            pr.Dispose();
+            //BaseProtocol pr = SingletonProtocol.Instance(4).GetProtocols();
+            ////BaseProtocol pr = SingletonProtocol.Instance("192.168.1.98",4001).GetProtocols();            
+            //pr.setFPCplCutter(true);
+            //pr.FPNullCheck();
+            //pr.FPNullCheck();
+            //pr.setFPCplCutter(false);
+            //pr.FPNullCheck();
+            //pr.FPNullCheck();
+            //pr.setFPCplCutter(true);
+            //pr.FPDayClrReport();
+            //pr.setFPCplCutter(false);
+            //////pr.FPResetOrder();
+            //pr.FPDayReport();
+            //pr.Dispose();
 
 
             ////pr.FPDayClrReport();
@@ -263,7 +316,8 @@ namespace TestComm
             //pr.Dispose();
 
             //MainAsync();
-            Console.ReadKey();
+            Console.WriteLine("Enter....");
+                Console.ReadKey();
             //  }
 
 

@@ -98,6 +98,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>DataClassesFocusA.dbml</DependentUpon>
     </Compile>
+    <Compile Include="Primary\Art.cs" />
     <Compile Include="Primary\CloseZ.cs" />
     <Compile Include="Primary\StopWork.cs" />
     <Compile Include="Primary\Init.cs" />
