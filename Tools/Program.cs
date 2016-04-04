@@ -17,7 +17,7 @@ namespace Tools
             bool typeEvery = false;
             int printEvery = 1;
             string ip = "192.168.255.132";
-            int ipPort = 4004;
+            int ipPort = 4005;
             using (DataClassesFocusADataContext focusA = new DataClassesFocusADataContext())
             {
                 Table<tbl_ComInit> tbl_ComInit = focusA.GetTable<tbl_ComInit>();

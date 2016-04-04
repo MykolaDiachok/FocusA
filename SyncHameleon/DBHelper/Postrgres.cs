@@ -21,20 +21,20 @@ namespace SyncHameleon
         private NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         private System.Timers.Timer _timer;
         private string _SQLServer, _FPNumber;
-        private bool bSQLServer=false, bFPNumber=false;
+        private bool bSQLServer = false, bFPNumber = false;
         private DateTime startJob;
 
         public Postrgres(string sqlserver, string fpnumber)
         {
             this._SQLServer = sqlserver;
             this._FPNumber = fpnumber;
-            if ((this._SQLServer!=null)&&(this._SQLServer.Length>1)) this.bSQLServer = true;
+            if ((this._SQLServer != null) && (this._SQLServer.Length > 1)) this.bSQLServer = true;
             if ((this._FPNumber != null) && (this._FPNumber.Length > 1)) this.bFPNumber = true;
         }
 
         public void startSync()
         {
-            if (!this.bSQLServer &&!this.bFPNumber)
+            if (!this.bSQLServer && !this.bFPNumber)
                 throw new System.ArgumentException("Value _SQLServer & _FPNumber is null");
             startTimer();
         }
@@ -63,6 +63,7 @@ namespace SyncHameleon
             _timer.Interval = (Properties.Settings.Default.TimerIntervalSec * 1000);
             _timer.Elapsed += (sender, e) => { HandleTimerElapsed(); };
             _timer.Enabled = true;
+
             Console.ReadLine();
             Console.WriteLine("Time start:{0}", startJob);
             Console.WriteLine("Time stop:{0}", DateTime.Now);
@@ -72,10 +73,39 @@ namespace SyncHameleon
         private void HandleTimerElapsed()
         {
             _timer.Stop();
+            //SelectChecksOperation();
+            //SelectLogOperation();
+            ImpatientMethod();
+            Thread.Sleep(10000);
+            _timer.Start();
+        }
+
+        public void LongMethod()
+        {
             SelectChecksOperation();
             SelectLogOperation();
-            Thread.Sleep(1000);
-            _timer.Start();
+        }
+
+        public void ImpatientMethod()
+        {
+            Action longMethod = LongMethod; //use Func if you need a return value
+
+            ManualResetEvent mre = new ManualResetEvent(false);
+
+            Thread actionThread = new Thread(new ThreadStart(() =>
+            {
+                var iar = longMethod.BeginInvoke(null, null);
+                longMethod.EndInvoke(iar); //always call endinvoke
+                mre.Set();
+            }));
+
+            actionThread.Start();
+            mre.WaitOne(30000); // waiting 30 secs (or less)
+            if (actionThread.IsAlive)
+            {
+                actionThread.Abort();
+                logger.Fatal("Waiting out");
+            }
         }
 
 
@@ -122,7 +152,7 @@ namespace SyncHameleon
                     DateTime tEnd = DateTime.ParseExact(initRow.DateTimeStop.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
                     var connection = Properties.Settings.Default.Npgsql;//System.Configuration.ConfigurationManager.ConnectionStrings["Test"].ConnectionString;
                     NpgsqlConnectionStringBuilder constr = new NpgsqlConnectionStringBuilder(connection);
-                    constr.CommandTimeout = 30;                    
+                    constr.CommandTimeout = 30;
                     constr.InternalCommandTimeout = 15;
                     constr.Timeout = 15;
                     constr.KeepAlive = 180;
@@ -158,12 +188,12 @@ namespace SyncHameleon
                                      && !((bool)list1.Disable)
                                  select list1).Except(
                                     from tPayment in allPayment
-                                        join tOperation in allOp
+                                    join tOperation in allOp
 
-                                       on           new { DATETIME = tPayment.DATETIME,     FPNumber = tPayment.FPNumber,   Op = tPayment.Operation,    Num = tPayment.id }
-                                            equals  new { DATETIME = tOperation.DateTime,   FPNumber = tOperation.FPNumber, Op = tOperation.Operation,  Num = (long)tOperation.NumSlave }
-                                         select tPayment);
-                    foreach(var rowPayment in preOp)
+                                   on new { DATETIME = tPayment.DATETIME, FPNumber = tPayment.FPNumber, Op = tPayment.Operation, Num = tPayment.id }
+                                        equals new { DATETIME = tOperation.DateTime, FPNumber = tOperation.FPNumber, Op = tOperation.Operation, Num = (long)tOperation.NumSlave }
+                                    select tPayment);
+                    foreach (var rowPayment in preOp)
                     {
                         tbl_Operation newOp = new tbl_Operation
                         {
@@ -176,12 +206,12 @@ namespace SyncHameleon
                             CurentDateTime = DateTime.Now,
                             Disable = false
                         };
-                        _focusA.tbl_Operations.InsertOnSubmit(newOp);                        
+                        _focusA.tbl_Operations.InsertOnSubmit(newOp);
                         _focusA.SubmitChanges();
                         rowPayment.NumOperation = newOp.id;
                         _focusA.SubmitChanges();
                     }
-                    
+
                 }
             }
             //StopwatchHelper.Stop("Select CHECKS");
@@ -491,7 +521,7 @@ namespace SyncHameleon
         private void SelectLogOperation()
         {
 
-            
+
 
             using (DataClassesFocusADataContext _focusA = new DataClassesFocusADataContext())
             {
@@ -504,16 +534,17 @@ namespace SyncHameleon
                     DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
                     DateTime tEnd = DateTime.ParseExact(initRow.DateTimeStop.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
                     var connection = Properties.Settings.Default.Npgsql;//System.Configuration.ConfigurationManager.ConnectionStrings["Test"].ConnectionString;
-                    StopwatchHelper.Start("Select LOG:"+ initRow.RealNumber);
+                    StopwatchHelper.Start("Select LOG:" + initRow.RealNumber);
                     NpgsqlConnectionStringBuilder connstr = new NpgsqlConnectionStringBuilder(connection);
                     connstr.CommandTimeout = 30;
                     connstr.Timeout = 15;
                     connstr.InternalCommandTimeout = 30;
                     connstr.KeepAlive = 180;
+                    
                     using (var conn = new NpgsqlConnection(connstr))
                     {
                         //logger.Trace("NpgsqlConnection:{0}", connection);
-                        
+
                         conn.Open();
                         //getCashier(conn);                        
                         using (var cmd = new NpgsqlCommand())
@@ -529,7 +560,7 @@ namespace SyncHameleon
                                                 and sales_log.time_create<'" + tEnd.AddSeconds(1).ToString("dd.MM.yyyy HH:mm:ss") + @"'
 			                               ";
                             //logger.Trace("Select from base:{0}", cmd.CommandText);
-                            
+
                             using (var reader = cmd.ExecuteReader())
                             {
                                 while (reader.Read())
@@ -615,16 +646,16 @@ namespace SyncHameleon
                                     //Console.WriteLine(reader.GetString(0));
                                 }
                             }
-                            
+
                         }
                     }
                     StopwatchHelper.Stop("Select LOG:" + initRow.RealNumber);
                     //initRow.DateTimeSyncDB = DateTime.Now;
                     //_focusA.SubmitChanges();
                 }
-                
+
             }
-            
+
 
 
         }
@@ -640,7 +671,7 @@ namespace SyncHameleon
         {
             var trow = _focusA.GetTable<tbl_Cashier>().FirstOrDefault(i => i.FPNumber == _fp && i.DATETIME == _dt && i.Operation == 3);
             if (trow != null)
-            {                
+            {
                 return;
             }
             logger.Trace("Operation SetCashier in base");

@@ -47,7 +47,7 @@ namespace PrintFP.Primary
                 {
                     Code = Code,
                     ARTNAME = ARTNAME,
-                    PackCode = (int)PackCode,
+                    PackCode = (long)PackCode,
                     //PackGuid = rowart.PackGuid,
                     NalogGroup = NalogGroup,
                     NameForCheck = NameForCheck,
