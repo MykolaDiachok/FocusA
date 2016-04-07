@@ -23,6 +23,7 @@ namespace SyncHameleon
         private string _SQLServer, _FPNumber;
         private bool bSQLServer = false, bFPNumber = false;
         private DateTime startJob;
+        //private DateTime tBegin, tEnd;
 
         public Postrgres(string sqlserver, string fpnumber)
         {
@@ -148,7 +149,7 @@ namespace SyncHameleon
                 List<tbl_ComInit> tbl_ComInit = connectToFocusA(_focusA);
                 foreach (tbl_ComInit initRow in tbl_ComInit)
                 {
-                    DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
+                    DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture).AddHours(-1);
                     DateTime tEnd = DateTime.ParseExact(initRow.DateTimeStop.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
                     var connection = Properties.Settings.Default.Npgsql;//System.Configuration.ConfigurationManager.ConnectionStrings["Test"].ConnectionString;
                     NpgsqlConnectionStringBuilder constr = new NpgsqlConnectionStringBuilder(connection);
@@ -173,18 +174,21 @@ namespace SyncHameleon
 
                     var allOp = (from tOperation in tableOperation
                                  where tOperation.FPNumber == (int)initRow.FPNumber
-                                                  && tOperation.DateTime >= initRow.DateTimeBegin && tOperation.DateTime < initRow.DateTimeStop
+                                                  // && tOperation.DateTime >= initRow.DateTimeBegin && tOperation.DateTime < initRow.DateTimeStop
+                                                  && tOperation.DateTime >= tBegin.getintDateTime() && tOperation.DateTime < tEnd.getintDateTime()
                                  select tOperation);
 
                     var allPayment = (from list1 in tablePayment
                                       where list1.FPNumber == (int)initRow.FPNumber
-                                          && list1.DATETIME >= initRow.DateTimeBegin && list1.DATETIME < initRow.DateTimeStop
+                                          //&& list1.DATETIME >= initRow.DateTimeBegin && list1.DATETIME < initRow.DateTimeStop
+                                          && list1.DATETIME >= tBegin.getintDateTime() && list1.DATETIME < tEnd.getintDateTime()
                                           && !((bool)list1.Disable)
                                       select list1);
 
                     var preOp = (from list1 in tablePayment
                                  where list1.FPNumber == (int)initRow.FPNumber
-                                     && list1.DATETIME >= initRow.DateTimeBegin && list1.DATETIME < initRow.DateTimeStop
+                                     //&& list1.DATETIME >= initRow.DateTimeBegin && list1.DATETIME < initRow.DateTimeStop
+                                     && list1.DATETIME >= tBegin.getintDateTime() && list1.DATETIME < tEnd.getintDateTime()
                                      && !((bool)list1.Disable)
                                  select list1).Except(
                                     from tPayment in allPayment
@@ -305,7 +309,7 @@ namespace SyncHameleon
                 var linked = (from lC in listChecks
                               join lP in (from list in tablePayment
                                           where list.FPNumber == (int)initRow.FPNumber
-                                          && list.DATETIME >= initRow.DateTimeBegin && list.DATETIME < initRow.DateTimeStop
+                                          && list.DATETIME >= tBegin.getintDateTime() && list.DATETIME < tEnd.getintDateTime()
                                           select list)
                               on new { Operation = lC.Operation, DATETIME = lC.DATETIME, id_workplace = lC.id_workplace, id_session = lC.id_session, id_scheck = (int)lC.id_scheck, id_check = lC.id_check }
                               equals
@@ -385,7 +389,8 @@ namespace SyncHameleon
                     var forAddChekLines = (from tCheckLines in (listChecks_Lines.Except((from tListCheckLines in listChecks_Lines
                                                                                          join tPayment in (from list in tablePayment
                                                                                                            where list.FPNumber == (int)initRow.FPNumber
-                                                                                                           && list.DATETIME >= initRow.DateTimeBegin && list.DATETIME < initRow.DateTimeStop
+                                                                                                           //&& list.DATETIME >= initRow.DateTimeBegin && list.DATETIME < initRow.DateTimeStop
+                                                                                                           && list.DATETIME >= tBegin.getintDateTime() && list.DATETIME < tEnd.getintDateTime()
                                                                                                            && list.RowCount > 0
                                                                                                            select list)
                                                                                                on new { id_check = tListCheckLines.id_check }
@@ -394,7 +399,8 @@ namespace SyncHameleon
                                                                                          select tListCheckLines)))
                                            join tPayment in (from list in tablePayment
                                                              where list.FPNumber == (int)initRow.FPNumber
-                                                             && list.DATETIME >= initRow.DateTimeBegin && list.DATETIME < initRow.DateTimeStop
+                                                             //&& list.DATETIME >= initRow.DateTimeBegin && list.DATETIME < initRow.DateTimeStop
+                                                             && list.DATETIME >= tBegin.getintDateTime() && list.DATETIME < tEnd.getintDateTime()
                                                              select list)
                                             on tCheckLines.id_check equals tPayment.SYSTEMID
                                            orderby tPayment.SYSTEMID
@@ -531,7 +537,7 @@ namespace SyncHameleon
                 List<tbl_ComInit> tbl_ComInit = connectToFocusA(_focusA);
                 foreach (tbl_ComInit initRow in tbl_ComInit)
                 {
-                    DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
+                    DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture).AddHours(-1);
                     DateTime tEnd = DateTime.ParseExact(initRow.DateTimeStop.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
                     var connection = Properties.Settings.Default.Npgsql;//System.Configuration.ConfigurationManager.ConnectionStrings["Test"].ConnectionString;
                     StopwatchHelper.Start("Select LOG:" + initRow.RealNumber);
@@ -540,7 +546,7 @@ namespace SyncHameleon
                     connstr.Timeout = 15;
                     connstr.InternalCommandTimeout = 30;
                     connstr.KeepAlive = 180;
-                    
+
                     using (var conn = new NpgsqlConnection(connstr))
                     {
                         //logger.Trace("NpgsqlConnection:{0}", connection);
@@ -837,5 +843,26 @@ namespace SyncHameleon
             Zreport = 14,
             SetCashier = 1001
         }
+
+        
+
+    }
+
+    public static class DataExtensions
+    {
+        public static long getintDateTime(this DateTime inDateTime)
+        {
+            //string sinDateTime = inDateTime.ToString("yyyyMMddHHmmss");
+
+            return inDateTime.Year * 10000000000 + inDateTime.Month * 100000000 + inDateTime.Day * 1000000 + inDateTime.Hour * 10000 + inDateTime.Minute * 100 + inDateTime.Second;
+        }
+
+        public static long getintDateTimeMinusHour(this DateTime inDateTime)
+        {
+            //string sinDateTime = inDateTime.ToString("yyyyMMddHHmmss");
+            var minusHour = inDateTime.AddHours(-1);
+            return minusHour.Year * 10000000000 + minusHour.Month * 100000000 + minusHour.Day * 1000000 + minusHour.Hour * 10000 + minusHour.Minute * 100 + minusHour.Second;
+        }
+
     }
 }

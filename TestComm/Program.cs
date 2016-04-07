@@ -121,50 +121,50 @@ namespace TestComm
             byteHelper = new ByteHelper();
             ConsecutiveNumber = 1;
 
-            using (DataClassesFocusADataContext _focusA = new DataClassesFocusADataContext())
-            {
-                Table<tbl_ComInit> tbl_ComInit = _focusA.GetTable<tbl_ComInit>();
-                Table<tbl_SALE> tbl_Sales = _focusA.GetTable<tbl_SALE>();
-                Table<tbl_ART> tbl_ART = _focusA.GetTable<tbl_ART>();
-                var initRow = (from init in tbl_ComInit
-                                where init.FPNumber == 10010014
-                               select init).FirstOrDefault();
-                DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture).AddHours(-1);
-                DateTime tEnd = DateTime.ParseExact(initRow.DateTimeStop.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
+            //using (DataClassesFocusADataContext _focusA = new DataClassesFocusADataContext())
+            //{
+            //    Table<tbl_ComInit> tbl_ComInit = _focusA.GetTable<tbl_ComInit>();
+            //    Table<tbl_SALE> tbl_Sales = _focusA.GetTable<tbl_SALE>();
+            //    Table<tbl_ART> tbl_ART = _focusA.GetTable<tbl_ART>();
+            //    var initRow = (from init in tbl_ComInit
+            //                    where init.FPNumber == 10010014
+            //                   select init).FirstOrDefault();
+            //    DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture).AddHours(-1);
+            //    DateTime tEnd = DateTime.ParseExact(initRow.DateTimeStop.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
 
-                var artfromSALES = (from sales in tbl_Sales
-                                   where sales.FPNumber == 10010014
-                                   && sales.DATETIME>= initRow.DateTimeBegin && sales.DATETIME<=initRow.DateTimeStop
-                                   select new { FPNumber=sales.FPNumber, Code = int.Parse(sales.StrCode), ARTNAME = sales.GoodName, PackCode =sales.packname, PackGuid = sales.PackGuid, NalogGroup =sales.NalogGroup, NameForCheck = sales.GoodName, DATETIME = sales.DATETIME})
-                                   .OrderBy(o=>o.DATETIME);
+            //    var artfromSALES = (from sales in tbl_Sales
+            //                       where sales.FPNumber == 10010014
+            //                       && sales.DATETIME>= initRow.DateTimeBegin && sales.DATETIME<=initRow.DateTimeStop
+            //                       select new { FPNumber=sales.FPNumber, Code = int.Parse(sales.StrCode), ARTNAME = sales.GoodName, PackCode =sales.packname, PackGuid = sales.PackGuid, NalogGroup =sales.NalogGroup, NameForCheck = sales.GoodName, DATETIME = sales.DATETIME})
+            //                       .OrderBy(o=>o.DATETIME);
                                    
-                foreach(var rowart in artfromSALES)
-                {
-                    var rowArt = (from tArt in tbl_ART
-                                  where tArt.PackCode == rowart.PackCode
-                                  && tArt.FPNumber==rowart.FPNumber
-                                  select tArt).FirstOrDefault();
-                    if (rowArt==null)
-                    {
-                        tbl_ART newArt = new tbl_ART
-                        {
-                            Code =rowart.Code,
-                            ARTNAME= rowart.ARTNAME,
-                            PackCode= rowart.PackCode,
-                            PackGuid= rowart.PackGuid,
-                            NalogGroup = rowart.NalogGroup,
-                            NameForCheck = rowart.NameForCheck,
-                            FPNumber = rowart.FPNumber
-                        };
-                        _focusA.tbl_ARTs.InsertOnSubmit(newArt);
-                        _focusA.SubmitChanges();
-                    }
-                }
-                Console.WriteLine("Enter....");
-                Console.ReadKey();
-                //tbl_ART.DeleteAllOnSubmit(tbl_ART.AsEnumerable().Where(r => r.FPNumber == initRow.FPNumber).ToList());
-                //_focusA.SubmitChanges();
-            }
+            //    foreach(var rowart in artfromSALES)
+            //    {
+            //        var rowArt = (from tArt in tbl_ART
+            //                      where tArt.PackCode == rowart.PackCode
+            //                      && tArt.FPNumber==rowart.FPNumber
+            //                      select tArt).FirstOrDefault();
+            //        if (rowArt==null)
+            //        {
+            //            tbl_ART newArt = new tbl_ART
+            //            {
+            //                Code =rowart.Code,
+            //                ARTNAME= rowart.ARTNAME,
+            //                PackCode= rowart.PackCode,
+            //                PackGuid= rowart.PackGuid,
+            //                NalogGroup = rowart.NalogGroup,
+            //                NameForCheck = rowart.NameForCheck,
+            //                FPNumber = rowart.FPNumber
+            //            };
+            //            _focusA.tbl_ARTs.InsertOnSubmit(newArt);
+            //            _focusA.SubmitChanges();
+            //        }
+            //    }
+            //    Console.WriteLine("Enter....");
+            //    Console.ReadKey();
+            //    //tbl_ART.DeleteAllOnSubmit(tbl_ART.AsEnumerable().Where(r => r.FPNumber == initRow.FPNumber).ToList());
+            //    //_focusA.SubmitChanges();
+            //}
 
             //StartClient();
 
@@ -179,19 +179,19 @@ namespace TestComm
 
 
             //BaseProtocol pr = SingletonProtocol.Instance(4).GetProtocols();
-            ////BaseProtocol pr = SingletonProtocol.Instance("192.168.1.98",4001).GetProtocols();            
-            //pr.setFPCplCutter(true);
-            //pr.FPNullCheck();
+            BaseProtocol pr = SingletonProtocol.Instance("192.168.255.132", 4002).GetProtocols();            
+            pr.setFPCplCutter(false);
+            pr.FPNullCheck();
             //pr.FPNullCheck();
             //pr.setFPCplCutter(false);
             //pr.FPNullCheck();
             //pr.FPNullCheck();
             //pr.setFPCplCutter(true);
-            //pr.FPDayClrReport();
+            pr.FPDayClrReport();
             //pr.setFPCplCutter(false);
             //////pr.FPResetOrder();
             //pr.FPDayReport();
-            //pr.Dispose();
+            pr.Dispose();
 
 
             ////pr.FPDayClrReport();

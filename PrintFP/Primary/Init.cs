@@ -125,69 +125,72 @@ namespace PrintFP.Primary
                                     //logger.Trace("Check begin #{0}", headCheck.id);
                                     //List<string, int> listGoodsName = new List<string, int>();
                                     Dictionary<ulong, int> listgoods = new Dictionary<ulong, int>();
-                                    foreach (var rowCheck in tableCheck)
+                                    if (tableCheck.Count() != 0)
                                     {
-                                        //string forPrint = rowCheck.GoodName;                                        
-                                        ReceiptInfo rowSum;
-                                        //if ((listgoods.ContainsKey((ulong)rowCheck.packname))&&(listgoods[(ulong)rowCheck.packname]!= rowCheck.Price))
-                                        ulong packcode = (ulong)rowCheck.packname.GetValueOrDefault();
-                                        if (listgoods.ContainsKey((ulong)rowCheck.packname))
+                                        foreach (var rowCheck in tableCheck)
                                         {
-                                            packcode = (ulong)rowCheck.packname + ulong.Parse(rowCheck.StrCode) * ((ulong)rowCheck.SORT * 1000000);                                            
+                                            //string forPrint = rowCheck.GoodName;                                        
+                                            ReceiptInfo rowSum;
+                                            //if ((listgoods.ContainsKey((ulong)rowCheck.packname))&&(listgoods[(ulong)rowCheck.packname]!= rowCheck.Price))
+                                            ulong packcode = (ulong)rowCheck.packname.GetValueOrDefault();
+                                            if (listgoods.ContainsKey((ulong)rowCheck.packname))
+                                            {
+                                                packcode = (ulong)rowCheck.packname + ulong.Parse(rowCheck.StrCode) * ((ulong)rowCheck.SORT * 1000000);
+                                            }
+                                            else
+                                            {
+                                                listgoods.Add((ulong)rowCheck.packname, rowCheck.Price);
+                                            }
+
+                                            Art art = new Art(int.Parse(rowCheck.StrCode), rowCheck.GoodName, packcode, (ushort)rowCheck.NalogGroup, rowCheck.FPNumber, _focusA);
+                                            logger.Trace("Check #{0} row#{1} name:{2} pr:{3}", headCheck.id, rowCheck.SORT, art.ARTNAME, rowCheck.Price);
+                                            rowSum = pr.FPSaleEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, art.NalogGroup, false, art.ARTNAME, art.PackCode);
+
+
+                                            rowCheck.ByteReserv = pr.ByteReserv;
+                                            rowCheck.ByteResult = pr.ByteResult;
+                                            rowCheck.ByteStatus = pr.ByteStatus;
+                                            rowCheck.Error = !pr.statusOperation;
+                                            rowCheck.FPSum = rowSum.CostOfGoodsOrService;
+                                            headCheck.FPSumm = rowSum.SumAtReceipt;
+                                            if (rowCheck.RowSum != rowSum.CostOfGoodsOrService)
+                                            {
+                                                logger.Error("Отличается сумма по строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
+                                                throw new ApplicationException(String.Format("Отличается суммапо строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment));
+                                            }
+
                                         }
-                                        else
+                                        if (headCheck.FPSumm != headCheck.CheckSum)
                                         {
-                                            listgoods.Add((ulong)rowCheck.packname, rowCheck.Price);                                            
+                                            logger.Error("Отличается общая сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id);
+                                            throw new ApplicationException(String.Format("Отличается сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id));
                                         }
-
-                                        Art art = new Art(int.Parse(rowCheck.StrCode), rowCheck.GoodName, packcode, (ushort)rowCheck.NalogGroup, rowCheck.FPNumber,_focusA);
-                                        logger.Trace("Check #{0} row#{1} name:{2} pr:{3}", headCheck.id, rowCheck.SORT, art.ARTNAME, rowCheck.Price);
-                                        rowSum = pr.FPSaleEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, art.NalogGroup, false, art.ARTNAME, art.PackCode);
-
-
-                                        rowCheck.ByteReserv = pr.ByteReserv;
-                                        rowCheck.ByteResult = pr.ByteResult;
-                                        rowCheck.ByteStatus = pr.ByteStatus;
-                                        rowCheck.Error = !pr.statusOperation;
-                                        rowCheck.FPSum = rowSum.CostOfGoodsOrService;
-                                        headCheck.FPSumm = rowSum.SumAtReceipt;
-                                        if (rowCheck.RowSum != rowSum.CostOfGoodsOrService)
+                                        if (headCheck.Payment0 > 0)
                                         {
-                                            logger.Error("Отличается сумма по строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
-                                            throw new ApplicationException(String.Format("Отличается суммапо строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment));
+                                            pr.FPPayment(0, (uint)headCheck.Payment0, false, true);
+                                            logger.Trace("Check #{0} Payment0:{1}", headCheck.id, (uint)headCheck.Payment0);
                                         }
-
+                                        if (headCheck.Payment1 > 0)
+                                        {
+                                            pr.FPPayment(1, (uint)headCheck.Payment1, false, true);
+                                            logger.Trace("Check #{0} Payment1:{1}", headCheck.id, (uint)headCheck.Payment1);
+                                        }
+                                        if (headCheck.Payment2 > 0)
+                                        {
+                                            pr.FPPayment(2, (uint)headCheck.Payment2, false, true);
+                                            logger.Trace("Check #{0} Payment2:{1}", headCheck.id, (uint)headCheck.Payment2);
+                                        }
+                                        if (headCheck.Payment3 > 0)
+                                        {
+                                            pr.FPPayment(3, (uint)headCheck.Payment3, false, true);
+                                            logger.Trace("Check #{0} Payment3:{1}", headCheck.id, (uint)headCheck.Payment3);
+                                        }
+                                        headCheck.ByteReserv = pr.ByteReserv;
+                                        headCheck.ByteResult = pr.ByteResult;
+                                        headCheck.ByteStatus = pr.ByteStatus;
+                                        headCheck.Error = !pr.statusOperation;
+                                        headCheck.CheckClose = true;
                                     }
-                                    if (headCheck.FPSumm != headCheck.CheckSum)
-                                    {
-                                        logger.Error("Отличается общая сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id);
-                                        throw new ApplicationException(String.Format("Отличается сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id));
-                                    }
-                                    if (headCheck.Payment0 > 0)
-                                    {
-                                        pr.FPPayment(0, (uint)headCheck.Payment0, false, true);
-                                        logger.Trace("Check #{0} Payment0:{1}", headCheck.id, (uint)headCheck.Payment0);
-                                    }
-                                    if (headCheck.Payment1 > 0)
-                                    {
-                                        pr.FPPayment(1, (uint)headCheck.Payment1, false, true);
-                                        logger.Trace("Check #{0} Payment1:{1}", headCheck.id, (uint)headCheck.Payment1);
-                                    }
-                                    if (headCheck.Payment2 > 0)
-                                    {
-                                        pr.FPPayment(2, (uint)headCheck.Payment2, false, true);
-                                        logger.Trace("Check #{0} Payment2:{1}", headCheck.id, (uint)headCheck.Payment2);
-                                    }
-                                    if (headCheck.Payment3 > 0)
-                                    {
-                                        pr.FPPayment(3, (uint)headCheck.Payment3, false, true);
-                                        logger.Trace("Check #{0} Payment3:{1}", headCheck.id, (uint)headCheck.Payment3);
-                                    }
-                                    headCheck.ByteReserv = pr.ByteReserv;
-                                    headCheck.ByteResult = pr.ByteResult;
-                                    headCheck.ByteStatus = pr.ByteStatus;
-                                    headCheck.Error = !pr.statusOperation;
-                                    headCheck.CheckClose = true;
                                     //logger.Trace("Check close #{0}", headCheck.id);
                                     //pr.FPPayment();
                                 }
