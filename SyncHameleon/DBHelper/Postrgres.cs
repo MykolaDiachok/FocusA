@@ -17,7 +17,7 @@ using DbHelperSQL;
 
 namespace SyncHameleon
 {
-    class Postrgres
+    public class Postrgres : IDisposable
     {
         private NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         private System.Timers.Timer _timer;
@@ -25,6 +25,16 @@ namespace SyncHameleon
         private bool bSQLServer = false, bFPNumber = false;
         private DateTime startJob;
         private DbHelperSQL.DbHelperSQL changeTable;
+        private DbHelperSQL.DbHelperSQLStatus changeStatus;
+        private bool active;
+        public bool Active
+        {
+            get
+            {
+                return active;
+            }
+
+        }
         //private DateTime tBegin, tEnd;
 
         public Postrgres(string sqlserver, string fpnumber)
@@ -33,6 +43,9 @@ namespace SyncHameleon
             this._FPNumber = fpnumber;
             if ((this._SQLServer != null) && (this._SQLServer.Length > 1)) this.bSQLServer = true;
             if ((this._FPNumber != null) && (this._FPNumber.Length > 1)) this.bFPNumber = true;
+
+            changeStatus = new DbHelperSQLStatus(sqlserver, fpnumber.ToNullableInt32());
+            changeStatus.setStatusInit();
         }
 
         public void startSync()
@@ -61,16 +74,14 @@ namespace SyncHameleon
 
         private void startTimer()
         {
+            active = true;
+            changeStatus.setStatusWaiting();
             startJob = DateTime.Now;
             _timer = new System.Timers.Timer();
             _timer.Interval = (Properties.Settings.Default.TimerIntervalSec * 1000);
             _timer.Elapsed += (sender, e) => { HandleTimerElapsed(); };
             _timer.Enabled = true;
 
-            Console.ReadLine();
-            Console.WriteLine("Time start:{0}", startJob);
-            Console.WriteLine("Time stop:{0}", DateTime.Now);
-            _timer.Dispose();
         }
 
         private void HandleTimerElapsed()
@@ -81,12 +92,15 @@ namespace SyncHameleon
             ImpatientMethod();
             Thread.Sleep(10000);
             _timer.Start();
+
         }
 
         public void LongMethod()
         {
+            changeStatus.setStatusOnLine();
             SelectChecksOperation();
             SelectLogOperation();
+            changeStatus.setStatusWaiting();
         }
 
         public void ImpatientMethod()
@@ -110,7 +124,6 @@ namespace SyncHameleon
                 logger.Fatal("Waiting out");
             }
         }
-
 
         /// <summary>
         /// Функция получение рабочих аппаратов для синхронизации
@@ -846,6 +859,13 @@ namespace SyncHameleon
             return ret;
         }
 
+        public void Dispose()
+        {
+            active = false;
+            _timer.Dispose();
+            changeStatus.setStatusOFFLine();
+        }
+
         private enum LogOperations
         {
             Launch = 1,
@@ -857,7 +877,7 @@ namespace SyncHameleon
             SetCashier = 1001
         }
 
-        
+
 
     }
 
@@ -877,5 +897,13 @@ namespace SyncHameleon
             return minusHour.Year * 10000000000 + minusHour.Month * 100000000 + minusHour.Day * 1000000 + minusHour.Hour * 10000 + minusHour.Minute * 100 + minusHour.Second;
         }
 
+        public static int? ToNullableInt32(this string s)
+        {
+            int i;
+            if (Int32.TryParse(s, out i)) return i;
+            return null;
+        }
     }
+
+
 }

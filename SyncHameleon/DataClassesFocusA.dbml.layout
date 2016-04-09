@@ -65,5 +65,11 @@
         <elementListCompartment Id="1a257c60-5b7f-4943-983d-c5d15133a0ed" absoluteBounds="9.515, 4.835, 1.9700000000000002, 2.364705403645833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
+    <classShape Id="a1348cc5-d83d-4f1e-a210-536760e014db" absoluteBounds="3.875, 0.625, 2, 2.1554996744791666">
+      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_SyncDBStatus" />
+      <nestedChildShapes>
+        <elementListCompartment Id="4163c4ab-564d-4ed1-b11a-2da689dce8d7" absoluteBounds="3.8899999999999997, 1.085, 1.9700000000000002, 1.5954996744791665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
   </nestedChildShapes>
 </ordesignerObjectsDiagram>

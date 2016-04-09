@@ -25,7 +25,7 @@ namespace SyncChameleonService
             Console.WriteLine("\t-i\tInstall service");
             Console.WriteLine("\t-u\tUninstall service");
             Console.WriteLine("\t-r\tStart service");
-            Console.WriteLine("\t-s\tStop service");
+            Console.WriteLine("\t-p\tStop service");
             Console.WriteLine("==============================");
             Console.WriteLine("\t-s=\t-server=\"ServerName for sync\"");
             Console.WriteLine("\t-d\tDebug");

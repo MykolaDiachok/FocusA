@@ -8,6 +8,8 @@ using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
+using SyncHameleon;
+using NDesk.Options;
 
 namespace SyncChameleonService
 {
@@ -56,7 +58,7 @@ namespace SyncChameleonService
                 {
                     app = new StartApp(this.args);
                 }
-                if (!app.Active)
+                if (!app.Active())
                 {
                     app.OnStart();
                 }
@@ -75,7 +77,7 @@ namespace SyncChameleonService
                     app = new StartApp(this.args);
                     eventLog1.WriteEntry("inited app");
                 }
-                if (!app.Active)
+                if (!app.Active())
                 {
                     eventLog1.WriteEntry("start app");
                     app.OnStart();
@@ -87,7 +89,7 @@ namespace SyncChameleonService
         protected override void OnStop()
         {            
             eventLog1.WriteEntry("In OnStop");         
-            if ((app != null) && (app.Active))
+            if ((app != null) && (app.Active()))
             {
                 app.OnStop();
             }
@@ -97,49 +99,53 @@ namespace SyncChameleonService
 
     public class StartApp
     {
-        private ProcessStartInfo info;
-        private Process process;
+        //private ProcessStartInfo info;
+        //private Process process;
+        private SyncHameleon.Postrgres post;
+        private static string fpnumber;
+        private static string sqlserver;
 
         public StartApp(params string[] args)
         {
-            info = new ProcessStartInfo(@".\SyncHameleon.exe");
-            info.Arguments = args[0];
-            info.UseShellExecute = false;
-            info.RedirectStandardError = true;
-            info.RedirectStandardInput = true;
-            info.RedirectStandardOutput = true;
-            info.CreateNoWindow = true;
-            info.ErrorDialog = false;
-            info.WindowStyle = ProcessWindowStyle.Hidden;           
+
+            new OptionSet()
+                .Add("fp=|fpnumber=", fp => fpnumber = fp)
+                .Add("s=|sqlserver=", s => sqlserver = s)                
+                .Parse(args);
+
+            post = new Postrgres(sqlserver, fpnumber);
+            post.startSync();
+        //    info = new ProcessStartInfo(@".\SyncHameleon.exe");
+        //    info.Arguments = args[0];
+        //    info.UseShellExecute = false;
+        //    info.RedirectStandardError = true;
+        //    info.RedirectStandardInput = true;
+        //    info.RedirectStandardOutput = true;
+        //    info.CreateNoWindow = true;
+        //    info.ErrorDialog = false;
+        //    info.WindowStyle = ProcessWindowStyle.Hidden;           
         }
 
-        public bool Active
+        public bool Active()
         {
-            get
-            {
-                if (process == null)
-                    return false;
-                try
-                {
-                    Process.GetProcessById(process.Id);
-                }
-                catch (ArgumentException)
-                {
-                    return false;
-                }
-                return true;
-            }
+            if (post != null)
+                return post.Active;
+            return false;
         }
 
         public void OnStart()
         {
-            process = Process.Start(info);            
+            //process = Process.Start(info);            
+            if (post != null)
+                post.startSync();
         }
 
         public void OnStop()
         {
-            process.Kill();
-            process.Close();
+            if (post != null)
+                post.Dispose();
+            //process.Kill();
+            //process.Close();
         }
     }
 }
