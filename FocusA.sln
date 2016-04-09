@@ -43,6 +43,10 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebJson", "WebJson\", "{5B1
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tools", "Tools\Tools.csproj", "{26A8C6CC-AE1F-4959-91B0-94239EAF5842}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyncChameleonService", "SyncChameleonService\SyncChameleonService.csproj", "{58589C8F-E53C-447F-8F0F-DEFACDE13961}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbHelperSQL", "DbHelper\DbHelperSQL.csproj", "{F44F0508-5090-4DED-908B-0FCC6005D8C4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,6 +85,14 @@ Global
 		{26A8C6CC-AE1F-4959-91B0-94239EAF5842}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{26A8C6CC-AE1F-4959-91B0-94239EAF5842}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{26A8C6CC-AE1F-4959-91B0-94239EAF5842}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58589C8F-E53C-447F-8F0F-DEFACDE13961}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58589C8F-E53C-447F-8F0F-DEFACDE13961}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58589C8F-E53C-447F-8F0F-DEFACDE13961}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58589C8F-E53C-447F-8F0F-DEFACDE13961}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F44F0508-5090-4DED-908B-0FCC6005D8C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F44F0508-5090-4DED-908B-0FCC6005D8C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F44F0508-5090-4DED-908B-0FCC6005D8C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F44F0508-5090-4DED-908B-0FCC6005D8C4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -13,6 +13,7 @@ using System.Collections;
 using System.Data;
 using NpgsqlTypes;
 using System.Threading;
+using DbHelperSQL;
 
 namespace SyncHameleon
 {
@@ -23,6 +24,7 @@ namespace SyncHameleon
         private string _SQLServer, _FPNumber;
         private bool bSQLServer = false, bFPNumber = false;
         private DateTime startJob;
+        private DbHelperSQL.DbHelperSQL changeTable;
         //private DateTime tBegin, tEnd;
 
         public Postrgres(string sqlserver, string fpnumber)
@@ -149,6 +151,8 @@ namespace SyncHameleon
                 List<tbl_ComInit> tbl_ComInit = connectToFocusA(_focusA);
                 foreach (tbl_ComInit initRow in tbl_ComInit)
                 {
+                    changeTable = new DbHelperSQL.DbHelperSQL(initRow.CompName, (int)initRow.FPNumber, initRow.DataServer, initRow.DataBaseName, initRow.Port, initRow.MoxaIP, (int)initRow.MoxaPort);
+
                     DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture).AddHours(-1);
                     DateTime tEnd = DateTime.ParseExact(initRow.DateTimeStop.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
                     var connection = Properties.Settings.Default.Npgsql;//System.Configuration.ConfigurationManager.ConnectionStrings["Test"].ConnectionString;
@@ -214,6 +218,7 @@ namespace SyncHameleon
                         _focusA.SubmitChanges();
                         rowPayment.NumOperation = newOp.id;
                         _focusA.SubmitChanges();
+                        changeTable.Change_tbl_Operations();
                     }
 
                 }
@@ -456,6 +461,7 @@ namespace SyncHameleon
                         rowCheckLines.tPayment.RowCount = rowsort;
                         rowCheckLines.tPayment.CheckSum += rowCheckLines.tCheckLines.summ;
                         _focusA.SubmitChanges();
+                        changeTable.Change_tbl_SALES();
 
 
 
@@ -518,6 +524,7 @@ namespace SyncHameleon
             };
             _focusA.tbl_Payments.InsertOnSubmit(payment);
             _focusA.SubmitChanges();
+            changeTable.Change_tbl_Payment();
             return payment;
         }
 
@@ -617,6 +624,7 @@ namespace SyncHameleon
                                                 };
                                                 _focusA.tbl_Operations.InsertOnSubmit(op);
                                                 _focusA.SubmitChanges();
+                                                changeTable.Change_tbl_Operations();
                                             }
                                             logger.Trace("Operation Xreport");
                                             break;
@@ -637,6 +645,7 @@ namespace SyncHameleon
                                                 };
                                                 _focusA.tbl_Operations.InsertOnSubmit(op);
                                                 _focusA.SubmitChanges();
+                                                changeTable.Change_tbl_Operations();
                                             }
                                             logger.Trace("Operation Zreport");
                                             break;
@@ -693,6 +702,7 @@ namespace SyncHameleon
             };
             _focusA.tbl_Cashiers.InsertOnSubmit(cashier);
             _focusA.SubmitChanges();
+            changeTable.Change_tbl_Cashiers();
 
             tbl_Operation op = new tbl_Operation
             {
@@ -707,6 +717,7 @@ namespace SyncHameleon
             };
             _focusA.tbl_Operations.InsertOnSubmit(op);
             _focusA.SubmitChanges();
+            changeTable.Change_tbl_Operations();
         }
 
         /// <summary>
@@ -765,6 +776,7 @@ namespace SyncHameleon
             cashIO.Old_Money = cashIO.Money;
             _focusA.tbl_CashIOs.InsertOnSubmit(cashIO);
             _focusA.SubmitChanges();
+            changeTable.Change_tbl_CashIO();
             tbl_Operation op = new tbl_Operation
             {
                 NumSlave = cashIO.id,
@@ -778,6 +790,7 @@ namespace SyncHameleon
             };
             _focusA.tbl_Operations.InsertOnSubmit(op);
             _focusA.SubmitChanges();
+            changeTable.Change_tbl_Operations();
         }
 
         /// <summary>

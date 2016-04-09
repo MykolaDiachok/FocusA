@@ -179,7 +179,7 @@ namespace TestComm
 
 
             //BaseProtocol pr = SingletonProtocol.Instance(4).GetProtocols();
-            BaseProtocol pr = SingletonProtocol.Instance("192.168.255.132", 4002).GetProtocols();            
+            BaseProtocol pr = SingletonProtocol.Instance("192.168.255.132", 4016).GetProtocols();            
             pr.setFPCplCutter(false);
             pr.FPNullCheck();
             //pr.FPNullCheck();

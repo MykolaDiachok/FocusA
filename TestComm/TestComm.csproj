@@ -9,9 +9,10 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>TestComm</RootNamespace>
     <AssemblyName>TestComm</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -75,14 +76,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <Content Include="NLog.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <None Include="DataClassesFocusA.dbml">
       <Generator>MSLinqToSQLGenerator</Generator>
       <LastGenOutput>DataClassesFocusA.designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </None>
+    <Content Include="NLog.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="NLog.xsd">
       <SubType>Designer</SubType>
     </None>
@@ -93,18 +94,18 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ClassLibrary1\CentralLib.csproj">
-      <Project>{abac24c1-e800-4f1c-a77c-c5a4e17a1468}</Project>
-      <Name>CentralLib</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Service Include="{3259AA49-8AA1-44D3-9025-A0B520596A8C}" />
   </ItemGroup>
   <ItemGroup>
     <None Include="DataClassesFocusA.dbml.layout">
       <DependentUpon>DataClassesFocusA.dbml</DependentUpon>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ClassLibrary1\CentralLib.csproj">
+      <Project>{abac24c1-e800-4f1c-a77c-c5a4e17a1468}</Project>
+      <Name>CentralLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

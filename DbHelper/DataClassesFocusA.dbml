@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="FPWork" Class="DataClassesFocusADataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="AppSettings" ConnectionString="Data Source=focus-a;Initial Catalog=FPWork;User ID=sa" SettingsObjectName="DbHelperSQL.Properties.Settings" SettingsPropertyName="FPWorkConnectionString" Provider="System.Data.SqlClient" />
+  <Table Name="dbo.tbl_SyncDB" Member="tbl_SyncDBs">
+    <Type Name="tbl_SyncDB">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="CompName" Type="System.String" DbType="NVarChar(256) NOT NULL" CanBeNull="false" />
+      <Column Name="FPNumber" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="DataServer" Type="System.String" DbType="NVarChar(1024) NOT NULL" CanBeNull="false" />
+      <Column Name="DataBaseName" Type="System.String" DbType="NVarChar(1024) NOT NULL" CanBeNull="false" />
+      <Column Name="Port" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="MoxaIP" Type="System.String" DbType="NVarChar(1024)" CanBeNull="true" />
+      <Column Name="MoxaPort" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="TableName" Type="System.String" DbType="NVarChar(1024) NOT NULL" CanBeNull="false" />
+      <Column Name="DateTimeSyncDB" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="DataAddDateTime" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+    </Type>
+  </Table>
+</Database>

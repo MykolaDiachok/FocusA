@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 11, 8.5" name="DataClassesFocusA">
+  <DataContextMoniker Name="/DataClassesFocusADataContext" />
+  <nestedChildShapes>
+    <classShape Id="27505e9b-863f-4e62-9c67-2a11e2409c99" absoluteBounds="6.25, 2.25, 2, 2.9247054036458331">
+      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_SyncDB" />
+      <nestedChildShapes>
+        <elementListCompartment Id="6d95b421-1f0f-44b9-99b3-15bde15642c6" absoluteBounds="6.265, 2.71, 1.9700000000000002, 2.364705403645833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+  </nestedChildShapes>
+</ordesignerObjectsDiagram>

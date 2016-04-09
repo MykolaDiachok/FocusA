@@ -4056,11 +4056,13 @@ namespace SyncHameleon
 		
 		private string _CompName;
 		
-		private int _Port;
+		private int _FPNumber;
 		
 		private string _DataServer;
 		
 		private string _DataBaseName;
+		
+		private int _Port;
 		
 		private string _MoxaIP;
 		
@@ -4108,18 +4110,18 @@ namespace SyncHameleon
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Port", DbType="Int NOT NULL")]
-		public int Port
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="Int NOT NULL")]
+		public int FPNumber
 		{
 			get
 			{
-				return this._Port;
+				return this._FPNumber;
 			}
 			set
 			{
-				if ((this._Port != value))
+				if ((this._FPNumber != value))
 				{
-					this._Port = value;
+					this._FPNumber = value;
 				}
 			}
 		}
@@ -4152,6 +4154,22 @@ namespace SyncHameleon
 				if ((this._DataBaseName != value))
 				{
 					this._DataBaseName = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Port", DbType="Int NOT NULL")]
+		public int Port
+		{
+			get
+			{
+				return this._Port;
+			}
+			set
+			{
+				if ((this._Port != value))
+				{
+					this._Port = value;
 				}
 			}
 		}
