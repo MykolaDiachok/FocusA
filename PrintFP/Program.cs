@@ -21,6 +21,7 @@ namespace PrintFP
         private static DateTime startJob;
         private static System.Timers.Timer _timer;
         private static infoPr rStatus;
+        private static bool run;
 
         static int Main(string[] args)
         {
@@ -33,6 +34,7 @@ namespace PrintFP
 #endif
             new OptionSet()
                .Add("fp=|fpnumber=", fp => fpnumber = fp)
+               .Add("r|run", r => run = true)
                .Add("s=|server=", s => server = s)
                .Add("?|h|help", h => DisplayHelp())
                .Parse(args);
@@ -58,10 +60,12 @@ namespace PrintFP
             _timer.Elapsed += (sender, e) => { HandleTimerElapsed(); };
             _timer.Enabled = true;
 
-           
-            Console.ReadLine();
-            Console.WriteLine("Time start:{0}", startJob);
-            Console.WriteLine("Time stop:{0}", DateTime.Now);
+            if (run)
+            {
+                Console.ReadLine();
+                Console.WriteLine("Time start:{0}", startJob);
+                Console.WriteLine("Time stop:{0}", DateTime.Now);
+            }
             return (int)rStatus;
         }
 
