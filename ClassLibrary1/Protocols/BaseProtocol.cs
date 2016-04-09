@@ -837,7 +837,11 @@ namespace CentralLib.Protocols
             byte[] forsending = new byte[] { 18 };
 
             forsending = byteHelper.Combine(forsending, byteHelper.ConvertUint32ToArrayByte3(Amount));
-            Amount_Status = byteHelper.SetBit(Amount_Status, 6, IsOneQuant);
+            Amount_Status = byteHelper.SetBit(Amount_Status, 7, IsOneQuant);
+            if (Amount==1)
+            {
+                Amount_Status = byteHelper.SetBit(Amount_Status, 7, true);
+            }
             //Amount_Status = byteHelper.SetBit(Amount_Status, 7, PrintingOfBarCodesOfGoods);
             forsending = byteHelper.Combine(forsending, new byte[] { Amount_Status });
             Int32 _price = Price;

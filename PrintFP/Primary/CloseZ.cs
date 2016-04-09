@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PrintFP.Primary
 {
-    partial class Init
+    public partial class Init
     {
         
         public void onlyZReport(BaseProtocol pr)

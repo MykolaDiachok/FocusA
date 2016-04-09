@@ -11,7 +11,7 @@ using System.Threading;
 
 namespace PrintFP.Primary
 {
-    partial class Init
+    public partial class Init
     {
         private Logger logger = LogManager.GetCurrentClassLogger();
         public Init(string fpnumber, string server)
@@ -287,6 +287,7 @@ namespace PrintFP.Primary
                                 else if (operation.Operation == 39) //Z
                                 {
                                     pr.setFPCplCutter(true);
+                                    pr.FPNullCheck();
                                     UInt32 rest = pr.GetMoneyInBox();
                                     if (rest != 0)
                                     {
@@ -297,6 +298,28 @@ namespace PrintFP.Primary
                                     //var status = pr.get
                                     logger.Trace("print Z");
                                     pr.FPDayClrReport();
+                                    if (DateTime.Now.Day == 9)
+                                    {
+                                        var now = DateTime.Now.AddMonths(-1);
+                                        var startOfMonth = new DateTime(now.Year, now.Month, 1);
+                                        var DaysInMonth = DateTime.DaysInMonth(now.Year, now.Month);
+                                        var lastDay = new DateTime(now.Year, now.Month, DaysInMonth);
+                                        pr.FPPeriodicReport(0, startOfMonth, lastDay);
+                                    }
+                                    if (DateTime.Now.Day==11)
+                                    {
+                                        var now = DateTime.Now;
+                                        var startOfMonth = new DateTime(now.Year, now.Month, 1);                                        
+                                        var lastDay = new DateTime(now.Year, now.Month, 10);
+                                        pr.FPPeriodicReport(0, startOfMonth, lastDay);
+                                    }
+                                    if (DateTime.Now.Day==21)
+                                    {
+                                        var now = DateTime.Now;
+                                        var startOfMonth = new DateTime(now.Year, now.Month, 1);
+                                        var lastDay = new DateTime(now.Year, now.Month, 20);
+                                        pr.FPPeriodicReport(0, startOfMonth, lastDay);
+                                    }
                                     pr.setFPCplCutter(false);
                                     Table<tbl_ART> tbl_ART = _focusA.GetTable<tbl_ART>();
                                     tbl_ART.DeleteAllOnSubmit(tbl_ART.AsEnumerable().Where(r => r.FPNumber == int.Parse(fpnumber)).ToList());

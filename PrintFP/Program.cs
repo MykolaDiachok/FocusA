@@ -14,7 +14,7 @@ using System.Threading;
 
 namespace PrintFP
 {
-    class Program
+    public class Program
     {
         private static string fpnumber, server;
         private static Logger logger = LogManager.GetCurrentClassLogger();
