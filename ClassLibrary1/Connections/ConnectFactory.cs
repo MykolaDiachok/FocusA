@@ -319,10 +319,10 @@ namespace CentralLib.Connections
 
 
                 setError(e.Message);
-                //#if Debug
+                #if Debug
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Описание ошибки:{0}", this.errorInfo);
-                //#endif
+                #endif
             }
             catch (AggregateException e)
             {

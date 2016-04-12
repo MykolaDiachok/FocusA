@@ -193,10 +193,11 @@ namespace CentralLib.Protocols
         /// <summary>
         /// Код: 0. SendStatus 	 	прочитать состояние регистратора 
         /// </summary>
-        public override void getStatus()
+        public override ReturnedStruct getStatus()
         {
             byte[] forsending = new byte[] { 0 };
-            byte[] answer = ExchangeWithFP(forsending);
+            ReturnedStruct r = ExchangeWithFP(forsending);
+            byte[] answer = r.bytesReturn;
 
             if ((statusOperation) && (answer.Length > 21))
             {
@@ -302,7 +303,7 @@ namespace CentralLib.Protocols
             {
                 this.statusOperation = false;
             }
-
+            return r;
         }
 
         private PapStat tpapStat;
@@ -323,7 +324,7 @@ namespace CentralLib.Protocols
         private void getGetPapStat()
         {
             byte[] forsending = new byte[] { 48 };
-            byte[] answer = ExchangeWithFP(forsending);
+            byte[] answer = ExchangeWithFP(forsending).bytesReturn;
 
             if ((connFP.statusOperation) && (answer.Length == 1))
             {
@@ -351,7 +352,7 @@ namespace CentralLib.Protocols
             byte[] bytesReturn, bytesReturn0, bytesReturn1, bytesReturn2, bytesReturn3;
             {
                 byte[] forsending = new byte[] { 42 };
-                byte[] answer = ExchangeWithFP(forsending);
+                byte[] answer = ExchangeWithFP(forsending).bytesReturn;
                 if ((connFP.statusOperation) && (answer.Length > 0))
                 {
                     bytesReturn = answer;
@@ -364,7 +365,7 @@ namespace CentralLib.Protocols
             }
             {
                 byte[] forsending = new byte[] { 42, 0 };
-                byte[] answer = ExchangeWithFP(forsending);
+                byte[] answer = ExchangeWithFP(forsending).bytesReturn;
                 if ((connFP.statusOperation) && (answer.Length > 0))
                 {
                     bytesReturn0 = answer;
@@ -377,7 +378,7 @@ namespace CentralLib.Protocols
             }
             {
                 byte[] forsending = new byte[] { 42, 1 };
-                byte[] answer = ExchangeWithFP(forsending);
+                byte[] answer = ExchangeWithFP(forsending).bytesReturn;
                 if ((connFP.statusOperation) && (answer.Length > 0))
                 {
                     bytesReturn1 = answer;
@@ -390,7 +391,7 @@ namespace CentralLib.Protocols
             }
             {
                 byte[] forsending = new byte[] { 42, 2 };
-                byte[] answer = ExchangeWithFP(forsending);
+                byte[] answer = ExchangeWithFP(forsending).bytesReturn;
                 if ((connFP.statusOperation) && (answer.Length > 0))
                 {
                     bytesReturn2 = answer;
@@ -403,7 +404,7 @@ namespace CentralLib.Protocols
             }
             {
                 byte[] forsending = new byte[] { 42, 3 };
-                byte[] answer = ExchangeWithFP(forsending);
+                byte[] answer = ExchangeWithFP(forsending).bytesReturn;
                 if ((connFP.statusOperation) && (answer.Length > 0))
                 {
                     bytesReturn3 = answer;
@@ -424,10 +425,10 @@ namespace CentralLib.Protocols
         /// Код: 32.       PrintVer печать налогового номера и версии программного обеспечения
         /// Налоговый номер и дата регистрации ЭККР печатаются только в фискальном режиме.
         /// </summary>
-        public override void FPPrintVer()
+        public override ReturnedStruct FPPrintVer()
         {
             byte[] forsending = new byte[] { 32 };
-            byte[] answer = ExchangeWithFP(forsending);
+           return ExchangeWithFP(forsending);
         }
 
         /// <summary>
@@ -436,12 +437,12 @@ namespace CentralLib.Protocols
         /// При отсутствии параметра на денежный ящик подается импульс 200мс.
         /// </summary>
         /// <param name="impulse"> длительность импульса открытия в 2мс </param>
-        public override void FPOpenBox(byte impulse = 0) //обнуление чека
+        public override ReturnedStruct FPOpenBox(byte impulse = 0) //обнуление чека
         {
             byte[] forsending = new byte[] { 29 };
             if (impulse != 0)
                 forsending = new byte[] { 29, impulse };
-            byte[] answer = ExchangeWithFP(forsending);
+            return ExchangeWithFP(forsending);
         }
 
         /// <summary>
@@ -450,10 +451,10 @@ namespace CentralLib.Protocols
         ///  сопровождается печатью в чеке.Команда запрещена при открытом чеке. Вызов команды меняет
         ///  значение параметра на противоположный.
         /// </summary>
-        public override void FPCplOnline() // Код: 38. запрет/разрешение режима OnLine регистраций
+        public override ReturnedStruct FPCplOnline() // Код: 38. запрет/разрешение режима OnLine регистраций
         {
             byte[] forsending = new byte[] { 38 };
-            byte[] answer = ExchangeWithFP(forsending);
+            return ExchangeWithFP(forsending);
         }
 
         #region Cutter
@@ -480,13 +481,13 @@ namespace CentralLib.Protocols
         /// <param name="UserID">номер (0-7 – пароли кассиров, 8 – пароль режима программирования, 9 – пароль режима отчетов)</param>
         /// <param name="OldPassword"> старый пароль</param>
         /// <param name="NewPassword">новый пароль</param>
-        public override void FPSetPassword(byte UserID, ushort OldPassword, ushort NewPassword)
+        public override ReturnedStruct FPSetPassword(byte UserID, ushort OldPassword, ushort NewPassword)
         {
             byte[] forsending = new byte[] { 5 };//SetCod
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(OldPassword));
             forsending = byteHelper.Combine(forsending, new byte[] { UserID });
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(NewPassword));
-            byte[] answer = ExchangeWithFP(forsending);
+            return ExchangeWithFP(forsending);
         }
 
         
@@ -556,10 +557,11 @@ namespace CentralLib.Protocols
                 forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(GoodName, MaxStringLenght));
             }
             forsending = byteHelper.Combine(forsending, byteHelper.ConvertUint64ToArrayByte6(StrCode));
-            byte[] answer = ExchangeWithFP(forsending);
+            ReceiptInfo _checkinfo = new ReceiptInfo();
+            _checkinfo.returnedStruct = ExchangeWithFP(forsending);
+            byte[] answer = _checkinfo.returnedStruct.bytesReturn;
             if ((statusOperation) && (answer.Length == 8))
-            {
-                ReceiptInfo _checkinfo = new ReceiptInfo();
+            {                
                 _checkinfo.CostOfGoodsOrService = BitConverter.ToInt32(answer, 0);
                 _checkinfo.SumAtReceipt = BitConverter.ToInt32(answer, 4);
                 return _checkinfo;
@@ -625,10 +627,11 @@ namespace CentralLib.Protocols
                 forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(GoodName, MaxStringLenght));
             }
             forsending = byteHelper.Combine(forsending, byteHelper.ConvertUint64ToArrayByte6(StrCode));
-            byte[] answer = ExchangeWithFP(forsending);
+            ReceiptInfo _checkinfo = new ReceiptInfo();
+            _checkinfo.returnedStruct = ExchangeWithFP(forsending);
+            byte[] answer = _checkinfo.returnedStruct.bytesReturn;
             if ((statusOperation) && (answer.Length == 8))
-            {
-                ReceiptInfo _checkinfo = new ReceiptInfo();
+            {                
                 _checkinfo.CostOfGoodsOrService = BitConverter.ToInt32(answer, 0);
                 _checkinfo.SumAtReceipt = BitConverter.ToInt32(answer, 4);
                 return _checkinfo;
@@ -673,10 +676,13 @@ namespace CentralLib.Protocols
             forsending = byteHelper.Combine(forsending, new byte[] { 0 });
             if (AuthorizationCode.Length!=0)
                 forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(AuthorizationCode, 50));
-            byte[] answer = ExchangeWithFP(forsending);
+
+            PaymentInfo _paymentInfo = new PaymentInfo();
+            _paymentInfo.returnedStruct = ExchangeWithFP(forsending);
+            byte[] answer = _paymentInfo.returnedStruct.bytesReturn;
             if ((statusOperation) && (answer.Length  > 3))
             {
-                PaymentInfo _paymentInfo = new PaymentInfo();
+                
                 UInt32 tinfo = BitConverter.ToUInt32(answer, 0);
                 if (byteHelper.GetBit(answer[3],7))
                 {
@@ -754,7 +760,7 @@ namespace CentralLib.Protocols
         #endregion
 
         #region глобальные установки
-        public override void FPSetHeadLine(ushort Password, string StringInfo1, bool StringInfo1DoubleHeight, bool StringInfo1DoubleWidth
+        public override ReturnedStruct FPSetHeadLine(ushort Password, string StringInfo1, bool StringInfo1DoubleHeight, bool StringInfo1DoubleWidth
             , string StringInfo2, bool StringInfo2DoubleHeight, bool StringInfo2DoubleWidth
             , string StringInfo3, bool StringInfo3DoubleHeight, bool StringInfo3DoubleWidth
             , string TaxNumber, bool AddTaxInfo)
@@ -796,13 +802,13 @@ namespace CentralLib.Protocols
             //legthTax = SetBit(legthTax, 7, AddTaxInfo); - не работает
             forsending = byteHelper.Combine(forsending, new byte[] { legthTax });
             forsending = byteHelper.Combine(forsending, stringTax);
-            byte[] answer = ExchangeWithFP(forsending);
+            return ExchangeWithFP(forsending);
         }
 
         #endregion
 
         #region Налоговые ставки
-        public override void FPSetTaxRate(ushort Password, Taxes tTaxes)
+        public override ReturnedStruct FPSetTaxRate(ushort Password, Taxes tTaxes)
         {
 
 
@@ -899,14 +905,16 @@ namespace CentralLib.Protocols
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(tTaxes.TaxD.TaxRate));
 
 
-            Console.WriteLine("{0}", byteHelper.PrintByteArrayX(forsending));
-            byte[] answer = ExchangeWithFP(forsending);
+            //Console.WriteLine("{0}", byteHelper.PrintByteArrayX(forsending));
+            return ExchangeWithFP(forsending);
         }
 
-        public override void FPGetTaxRate()
+        public override ReturnedStruct FPGetTaxRate()
         {
             byte[] forsending = new byte[] { 44 };
-            byte[] answer = ExchangeWithFP(forsending);
+            
+            ReturnedStruct r = ExchangeWithFP(forsending);
+            byte[] answer = r.bytesReturn;
             if ((statusOperation) && (answer.Length > 5))
             {
                 int tst = 0;
@@ -1028,11 +1036,12 @@ namespace CentralLib.Protocols
 
                 this.currentTaxes = tTax;
             }
+            return r;
         }
         #endregion
 
         #region Отчеты
-        public override void FPArtReport(ushort pass = 0, UInt32? CodeBeginning = null, UInt32? CodeFinishing = null)
+        public override ReturnedStruct FPArtReport(ushort pass = 0, UInt32? CodeBeginning = null, UInt32? CodeFinishing = null)
         {
             byte[] forsending = new byte[] { 10 };
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(pass));
@@ -1041,7 +1050,7 @@ namespace CentralLib.Protocols
                 forsending = byteHelper.Combine(forsending, byteHelper.ConvertTobyte(CodeBeginning));
                 forsending = byteHelper.Combine(forsending, byteHelper.ConvertTobyte(CodeFinishing));
             }
-            byte[] answer = ExchangeWithFP(forsending);
+            return ExchangeWithFP(forsending);
         }
 
 
@@ -1051,19 +1060,20 @@ namespace CentralLib.Protocols
         /// Печать Z-отчета.
         /// </summary>
         /// <param name="pass"></param>
-        public override void FPDayClrReport(ushort pass = 0)
+        public override ReturnedStruct FPDayClrReport(ushort pass = 0)
         {
             byte[] forsending = new byte[] { 13 };
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(pass));
-            byte[] answer = ExchangeWithFP(forsending);
+            ReturnedStruct r=  ExchangeWithFP(forsending);
 
             FPGetTaxRate(); // читаем ставки
             //TODO
             //По документации тут должно быть ответ с № КЛЕФ
             // return BitConverter.ToUInt32(answer, 0);
+            return r;
         }
 
-        public override void FPPeriodicReport(ushort pass, DateTime FirstDay, DateTime LastDay)
+        public override ReturnedStruct FPPeriodicReport(ushort pass, DateTime FirstDay, DateTime LastDay)
         {
             byte[] forsending = new byte[9];
             byte[] passByte = BitConverter.GetBytes(pass);
@@ -1077,10 +1087,10 @@ namespace CentralLib.Protocols
             forsending[6] = Convert.ToByte(Convert.ToInt32(LastDay.ToString("dd"), 16));
             forsending[7] = Convert.ToByte(Convert.ToInt32(LastDay.ToString("MM"), 16));
             forsending[8] = Convert.ToByte(Convert.ToInt32(LastDay.ToString("yy"), 16));
-            byte[] answer = ExchangeWithFP(forsending);
+           return ExchangeWithFP(forsending);
         }
 
-        public override void FPPeriodicReportShort(ushort pass, DateTime FirstDay, DateTime LastDay)
+        public override ReturnedStruct FPPeriodicReportShort(ushort pass, DateTime FirstDay, DateTime LastDay)
         {
             byte[] forsending = new byte[9];
             byte[] passByte = BitConverter.GetBytes(pass);
@@ -1094,10 +1104,10 @@ namespace CentralLib.Protocols
             forsending[6] = Convert.ToByte(Convert.ToInt32(LastDay.ToString("dd"), 16));
             forsending[7] = Convert.ToByte(Convert.ToInt32(LastDay.ToString("MM"), 16));
             forsending[8] = Convert.ToByte(Convert.ToInt32(LastDay.ToString("yy"), 16));
-            byte[] answer = ExchangeWithFP(forsending);
+            return ExchangeWithFP(forsending);
         }
 
-        public override void FPPeriodicReport2(ushort pass, UInt16 FirstNumber, UInt16 LastNumber)
+        public override ReturnedStruct FPPeriodicReport2(ushort pass, UInt16 FirstNumber, UInt16 LastNumber)
         {
             byte[] forsending = new byte[7];
             byte[] passByte = BitConverter.GetBytes(pass);
@@ -1111,7 +1121,7 @@ namespace CentralLib.Protocols
             forsending[5] = passFirstNumber[0];
             forsending[6] = passFirstNumber[1];
 
-            byte[] answer = ExchangeWithFP(forsending);
+            return ExchangeWithFP(forsending);
         }
         #endregion
 

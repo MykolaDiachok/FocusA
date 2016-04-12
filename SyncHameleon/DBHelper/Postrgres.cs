@@ -228,9 +228,9 @@ namespace SyncHameleon
                             Disable = false
                         };
                         _focusA.tbl_Operations.InsertOnSubmit(newOp);
-                        _focusA.SubmitChanges();
+                        _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                         rowPayment.NumOperation = newOp.id;
-                        _focusA.SubmitChanges();
+                        _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                         changeTable.Change_tbl_Operations();
                     }
 
@@ -272,7 +272,7 @@ namespace SyncHameleon
                 if (rowPayment.Disable != disable)
                 {
                     rowPayment.Disable = disable;
-                    _focusA.SubmitChanges();
+                    _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                 }
 
             }
@@ -473,7 +473,7 @@ namespace SyncHameleon
                         _focusA.tbl_SALEs.InsertOnSubmit(sale);
                         rowCheckLines.tPayment.RowCount = rowsort;
                         rowCheckLines.tPayment.CheckSum += rowCheckLines.tCheckLines.summ;
-                        _focusA.SubmitChanges();
+                        _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                         changeTable.Change_tbl_SALES();
 
 
@@ -536,7 +536,7 @@ namespace SyncHameleon
 
             };
             _focusA.tbl_Payments.InsertOnSubmit(payment);
-            _focusA.SubmitChanges();
+            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
             changeTable.Change_tbl_Payment();
             return payment;
         }
@@ -636,7 +636,7 @@ namespace SyncHameleon
                                                     CurentDateTime = DateTime.Now
                                                 };
                                                 _focusA.tbl_Operations.InsertOnSubmit(op);
-                                                _focusA.SubmitChanges();
+                                                _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                                                 changeTable.Change_tbl_Operations();
                                             }
                                             logger.Trace("Operation Xreport");
@@ -657,7 +657,7 @@ namespace SyncHameleon
                                                     CurentDateTime = DateTime.Now
                                                 };
                                                 _focusA.tbl_Operations.InsertOnSubmit(op);
-                                                _focusA.SubmitChanges();
+                                                _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                                                 changeTable.Change_tbl_Operations();
                                             }
                                             logger.Trace("Operation Zreport");
@@ -714,7 +714,7 @@ namespace SyncHameleon
                 Operation = 3
             };
             _focusA.tbl_Cashiers.InsertOnSubmit(cashier);
-            _focusA.SubmitChanges();
+            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
             changeTable.Change_tbl_Cashiers();
 
             tbl_Operation op = new tbl_Operation
@@ -729,7 +729,7 @@ namespace SyncHameleon
                 CurentDateTime = DateTime.Now
             };
             _focusA.tbl_Operations.InsertOnSubmit(op);
-            _focusA.SubmitChanges();
+            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
             changeTable.Change_tbl_Operations();
         }
 
@@ -802,7 +802,7 @@ namespace SyncHameleon
                 CurentDateTime = DateTime.Now
             };
             _focusA.tbl_Operations.InsertOnSubmit(op);
-            _focusA.SubmitChanges();
+            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
             changeTable.Change_tbl_Operations();
         }
 

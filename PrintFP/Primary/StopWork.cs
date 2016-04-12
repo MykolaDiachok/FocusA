@@ -9,6 +9,9 @@ namespace PrintFP.Primary
 {
     public partial class Init
     {
+
+       
+
         private bool isEmptyPapers(BaseProtocol pr)
         {
 

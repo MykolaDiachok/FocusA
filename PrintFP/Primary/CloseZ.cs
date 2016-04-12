@@ -10,6 +10,7 @@ namespace PrintFP.Primary
     public partial class Init
     {
         
+
         public void onlyZReport(BaseProtocol pr)
         {
             pr.FPDayClrReport();

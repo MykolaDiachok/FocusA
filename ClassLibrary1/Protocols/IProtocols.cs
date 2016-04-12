@@ -23,24 +23,24 @@ namespace CentralLib.Protocols
         //bool useCRC16 { get; }
 
         void Dispose();
-        void FPArtReport(ushort pass = 0, uint? CodeBeginning = default(uint?), uint? CodeFinishing = default(uint?));
+        ReturnedStruct FPArtReport(ushort pass = 0, uint? CodeBeginning = default(uint?), uint? CodeFinishing = default(uint?));
         uint FPCashIn(uint Summa);
         uint FPCashOut(uint Summa);
-        void FPCommentLine(string CommentLine, bool OpenRefundReceipt = false);
+        ReturnedStruct FPCommentLine(string CommentLine, bool OpenRefundReceipt = false);
         void FPNullCheck();
-        void FPCplOnline();
-        void FPDayClrReport(ushort pass = 0);
-        void FPDayReport(ushort pass = 0);
+        ReturnedStruct FPCplOnline();
+        ReturnedStruct FPDayClrReport(ushort pass = 0);
+        ReturnedStruct FPDayReport(ushort pass = 0);
         string FPGetPayName(byte PayType);
-        void FPGetTaxRate();
-        void FPLineFeed();
-        void FPOpenBox(byte impulse = 0);
+        ReturnedStruct FPGetTaxRate();
+        ReturnedStruct FPLineFeed();
+        ReturnedStruct FPOpenBox(byte impulse = 0);
         PaymentInfo FPPayment(byte Payment_Status, uint Payment, bool CheckClose, bool FiscStatus, string AuthorizationCode = "");
         ReceiptInfo FPPayMoneyEx(ushort Amount, byte Amount_Status, bool IsOneQuant, int Price, ushort NalogGroup, bool MemoryGoodName, string GoodName, ulong StrCode, bool PrintingOfBarCodesOfGoods = false);
-        void FPPeriodicReport(ushort pass, DateTime FirstDay, DateTime LastDay);
-        void FPPeriodicReport2(ushort pass, ushort FirstNumber, ushort LastNumber);
-        void FPPeriodicReportShort(ushort pass, DateTime FirstDay, DateTime LastDay);
-        void FPPrintVer();
+        ReturnedStruct FPPeriodicReport(ushort pass, DateTime FirstDay, DateTime LastDay);
+        ReturnedStruct FPPeriodicReport2(ushort pass, ushort FirstNumber, ushort LastNumber);
+        ReturnedStruct FPPeriodicReportShort(ushort pass, DateTime FirstDay, DateTime LastDay);
+        ReturnedStruct FPPrintVer();
         uint FPPrintZeroReceipt();
 
         /// <summary>
@@ -51,12 +51,12 @@ namespace CentralLib.Protocols
         /// <param name="CashierID">Номер</param>
         /// <param name="Name">Длина имени кассира (= n)0..15</param>
         /// <param name="Password">Пароль</param>
-        void FPRegisterCashier(byte CashierID, string Name, ushort Password = 0);
-        void FPResetOrder();
+        ReturnedStruct FPRegisterCashier(byte CashierID, string Name, ushort Password = 0);
+        ReturnedStruct FPResetOrder();
         ReceiptInfo FPSaleEx(ushort Amount, byte Amount_Status, bool IsOneQuant, int Price, ushort NalogGroup, bool MemoryGoodName, string GoodName, ulong StrCode, bool PrintingOfBarCodesOfGoods = false);
-        void FPSetHeadLine(ushort Password, string StringInfo1, bool StringInfo1DoubleHeight, bool StringInfo1DoubleWidth, string StringInfo2, bool StringInfo2DoubleHeight, bool StringInfo2DoubleWidth, string StringInfo3, bool StringInfo3DoubleHeight, bool StringInfo3DoubleWidth, string TaxNumber, bool AddTaxInfo);
-        void FPSetPassword(byte UserID, ushort OldPassword, ushort NewPassword);
-        void FPSetTaxRate(ushort Password, Taxes tTaxes);
+        ReturnedStruct FPSetHeadLine(ushort Password, string StringInfo1, bool StringInfo1DoubleHeight, bool StringInfo1DoubleWidth, string StringInfo2, bool StringInfo2DoubleHeight, bool StringInfo2DoubleWidth, string StringInfo3, bool StringInfo3DoubleHeight, bool StringInfo3DoubleWidth, string TaxNumber, bool AddTaxInfo);
+        ReturnedStruct FPSetPassword(byte UserID, ushort OldPassword, ushort NewPassword);
+        ReturnedStruct FPSetTaxRate(ushort Password, Taxes tTaxes);
         bool showBottomString(string Info);
         bool showTopString(string Info);
 

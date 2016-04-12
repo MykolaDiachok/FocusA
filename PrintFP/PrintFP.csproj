@@ -85,6 +85,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Transactions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -98,6 +99,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>DataClassesFocusA.dbml</DependentUpon>
     </Compile>
+    <Compile Include="MyEventLog.cs" />
     <Compile Include="Primary\Art.cs" />
     <Compile Include="Primary\CloseZ.cs" />
     <Compile Include="Primary\StopWork.cs" />

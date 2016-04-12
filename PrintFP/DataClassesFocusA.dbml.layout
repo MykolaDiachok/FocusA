@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 12.625, 12.125" name="DataClasses1">
+<ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 12.625, 12.75" name="DataClasses1">
   <DataContextMoniker Name="/DataClasses1DataContext" />
   <nestedChildShapes>
     <classShape Id="3b9d6fb7-92ea-48be-b30c-47ba72e83caa" absoluteBounds="5.5, 3.25, 2, 3.3093082682291666">
@@ -26,12 +26,6 @@
         <elementListCompartment Id="0bc8fab8-6269-401c-b2f0-41105438a8c0" absoluteBounds="10.14, 4.96, 1.9700000000000002, 1.2108968098958333" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <classShape Id="ae59b773-8422-47e6-a0c1-c56eb920aa08" absoluteBounds="8, 3.75, 2, 8.1168440755208326">
-      <DataClassMoniker Name="/DataClasses1DataContext/tbl_ComInit" />
-      <nestedChildShapes>
-        <elementListCompartment Id="860310c2-6458-4d20-9e6b-586591d39b71" absoluteBounds="8.015, 4.21, 1.9700000000000002, 7.556844075520833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
-      </nestedChildShapes>
-    </classShape>
     <classShape Id="4d79bf6f-b9af-44dc-bdd9-049dbaa07bfb" absoluteBounds="5.5, 7.25, 2, 2.9247054036458331">
       <DataClassMoniker Name="/DataClasses1DataContext/tbl_ComInitDefault" />
       <nestedChildShapes>
@@ -56,12 +50,18 @@
         <elementListCompartment Id="218aa7ee-f9b7-49b0-a75f-5951a957d43f" absoluteBounds="0.88999999999999968, 1.835, 1.9700000000000002, 6.5953369140625" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <associationConnector edgePoints="[(3 : 4.95266845703125); (2.875 : 4.95266845703125)]" fixedFrom="NotFixed" fixedTo="NotFixed">
+    <associationConnector edgePoints="[(3 : 4.95266845703125); (2.875 : 4.95266845703125)]" fixedFrom="Algorithm" fixedTo="Algorithm">
       <AssociationMoniker Name="/DataClasses1DataContext/tbl_Payment/tbl_Payment_tbl_SALE" />
       <nodes>
         <classShapeMoniker Id="da26527b-377c-440c-b9cb-1fe4508ed7c8" />
         <classShapeMoniker Id="871dcdf7-2b87-4d94-a927-b7cda5de25d3" />
       </nodes>
     </associationConnector>
+    <classShape Id="50e573eb-879b-48bf-b0a8-c6841932309a" absoluteBounds="8, 4.25, 2, 8.3091455078125">
+      <DataClassMoniker Name="/DataClasses1DataContext/tbl_ComInit" />
+      <nestedChildShapes>
+        <elementListCompartment Id="ad6df77b-dcce-43b1-aa88-abffc8b3c8a3" absoluteBounds="8.015, 4.71, 1.9700000000000002, 7.7491455078125009" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
   </nestedChildShapes>
 </ordesignerObjectsDiagram>

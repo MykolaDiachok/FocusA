@@ -149,7 +149,7 @@ namespace CentralLib.Protocols
             byte[] bytesReturn;
             {
                 byte[] forsending = new byte[] { 42 };
-                byte[] answer = ExchangeWithFP(forsending);
+                byte[] answer = ExchangeWithFP(forsending).bytesReturn;
                 if ((connFP.statusOperation) && (answer.Length > 0))
                 {
                     bytesReturn = answer;
@@ -171,7 +171,7 @@ namespace CentralLib.Protocols
             get
             {
 
-                byte[] answer = ExchangeWithFP(new byte[] { 1 });
+                byte[] answer = ExchangeWithFP(new byte[] { 1 }).bytesReturn;
 
                 if (connFP.statusOperation)
                 {
@@ -185,7 +185,7 @@ namespace CentralLib.Protocols
                     int _year = Convert.ToInt16(hexyear);
 
 
-                    byte[] answerTime = ExchangeWithFP(new byte[] { 3 });
+                    byte[] answerTime = ExchangeWithFP(new byte[] { 3 }).bytesReturn;
                     if (connFP.statusOperation)
                     {
 
@@ -208,7 +208,7 @@ namespace CentralLib.Protocols
                 byte hh = Convert.ToByte(Convert.ToInt32(value.ToString("HH"), 16));
                 byte mm = Convert.ToByte(Convert.ToInt32(value.ToString("mm"), 16));
                 byte ss = Convert.ToByte(Convert.ToInt32(value.ToString("ss"), 16));
-                byte[] answerTime = ExchangeWithFP(new byte[] { 4, hh, mm, ss });
+                byte[] answerTime = ExchangeWithFP(new byte[] { 4, hh, mm, ss }).bytesReturn;
 
                 
                 
@@ -217,7 +217,7 @@ namespace CentralLib.Protocols
                     byte dd = Convert.ToByte(Convert.ToInt32(value.ToString("dd"), 16));
                     byte MM = Convert.ToByte(Convert.ToInt32(value.ToString("MM"), 16));
                     byte yy = Convert.ToByte(Convert.ToInt32(value.ToString("yy"), 16));
-                    byte[] answer = ExchangeWithFP(new byte[] { 2, dd, MM, yy });
+                    byte[] answer = ExchangeWithFP(new byte[] { 2, dd, MM, yy }).bytesReturn;
                 }
             }
         }
@@ -241,10 +241,11 @@ namespace CentralLib.Protocols
         /// <summary>
         /// Код: 0. SendStatus 	 	прочитать состояние регистратора 
         /// </summary>
-        public virtual void getStatus()
+        public virtual ReturnedStruct getStatus()
         {
             byte[] forsending = new byte[] { 0 };
-            byte[] answer = ExchangeWithFP(forsending);
+            var forReturn = ExchangeWithFP(forsending);
+            byte[] answer = forReturn.bytesReturn;
 
             if ((connFP.statusOperation) && (answer.Length > 21))
             {
@@ -350,7 +351,7 @@ namespace CentralLib.Protocols
             {
                 this.statusOperation = false;
             }
-
+            return forReturn;
         }
 
 
@@ -372,7 +373,8 @@ namespace CentralLib.Protocols
         /// <param name="inputByte"></param>
         /// <returns></returns>
         /// 
-        public byte[] ExchangeWithFP(byte[] inputByte)
+
+        private byte[] prExchangeWithFP(byte[] inputByte)
         {
             byte[] answer;
             this.lastByteCommand = inputByte[0];
@@ -380,11 +382,7 @@ namespace CentralLib.Protocols
             if (!connFP.statusOperation) //repetition if error
             {
                 Thread.Sleep(800);
-#if Debug
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("ошибка первое ожидание");
-                ///Console.ReadKey();
-#endif
+
                 answer = connFP.dataExchange(inputByte, useCRC16, true);
             }
             if (!connFP.statusOperation) //repetition if error
@@ -392,11 +390,7 @@ namespace CentralLib.Protocols
                 //TODO: большая проблема искать в чем причина
                 Thread.Sleep(800);
                 answer = connFP.dataExchange(inputByte, useCRC16, true);
-#if Debug
-                Console.ForegroundColor = ConsoleColor.DarkYellow;
-                Console.WriteLine("Вторая ошибка");
-                Console.ReadKey();
-#endif
+
             }
             this.ByteStatus = connFP.ByteStatus;
             this.ByteResult = connFP.ByteResult;
@@ -404,17 +398,51 @@ namespace CentralLib.Protocols
             this.errorInfo = connFP.errorInfo;
 
             this.statusOperation = connFP.statusOperation;
-#if DebugErrorInfo
-            Console.WriteLine("Send:{0}", PrintByteArrayX(inputByte));
-            Console.WriteLine("Resive:{0}", PrintByteArrayX(answer));
-            Console.WriteLine("statusOperation:{0}", statusOperation);
-            Console.WriteLine("errorInfo:{0}", errorInfo);
-            Console.WriteLine("ByteStatus:{0}", ByteStatus);
-            Console.WriteLine("ByteResult:{0}", ByteResult);
-            Console.WriteLine("ByteReserv:{0}", ByteReserv);
-#endif
+
             return answer;
         }
+
+        public ReturnedStruct ExchangeWithFP(byte[] inputByte)
+        {
+
+            ReturnedStruct forReturn = new ReturnedStruct();
+            forReturn.bytesSend = inputByte;
+            forReturn.command = inputByte[0];
+            byte[] answer;
+            this.lastByteCommand = inputByte[0];
+            answer = connFP.dataExchange(inputByte, useCRC16, false);
+            if (!connFP.statusOperation) //repetition if error
+            {
+                Thread.Sleep(800);
+
+                answer = connFP.dataExchange(inputByte, useCRC16, true);
+            }
+            if (!connFP.statusOperation) //repetition if error
+            {
+                //TODO: большая проблема искать в чем причина
+                Thread.Sleep(800);
+                answer = connFP.dataExchange(inputByte, useCRC16, true);
+
+            }
+            forReturn.bytesReturn = answer;
+
+            this.ByteStatus = connFP.ByteStatus;
+            forReturn.ByteStatus = connFP.ByteStatus;
+            this.ByteResult = connFP.ByteResult;
+            forReturn.ByteResult = connFP.ByteResult;
+            this.ByteReserv = connFP.ByteReserv;
+            forReturn.ByteReserv = connFP.ByteReserv;
+            this.errorInfo = connFP.errorInfo;
+            
+            this.statusOperation = connFP.statusOperation;
+            forReturn.statusOperation = connFP.statusOperation;
+
+
+
+
+            return forReturn;
+        }
+
 
         #region GetMemmory
         public byte[] GetMemmory(byte[] AddressOfBlock, byte NumberOfPage, byte SizeOfBlock) //прочитать блок памяти регистратора
@@ -422,7 +450,7 @@ namespace CentralLib.Protocols
             byte[] forsending = new byte[] { 28 };
             forsending = byteHelper.Combine(forsending, new byte[] { AddressOfBlock[1], AddressOfBlock[0] });
             forsending = byteHelper.Combine(forsending, new byte[] { NumberOfPage, SizeOfBlock });
-            byte[] answer = ExchangeWithFP(forsending);
+            byte[] answer = ExchangeWithFP(forsending).bytesReturn;
             return answer;
         }
 
@@ -433,9 +461,9 @@ namespace CentralLib.Protocols
         private string getstringProtocol()
         {
             byte[] forsending = new byte[] { 28, 00, 30 };
-            byte[] answer = ExchangeWithFP(forsending);
+            byte[] answer = ExchangeWithFP(forsending).bytesReturn;
             forsending = new byte[] { 0 };
-            answer = ExchangeWithFP(forsending);
+            answer = ExchangeWithFP(forsending).bytesReturn;
             string tCurProtocol="";
             if ((connFP.statusOperation) && (answer.Length > 21))
             {
@@ -505,7 +533,7 @@ namespace CentralLib.Protocols
             //return null;
         }
 
-        public virtual void FPArtReport(ushort pass = 0, uint? CodeBeginning = default(uint?), uint? CodeFinishing = default(uint?))
+        public virtual ReturnedStruct FPArtReport(ushort pass = 0, uint? CodeBeginning = default(uint?), uint? CodeFinishing = default(uint?))
         {
             throw new NotImplementedException();
         }
@@ -521,7 +549,7 @@ namespace CentralLib.Protocols
         {
             byte[] forsending = new byte[] { 24 };
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(Summa));
-            byte[] answer = ExchangeWithFP(forsending);
+            byte[] answer = ExchangeWithFP(forsending).bytesReturn;
             if (answer.Length == 4)
                 return BitConverter.ToUInt32(answer, 0);
             return 0;
@@ -536,7 +564,7 @@ namespace CentralLib.Protocols
         {
             byte[] forsending = new byte[] { 16 };
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(Summa));
-            byte[] answer = ExchangeWithFP(forsending);
+            byte[] answer = ExchangeWithFP(forsending).bytesReturn;
             if (answer.Length == 4)
                 return BitConverter.ToUInt32(answer, 0);
             return 0;
@@ -553,7 +581,7 @@ namespace CentralLib.Protocols
         /// </summary>
         /// <param name="CommentLine">Строка комментария</param>
         /// <param name="OpenRefundReceipt">= 1 – открытие чека выплаты</param>
-        public virtual void FPCommentLine(string CommentLine, bool OpenRefundReceipt = false)
+        public virtual ReturnedStruct FPCommentLine(string CommentLine, bool OpenRefundReceipt = false)
         {
             byte[] forsending = new byte[] { 11 };//Comment            
             byte length;
@@ -561,10 +589,10 @@ namespace CentralLib.Protocols
             length = byteHelper.SetBit(length, 7, OpenRefundReceipt);
             forsending = byteHelper.Combine(forsending, new byte[] { length });
             forsending = byteHelper.Combine(forsending, stringBytes);
-            byte[] answer = ExchangeWithFP(forsending);
+           return ExchangeWithFP(forsending);
         }
 
-        public virtual void FPCplOnline()
+        public virtual ReturnedStruct FPCplOnline()
         {
             throw new NotImplementedException();
         }
@@ -574,11 +602,11 @@ namespace CentralLib.Protocols
         /// Печать Z-отчета.
         /// </summary>
         /// <param name="pass"></param>
-        public virtual void FPDayClrReport(ushort pass = 0)
+        public virtual ReturnedStruct FPDayClrReport(ushort pass = 0)
         {
             byte[] forsending = new byte[] { 13 };
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(pass));
-            byte[] answer = ExchangeWithFP(forsending);            
+            return ExchangeWithFP(forsending);            
         }
 
         /// <summary>
@@ -586,7 +614,7 @@ namespace CentralLib.Protocols
         /// Печать X-отчета
         /// </summary>
         /// <param name="pass">пароль отчетов</param>
-        public virtual void FPDayReport(ushort pass = 0)
+        public virtual ReturnedStruct FPDayReport(ushort pass = 0)
         {
             byte[] forsending = new byte[3];
             byte[] passByte = BitConverter.GetBytes(pass);
@@ -594,7 +622,7 @@ namespace CentralLib.Protocols
             forsending[1] = passByte[0];
             forsending[2] = passByte[1];
             //forsending = Combine(forsending, BitConverter.GetBytes(pass));
-            byte[] answer = ExchangeWithFP(forsending);
+            return ExchangeWithFP(forsending);
         }
 
         public virtual string FPGetPayName(byte PayType)
@@ -602,7 +630,7 @@ namespace CentralLib.Protocols
             throw new NotImplementedException();
         }
 
-        public virtual void FPGetTaxRate()
+        public virtual ReturnedStruct FPGetTaxRate()
         {
             throw new NotImplementedException();
         }
@@ -610,13 +638,13 @@ namespace CentralLib.Protocols
         /// <summary>
         ///Код: 14.LineFeed продвижение бумаги на одну строку
         /// </summary>
-        public virtual void FPLineFeed()
+        public virtual ReturnedStruct FPLineFeed()
         {
             byte[] forsending = new byte[] { 14 };
-            byte[] answer = ExchangeWithFP(forsending);
+            return ExchangeWithFP(forsending);
         }
 
-        public virtual void FPOpenBox(byte impulse = 0)
+        public virtual ReturnedStruct FPOpenBox(byte impulse = 0)
         {
             throw new NotImplementedException();
         }
@@ -648,10 +676,12 @@ namespace CentralLib.Protocols
             forsending = byteHelper.Combine(forsending, new byte[] { 0 });
             //if (AuthorizationCode.Length != 0)
             //    forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(AuthorizationCode, 50));
-            byte[] answer = ExchangeWithFP(forsending);
+            PaymentInfo _paymentInfo = new PaymentInfo();
+            _paymentInfo.returnedStruct = ExchangeWithFP(forsending);
+            byte[] answer = _paymentInfo.returnedStruct.bytesReturn;
             if ((statusOperation) && (answer.Length > 3))
             {
-                PaymentInfo _paymentInfo = new PaymentInfo();
+                
                 UInt32 tinfo = BitConverter.ToUInt32(answer, 0);
                 if (byteHelper.GetBit(answer[3], 7))
                 {
@@ -726,7 +756,7 @@ namespace CentralLib.Protocols
                 forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(GoodName, MaxStringLenght));
             }
             forsending = byteHelper.Combine(forsending, byteHelper.ConvertUint64ToArrayByte6(StrCode));
-            byte[] answer = ExchangeWithFP(forsending);
+            byte[] answer = ExchangeWithFP(forsending).bytesReturn;
             if ((statusOperation) && (answer.Length == 8))
             {
                 ReceiptInfo _checkinfo = new ReceiptInfo();
@@ -737,29 +767,65 @@ namespace CentralLib.Protocols
             return new ReceiptInfo();
         }
 
-        public virtual void FPPeriodicReport(ushort pass, DateTime FirstDay, DateTime LastDay)
+        public virtual ReturnedStruct FPPeriodicReport(ushort pass, DateTime FirstDay, DateTime LastDay)
         {
-            throw new NotImplementedException();
+            byte[] forsending = new byte[9];
+            byte[] passByte = BitConverter.GetBytes(pass);
+            forsending[0] = 17;
+            forsending[1] = passByte[0];
+            forsending[2] = passByte[1];
+
+            forsending[3] = Convert.ToByte(Convert.ToInt32(FirstDay.ToString("dd"), 16));
+            forsending[4] = Convert.ToByte(Convert.ToInt32(FirstDay.ToString("MM"), 16));
+            forsending[5] = Convert.ToByte(Convert.ToInt32(FirstDay.ToString("yy"), 16));
+            forsending[6] = Convert.ToByte(Convert.ToInt32(LastDay.ToString("dd"), 16));
+            forsending[7] = Convert.ToByte(Convert.ToInt32(LastDay.ToString("MM"), 16));
+            forsending[8] = Convert.ToByte(Convert.ToInt32(LastDay.ToString("yy"), 16));
+            return ExchangeWithFP(forsending);
         }
 
-        public virtual void FPPeriodicReport2(ushort pass, ushort FirstNumber, ushort LastNumber)
+        public virtual ReturnedStruct FPPeriodicReport2(ushort pass, ushort FirstNumber, ushort LastNumber)
         {
-            throw new NotImplementedException();
+            byte[] forsending = new byte[7];
+            byte[] passByte = BitConverter.GetBytes(pass);
+            forsending[0] = 31;
+            forsending[1] = passByte[0];
+            forsending[2] = passByte[1];
+            byte[] passFirstNumber = BitConverter.GetBytes(FirstNumber);
+            forsending[3] = passFirstNumber[0];
+            forsending[4] = passFirstNumber[1];
+            byte[] passLastNumber = BitConverter.GetBytes(LastNumber);
+            forsending[5] = passFirstNumber[0];
+            forsending[6] = passFirstNumber[1];
+
+            return ExchangeWithFP(forsending);
         }
 
-        public virtual void FPPeriodicReportShort(ushort pass, DateTime FirstDay, DateTime LastDay)
+        public virtual ReturnedStruct FPPeriodicReportShort(ushort pass, DateTime FirstDay, DateTime LastDay)
         {
-            throw new NotImplementedException();
+            byte[] forsending = new byte[9];
+            byte[] passByte = BitConverter.GetBytes(pass);
+            forsending[0] = 26;
+            forsending[1] = passByte[0];
+            forsending[2] = passByte[1];
+
+            forsending[3] = Convert.ToByte(Convert.ToInt32(FirstDay.ToString("dd"), 16));
+            forsending[4] = Convert.ToByte(Convert.ToInt32(FirstDay.ToString("MM"), 16));
+            forsending[5] = Convert.ToByte(Convert.ToInt32(FirstDay.ToString("yy"), 16));
+            forsending[6] = Convert.ToByte(Convert.ToInt32(LastDay.ToString("dd"), 16));
+            forsending[7] = Convert.ToByte(Convert.ToInt32(LastDay.ToString("MM"), 16));
+            forsending[8] = Convert.ToByte(Convert.ToInt32(LastDay.ToString("yy"), 16));
+            return ExchangeWithFP(forsending);
         }
 
         /// <summary>
         /// Код: 32.       PrintVer печать налогового номера и версии программного обеспечения
         /// Налоговый номер и дата регистрации ЭККР печатаются только в фискальном режиме.
         /// </summary>
-        public virtual void FPPrintVer()
+        public virtual ReturnedStruct FPPrintVer()
         {
             byte[] forsending = new byte[] { 32 };
-            byte[] answer = ExchangeWithFP(forsending);
+            return ExchangeWithFP(forsending);
         }
 
         public virtual uint FPPrintZeroReceipt()
@@ -770,12 +836,12 @@ namespace CentralLib.Protocols
             length = byteHelper.SetBit(length, 7, false);
             forsending = byteHelper.Combine(forsending, new byte[] { length });
             forsending = byteHelper.Combine(forsending, stringBytes);
-            byte[] answer = ExchangeWithFP(forsending);
+            byte[] answer = ExchangeWithFP(forsending).bytesReturn;
             if (statusOperation)
             {
                 forsending = new byte[] { 20, 0x03 };//Payment 
                 forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(0 ^ (1 << 31)));
-                answer = ExchangeWithFP(forsending);
+                answer = ExchangeWithFP(forsending).bytesReturn;
                 if (answer.Length == 4)
                     return BitConverter.ToUInt32(answer, 0);
             }
@@ -790,7 +856,7 @@ namespace CentralLib.Protocols
         /// <param name="CashierID">Номер</param>
         /// <param name="Name">Длина имени кассира (= n)0..15</param>
         /// <param name="Password">Пароль</param>
-        public virtual void FPRegisterCashier(byte CashierID, string Name, ushort Password = 0)
+        public virtual ReturnedStruct FPRegisterCashier(byte CashierID, string Name, ushort Password = 0)
         {
             byte[] forsending = new byte[] { 6 };//SetCashier
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(Password));
@@ -800,16 +866,16 @@ namespace CentralLib.Protocols
 
             forsending = byteHelper.Combine(forsending, new byte[] { length });
             forsending = byteHelper.Combine(forsending, stringBytes);
-            byte[] answer = ExchangeWithFP(forsending);
+            return ExchangeWithFP(forsending);
         }
 
         /// <summary>
         /// Код: 15. ResetOrder                обнуление чека
         /// </summary>
-        public virtual void FPResetOrder() //обнуление чека
+        public virtual ReturnedStruct FPResetOrder() //обнуление чека
         {
             byte[] forsending = new byte[] { 15 };
-            byte[] answer = ExchangeWithFP(forsending);
+            return ExchangeWithFP(forsending);
         }
         /// <summary>
         /// Код: 18.Sale                      регистрация продажи товара или услуги
@@ -872,7 +938,7 @@ namespace CentralLib.Protocols
                 forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(GoodName, MaxStringLenght));
             }
             forsending = byteHelper.Combine(forsending, byteHelper.ConvertUint64ToArrayByte6(StrCode));
-            byte[] answer = ExchangeWithFP(forsending);
+            byte[] answer = ExchangeWithFP(forsending).bytesReturn;
             if (answer.Length!=8)
             {
                 throw new ApplicationException(String.Format("не правильный ответ сервера на строку чека, нужно 8 байт - ответ {0}!!!!", answer.Length));
@@ -887,17 +953,17 @@ namespace CentralLib.Protocols
             return new ReceiptInfo();
         }
 
-        public virtual void FPSetHeadLine(ushort Password, string StringInfo1, bool StringInfo1DoubleHeight, bool StringInfo1DoubleWidth, string StringInfo2, bool StringInfo2DoubleHeight, bool StringInfo2DoubleWidth, string StringInfo3, bool StringInfo3DoubleHeight, bool StringInfo3DoubleWidth, string TaxNumber, bool AddTaxInfo)
+        public virtual ReturnedStruct FPSetHeadLine(ushort Password, string StringInfo1, bool StringInfo1DoubleHeight, bool StringInfo1DoubleWidth, string StringInfo2, bool StringInfo2DoubleHeight, bool StringInfo2DoubleWidth, string StringInfo3, bool StringInfo3DoubleHeight, bool StringInfo3DoubleWidth, string TaxNumber, bool AddTaxInfo)
         {
             throw new NotImplementedException();
         }
 
-        public virtual void FPSetPassword(byte UserID, ushort OldPassword, ushort NewPassword)
+        public virtual ReturnedStruct FPSetPassword(byte UserID, ushort OldPassword, ushort NewPassword)
         {
             throw new NotImplementedException();
         }
 
-        public virtual void FPSetTaxRate(ushort Password, Taxes tTaxes)
+        public virtual ReturnedStruct FPSetTaxRate(ushort Password, Taxes tTaxes)
         {
             throw new NotImplementedException();
         }
@@ -922,7 +988,7 @@ namespace CentralLib.Protocols
         public UInt32 GetMoneyInBox()
         {
             byte[] forsending = new byte[] { 33 };
-            byte[] answer = ExchangeWithFP(forsending);
+            byte[] answer = ExchangeWithFP(forsending).bytesReturn;
             if (answer.Length==5)
             {
                 return BitConverter.ToUInt32(answer, 0);
@@ -939,7 +1005,7 @@ namespace CentralLib.Protocols
         public bool FPCplCutter()
         {
             byte[] forsending = new byte[] { 46 };
-            byte[] answer = ExchangeWithFP(forsending);
+            byte[] answer = ExchangeWithFP(forsending).bytesReturn;
             return statusOperation;
         }
 
@@ -951,7 +1017,7 @@ namespace CentralLib.Protocols
         public virtual bool setFPCplCutter(bool Enable)
         {
             byte[] forsending = new byte[] { 28, 0x1A, 0x30, 16, 1 };
-            byte[] answer = ExchangeWithFP(forsending);
+            byte[] answer = ExchangeWithFP(forsending).bytesReturn;
             bool csetCutterFobbiden = byteHelper.GetBit(answer[0], 3); // true запрещена, false разрешена
             if ((Enable) && (csetCutterFobbiden))
                 FPCplCutter();

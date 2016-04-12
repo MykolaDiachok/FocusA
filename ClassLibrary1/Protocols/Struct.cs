@@ -422,6 +422,7 @@ namespace CentralLib.Protocols
     /// </summary>
     public struct DayReport
     {
+        public ReturnedStruct returnedStruct { get; set; }
         //BitConverter.ToUInt32 = 4 байта
         //BitConverter.ToUInt16 = 2 байта
         public DayReport(byte[] bytesReturn, byte[] bytesReturn0, byte[] bytesReturn1, byte[] bytesReturn2, byte[] bytesReturn3) : this()
@@ -531,7 +532,7 @@ namespace CentralLib.Protocols
 
 
             this.DailySumOfServiceCashEntering = 0;
-            
+            this.returnedStruct = new ReturnedStruct();
         }
 
         /// <summary>
@@ -813,6 +814,7 @@ namespace CentralLib.Protocols
     /// </summary>
     public struct Taxes
     {
+        public ReturnedStruct returnedStruct { get; set; }
         public short MaxGroup;
         public DateTime DateSet;
         public ushort quantityOfDecimalDigitsOfMoneySum; // max=3
@@ -851,6 +853,7 @@ namespace CentralLib.Protocols
     /// </summary>
     public struct ReceiptInfo
     {
+        public ReturnedStruct returnedStruct { get; set; }
         /// <summary>
         /// стоимость товара или услуги
         /// </summary>
@@ -867,6 +870,7 @@ namespace CentralLib.Protocols
     /// </summary>
     public struct PaymentInfo
     {
+        public ReturnedStruct returnedStruct { get; set; }
         public override string ToString()
         {
             return "Rest: " + Rest + " Renting:" + Renting + " NumberOfReceiptPackageInCPEF:" + NumberOfReceiptPackageInCPEF;
