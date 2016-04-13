@@ -11,13 +11,13 @@ namespace Tools
     {
         static void Main(string[] args)
         {
-            int fpnumber = 10014193;
+            int fpnumber = 406;
             string dataServer = "focus2";
             string dataBaseName = "CashDesk_OS";
             bool typeEvery = false;
             int printEvery = 1;
             string ip = "192.168.255.132";
-            int ipPort = 4005;
+            int ipPort = 4006;
             using (DataClassesFocusADataContext focusA = new DataClassesFocusADataContext())
             {
                 Table<tbl_ComInit> tbl_ComInit = focusA.GetTable<tbl_ComInit>();
@@ -42,7 +42,8 @@ namespace Tools
                     TypeEvery = typeEvery,
                     PrintEvery = printEvery,
                     MoxaIP = ip,
-                    MoxaPort = ipPort
+                    MoxaPort = ipPort,
+                    auto=true
 
 
                 };

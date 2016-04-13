@@ -212,13 +212,13 @@ namespace CentralLib.Protocols
 
                 
                 
-                if (connFP.statusOperation)
-                {
-                    byte dd = Convert.ToByte(Convert.ToInt32(value.ToString("dd"), 16));
-                    byte MM = Convert.ToByte(Convert.ToInt32(value.ToString("MM"), 16));
-                    byte yy = Convert.ToByte(Convert.ToInt32(value.ToString("yy"), 16));
-                    byte[] answer = ExchangeWithFP(new byte[] { 2, dd, MM, yy }).bytesReturn;
-                }
+                //if (connFP.statusOperation)
+                //{
+                //    byte dd = Convert.ToByte(Convert.ToInt32(value.ToString("dd"), 16));
+                //    byte MM = Convert.ToByte(Convert.ToInt32(value.ToString("MM"), 16));
+                //    byte yy = Convert.ToByte(Convert.ToInt32(value.ToString("yy"), 16));
+                //    byte[] answer = ExchangeWithFP(new byte[] { 2, dd, MM, yy }).bytesReturn;
+                //}
             }
         }
         #endregion

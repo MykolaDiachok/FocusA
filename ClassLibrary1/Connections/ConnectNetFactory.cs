@@ -130,7 +130,7 @@ namespace CentralLib.Connections
                 using (var networkStream = client.GetStream())
                 {
                 Begin:
-                    if (taskTry > 10)
+                    if (taskTry > 5)
                     {
                         string sf = String.Format("Выполнено {0} циклов, ответа нет {1}:{2}", this.IpAdress, port.ToString());
                         setError(sf);
@@ -158,7 +158,7 @@ namespace CentralLib.Connections
 
                     byte[] result = new byte[] { };
 
-                    for (int x = 1; x < 10; x++)
+                    for (int x = 1; x < 5; x++)
                     {
                         int coef = x;
                         if ((inputbyte[2] == 13) || (inputbyte[2] == 9)) // Если отчеты то ждем 2 раза дольше

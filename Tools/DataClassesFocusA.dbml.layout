@@ -2,12 +2,6 @@
 <ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 12, 13" name="DataClassesFocusA">
   <DataContextMoniker Name="/DataClassesFocusADataContext" />
   <nestedChildShapes>
-    <classShape Id="a4f58d94-23e5-4ffd-ab8a-140f7a6f4bde" absoluteBounds="6.5, 1.5, 2, 8.1168440755208326">
-      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_ComInit" />
-      <nestedChildShapes>
-        <elementListCompartment Id="5e72157e-d63c-40a7-a843-99a8b11ac983" absoluteBounds="6.515, 1.96, 1.9700000000000002, 7.556844075520833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
-      </nestedChildShapes>
-    </classShape>
     <classShape Id="f9d0d65b-096f-48fe-98a9-b4c09c029586" absoluteBounds="3.5, 1.25, 2, 2.9247054036458331">
       <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_ComInitDefault" />
       <nestedChildShapes>
@@ -24,6 +18,12 @@
       <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_SALE" />
       <nestedChildShapes>
         <elementListCompartment Id="27cb87a3-2b07-4df8-bdc1-afc0ddf9c4ad" absoluteBounds="9.64, 6.085, 1.9700000000000002, 6.5953369140625" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="ca3b88d5-af3e-40b5-99ad-a4390b4c2b4c" absoluteBounds="6.75, 2.5, 2, 8.3091455078125">
+      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_ComInit" />
+      <nestedChildShapes>
+        <elementListCompartment Id="38ac8bae-b026-4e78-b837-c60c1cc5342b" absoluteBounds="6.765, 2.96, 1.9700000000000002, 7.7491455078125009" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
   </nestedChildShapes>

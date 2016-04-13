@@ -14,9 +14,10 @@ using System.Threading;
 
 namespace PrintFP
 {
-    public class Program : IDisposable
+    public static class Program 
     {
         private static string fpnumber, server;
+        private static int FPnumber;
         private static Logger logger = LogManager.GetCurrentClassLogger();
         private static DateTime startJob;
         //private static System.Timers.Timer _timer;
@@ -46,6 +47,7 @@ namespace PrintFP
             try
             {
                 var p = os.Parse(args);
+                FPnumber = int.Parse(fpnumber);
             }
             catch (Exception e)
             {
@@ -82,7 +84,7 @@ namespace PrintFP
 
 
 
-
+            shutdownEvent = new ManualResetEvent(false);
             if (run && !automatic)
             {
                 Thread status = new Thread(ReadDataFromConsole);
@@ -98,10 +100,10 @@ namespace PrintFP
                     {
                         using (DataClasses1DataContext focus = new DataClasses1DataContext())
                         {
-                            var init = (from tinit in focus.GetTable<tbl_ComInit>()
+                            var rowinit = (from tinit in focus.GetTable<tbl_ComInit>()
                                         where tinit.FPNumber == int.Parse(fpnumber)
                                         select tinit).FirstOrDefault();
-                            if (!(bool)init.auto)
+                            if (!(bool)rowinit.auto)
                             {
                                 shutdownEvent.Set();
                                 shutdownEventauto.Set();
@@ -111,14 +113,17 @@ namespace PrintFP
                 }).Start();
             }
 
-            ManualReset();
-
+            //ManualReset();
+            
+            Init init = new Init(fpnumber, server, automatic);
+            init.Work(shutdownEvent);
+            UpdateStatusFP.setStatusFP(FPnumber, "outwork");
             return (int)rStatus;
         }
 
         private static void ReadDataFromConsole(object state)
         {
-            Console.WriteLine("Enter \"x\" to exit or wait for 5 seconds.");
+            Console.WriteLine("Enter \"x\" to exit.");
 
             while (Console.ReadKey().KeyChar != 'x')
             {
@@ -130,52 +135,53 @@ namespace PrintFP
         }
 
 
-        private static void ManualReset()
-        {
+        //private static void ManualReset()
+        //{
+        //    UpdateStatusFP.setStatusFP(FPnumber, "waiting out");
+        //    TimeSpan delay = new TimeSpan(0,0, Properties.Settings.Default.TimerIntervalSec);
+        //    shutdownEvent = new ManualResetEvent(false);
+        //    while (shutdownEvent.WaitOne(delay, true) == false)
+        //    {
+        //        //logger.Trace("lockthis in {0}", DateTime.Now);
+        //        lock (lockThis)
+        //        {
+        //            //logger.Trace("lockthis {0}", DateTime.Now);
+        //            Init init = new Init(fpnumber, server, automatic);
+        //            init.Work();
+        //        }
+        //        //logger.Trace("lockthis out {0}", DateTime.Now);
+        //    }
+        //    UpdateStatusFP.setStatusFP(FPnumber, "waiting...");
+        //}
 
-            TimeSpan delay = new TimeSpan(0,0, Properties.Settings.Default.TimerIntervalSec);
-            shutdownEvent = new ManualResetEvent(false);
-            while (shutdownEvent.WaitOne(delay, true) == false)
-            {
-                //logger.Trace("lockthis in {0}", DateTime.Now);
-                lock (lockThis)
-                {
-                    //logger.Trace("lockthis {0}", DateTime.Now);
-                    Init init = new Init(fpnumber, server, automatic);
-                    init.Work();
-                }
-                //logger.Trace("lockthis out {0}", DateTime.Now);
-            }
-        }
+        //private static void HandleTimerElapsed()
+        //{
+        //    lock (lockThis)
+        //    {
 
-        private static void HandleTimerElapsed()
-        {
-            lock (lockThis)
-            {
+        //        //eventLog1.WriteEntry("in HandleTimerElapsed");
+        //        //_timer.Stop();
+        //        //ImpatientMethod();
+        //        try
+        //        {
+        //            Init init = new Init(fpnumber, server, automatic);
+        //            init.Work();
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            eventLog1.WriteEntry("Завершена работа FP:" + ex.Message);
+        //            logger.Fatal(ex, "Завершена работа FP");
+        //            rStatus = infoPr.CriticalError;
+        //            Thread.Sleep(30 * 1000);
+        //        }
+        //        finally
+        //        {
 
-                //eventLog1.WriteEntry("in HandleTimerElapsed");
-                //_timer.Stop();
-                //ImpatientMethod();
-                try
-                {
-                    Init init = new Init(fpnumber, server, automatic);
-                    init.Work();
-                }
-                catch (Exception ex)
-                {
-                    eventLog1.WriteEntry("Завершена работа FP:" + ex.Message);
-                    logger.Fatal(ex, "Завершена работа FP");
-                    rStatus = infoPr.CriticalError;
-                    Thread.Sleep(30 * 1000);
-                }
-                finally
-                {
-
-                }
-                //_timer.Start();
-                //eventLog1.WriteEntry("out HandleTimerElapsed");
-            }
-        }
+        //        }
+        //        //_timer.Start();
+        //        //eventLog1.WriteEntry("out HandleTimerElapsed");
+        //    }
+        //}
 
 
         private static void LongMethod()
@@ -231,18 +237,18 @@ namespace PrintFP
             p.WriteOptionDescriptions(Console.Out);
         }
 
-        public void Dispose()
-        {
-            lock (lockThis)
-            {
-                logger.Trace("Dispose");
-                shutdownEvent.Set();                
-                //_timer.Stop();
-                //_timer.Dispose();
-                logger.Info("Time stop:{0}", DateTime.Now);
-            }
-            //throw new NotImplementedException();
-        }
+        //public void Dispose()
+        //{
+        //    lock (lockThis)
+        //    {
+        //        logger.Trace("Dispose");
+        //        shutdownEvent.Set();                
+        //        //_timer.Stop();
+        //        //_timer.Dispose();
+        //        logger.Info("Time stop:{0}", DateTime.Now);
+        //    }
+        //    //throw new NotImplementedException();
+        //}
 
         enum infoPr
         {

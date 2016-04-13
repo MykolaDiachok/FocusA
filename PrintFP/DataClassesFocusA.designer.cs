@@ -54,6 +54,9 @@ namespace PrintFP
     partial void Inserttbl_ComInit(tbl_ComInit instance);
     partial void Updatetbl_ComInit(tbl_ComInit instance);
     partial void Deletetbl_ComInit(tbl_ComInit instance);
+    partial void Inserttbl_SyncFP(tbl_SyncFP instance);
+    partial void Updatetbl_SyncFP(tbl_SyncFP instance);
+    partial void Deletetbl_SyncFP(tbl_SyncFP instance);
     #endregion
 		
 		public DataClasses1DataContext() : 
@@ -155,6 +158,14 @@ namespace PrintFP
 			get
 			{
 				return this.GetTable<tbl_ComInit>();
+			}
+		}
+		
+		public System.Data.Linq.Table<tbl_SyncFP> tbl_SyncFPs
+		{
+			get
+			{
+				return this.GetTable<tbl_SyncFP>();
 			}
 		}
 	}
@@ -4590,6 +4601,140 @@ namespace PrintFP
 					this._MoxaPort = value;
 					this.SendPropertyChanged("MoxaPort");
 					this.OnMoxaPortChanged();
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.tbl_SyncFP")]
+	public partial class tbl_SyncFP : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private long _id;
+		
+		private int _FPNumber;
+		
+		private System.DateTime _DateTimeSync;
+		
+		private string _Status;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnidChanging(long value);
+    partial void OnidChanged();
+    partial void OnFPNumberChanging(int value);
+    partial void OnFPNumberChanged();
+    partial void OnDateTimeSyncChanging(System.DateTime value);
+    partial void OnDateTimeSyncChanged();
+    partial void OnStatusChanging(string value);
+    partial void OnStatusChanged();
+    #endregion
+		
+		public tbl_SyncFP()
+		{
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_id", AutoSync=AutoSync.OnInsert, DbType="BigInt NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public long id
+		{
+			get
+			{
+				return this._id;
+			}
+			set
+			{
+				if ((this._id != value))
+				{
+					this.OnidChanging(value);
+					this.SendPropertyChanging();
+					this._id = value;
+					this.SendPropertyChanged("id");
+					this.OnidChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="Int NOT NULL")]
+		public int FPNumber
+		{
+			get
+			{
+				return this._FPNumber;
+			}
+			set
+			{
+				if ((this._FPNumber != value))
+				{
+					this.OnFPNumberChanging(value);
+					this.SendPropertyChanging();
+					this._FPNumber = value;
+					this.SendPropertyChanged("FPNumber");
+					this.OnFPNumberChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DateTimeSync", DbType="DateTime NOT NULL")]
+		public System.DateTime DateTimeSync
+		{
+			get
+			{
+				return this._DateTimeSync;
+			}
+			set
+			{
+				if ((this._DateTimeSync != value))
+				{
+					this.OnDateTimeSyncChanging(value);
+					this.SendPropertyChanging();
+					this._DateTimeSync = value;
+					this.SendPropertyChanged("DateTimeSync");
+					this.OnDateTimeSyncChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Status", DbType="NVarChar(MAX)")]
+		public string Status
+		{
+			get
+			{
+				return this._Status;
+			}
+			set
+			{
+				if ((this._Status != value))
+				{
+					this.OnStatusChanging(value);
+					this.SendPropertyChanging();
+					this._Status = value;
+					this.SendPropertyChanged("Status");
+					this.OnStatusChanged();
 				}
 			}
 		}

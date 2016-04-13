@@ -17,22 +17,54 @@ namespace PrintFP.Primary
     {
         private Logger logger = LogManager.GetCurrentClassLogger();
         private string fpnumber, server;
+        private int FPnumber;
         private static MyEventLog eventLog1;
-
+        private System.Object lockThis = new System.Object();
+        
 
         public Init(string fpnumber, string server, bool automatic = false)
         {
             NLog.GlobalDiagnosticsContext.Set("FPNumber", fpnumber);
             //logger.Trace("Init");
             this.fpnumber = fpnumber;
+            this.FPnumber = int.Parse(fpnumber);
             this.server = server;
             eventLog1 = new MyEventLog(automatic, fpnumber);
             //logger.Trace("Init fp:{0}; server:{1}", fpnumber, server);
         }
 
-        public void Work()
+        public void Work(ManualResetEvent shutdownEvent)
         {
-            eventLog1.WriteEntry("Work");
+            //TODO TRY CATCH
+            ManualReset(shutdownEvent);
+        }
+
+
+        private void ManualReset(ManualResetEvent shutdownEvent)
+        {
+            UpdateStatusFP.setStatusFP(FPnumber, "waiting out");
+            TimeSpan delay = new TimeSpan(0, 0, Properties.Settings.Default.TimerIntervalSec);
+            shutdownEvent = new ManualResetEvent(false);
+            while (shutdownEvent.WaitOne(delay, true) == false)
+            {
+                //logger.Trace("lockthis in {0}", DateTime.Now);
+                lock (lockThis)
+                {
+                    Do();
+                    //logger.Trace("lockthis {0}", DateTime.Now);
+                    //Init init = new Init(fpnumber, server, automatic);
+                    //init.Work();
+                }
+                //logger.Trace("lockthis out {0}", DateTime.Now);
+            }
+            UpdateStatusFP.setStatusFP(FPnumber, "waiting...");
+            //return shutdownEvent;
+        }
+
+
+        public void Do()
+        {
+            setStatusFP("in work");
             using (DataClasses1DataContext _focusA = new DataClasses1DataContext())
             //using (var trans = new TransactionScope(TransactionScopeOption.Required,new TransactionOptions{IsolationLevel = System.Transactions.IsolationLevel.ReadUncommitted,Timeout= new TimeSpan(0,0,25)}))
             {
@@ -42,14 +74,15 @@ namespace PrintFP.Primary
 
                 //eventLog1.WriteEntry("start tbl_ComInit");
                 Table<tbl_ComInit> tablePayment = _focusA.GetTable<tbl_ComInit>();
-                var comInit = (from list in tablePayment
+                var initRow = (from list in tablePayment
                                where list.Init == true
                                && list.CompName.ToLower() == server.ToLower()
                                && list.FPNumber == int.Parse(fpnumber)
-                               select list);
+                               select list).FirstOrDefault();
                 //logger.Trace("cominit:{0}",comInit.ToString());
                 //eventLog1.WriteEntry("start foreach initRow");
-                foreach (var initRow in comInit)
+                //foreach (var initRow in comInit)
+                if (initRow!=null)
                 {
                     DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture).AddHours(-1);
                     DateTime tEnd = DateTime.ParseExact(initRow.DateTimeStop.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
@@ -70,201 +103,120 @@ namespace PrintFP.Primary
                     if (operation != null)
                     {
                         operation.InWork = true;
-                        eventLog1.WriteEntry("InWork");
-                        try
-                        {
-                            //using (Protocol_EP11 pr = new Protocol_EP11(initRow.Port))
-                            BaseProtocol searchProtocol;
+
+                        //try
+                        //{
+                        //    //using (Protocol_EP11 pr = new Protocol_EP11(initRow.Port))
+                        BaseProtocol searchProtocol;
+                        try {
+                            setStatusFP("start get protocols....");
                             if ((initRow.MoxaIP.Trim().Length != 0) && ((int)initRow.MoxaPort > 0))
                             {
                                 searchProtocol = (BaseProtocol)SingletonProtocol.Instance(initRow.MoxaIP, (int)initRow.MoxaPort).GetProtocols();
                             }
                             else
                                 searchProtocol = (BaseProtocol)SingletonProtocol.Instance(initRow.Port).GetProtocols();
+                        }
+                        catch(Exception ex)
+                        {
+                            setStatusFP(string.Format("Error in protocol:{0}", ex.Message));
 
-                            using (var pr = searchProtocol)
+                                initRow.Error = true;
+                                initRow.ErrorInfo = "Error info:" + "Fatal crash app;" + ex.Message;
+                                initRow.ErrorCode = 9999; // ошибка которая привела к большому падению
+                                _focusA.SubmitChanges();
+
+                            return;
+                        }
+
+                        using (var pr = searchProtocol)
+                        {
+                            eventLog1.WriteEntry(searchProtocol.GetType().ToString() + "\n" + operation.Operation.ToString());
+
+                            if (!InitialSet(_focusA, initRow, pr, operation))
                             {
-                                eventLog1.WriteEntry(searchProtocol.GetType().ToString() + "\n" + operation.Operation.ToString());
+                                setStatusFP(string.Format("Problem init!!!! Operation={0},id={1}", operation.Operation, operation.id));
+                                return;
+                            }
+                            setStatusFP(string.Format("Operation={0},id={1}", operation.Operation,operation.id));
+                            if (operation.Operation == 3) // set cachier
+                            {
 
-                                if (!InitialSet(_focusA, initRow, pr, operation))
+                                var tblCashier = getCashier(_focusA, operation);
+                                logger.Trace(string.Format("set cachier:{0}", tblCashier.Name_Cashier));
+                                pr.FPRegisterCashier(0, tblCashier.Name_Cashier);
+                                tblCashier.ByteReserv = pr.ByteReserv;
+                                tblCashier.ByteResult = pr.ByteResult;
+                                tblCashier.ByteStatus = pr.ByteStatus;
+
+                                //tblCashier.Error = pr.er
+                            }
+                            else if (operation.Operation == 10) //in money
+                            {
+                                var tblCashIO = getCashIO(_focusA, operation);
+                                logger.Trace(string.Format("in money:{0}, fp:{1}", tblCashIO.Money, 30000));
+                                //pr.FPCashIn((uint)tblCashIO.Money);
+                                pr.FPCashIn(30000);
+                                //tblCashIO.ByteReserv = pr.ByteReserv;
+                                tblCashIO.MoneyFP = 30000;
+                                tblCashIO.ByteResult = pr.ByteResult;
+                                tblCashIO.ByteStatus = pr.ByteStatus;
+                                tblCashIO.Error = !pr.statusOperation;
+                                //var tbl
+                            }
+                            else if (operation.Operation == 15) //out money
+                            {
+                                UInt32 rest = pr.GetMoneyInBox();
+
+                                var tblCashIO = getCashIO(_focusA, operation);
+                                var outMoney = Math.Min(rest, (uint)tblCashIO.Money);
+                                logger.Trace("out money. in base:{0}; in box{1}, make:{2}", tblCashIO.Money, rest, outMoney);
+                                pr.FPCashOut(outMoney);
+                                tblCashIO.MoneyFP = (int)outMoney;
+                                //tblCashIO.ByteReserv = pr.ByteReserv;
+                                tblCashIO.ByteResult = pr.ByteResult;
+                                tblCashIO.ByteStatus = pr.ByteStatus;
+                                tblCashIO.Error = !pr.statusOperation;
+                            }
+                            else if (operation.Operation == 12) //check
+                            {
+                                Table<tbl_Payment> tblPayment = _focusA.GetTable<tbl_Payment>();
+                                Table<tbl_SALE> tblSales = _focusA.GetTable<tbl_SALE>();
+                                var headCheck = (from table in tblPayment
+                                                 where table.FPNumber == operation.FPNumber
+                                                 && table.DATETIME == operation.DateTime
+                                                 && table.id == operation.NumSlave
+                                                 && table.Operation == operation.Operation
+                                                 select table).FirstOrDefault();
+                                if (headCheck == null)
                                 {
-                                    return;
+                                    setStatusFP(string.Format("Строка заголовки чека пустая!!!! Operation={0},id=", operation.Operation, operation.id));
+                                    string errorinfo = "Строка заголовки чека пустая";
+                                    initRow.ErrorInfo = errorinfo;
+                                    _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                    throw new ApplicationException(errorinfo);
                                 }
-                                if (operation.Operation == 3) // set cachier
+                                setStatusFP(string.Format("HEAD CHECK!!!! Operation={0},id={1}, row count={2}", operation.Operation, operation.id,headCheck.RowCount));
+                                headCheck.ForWork = true;
+                                var tableCheck = (from tableSales in tblSales
+                                                  where tableSales.DATETIME == headCheck.DATETIME
+                                                  && tableSales.FPNumber == headCheck.FPNumber
+                                                  && tableSales.FRECNUM == headCheck.FRECNUM
+                                                  && tableSales.SAREAID == headCheck.SAREAID
+                                                  && tableSales.SESSID == headCheck.SESSID
+                                                  && tableSales.SRECNUM == headCheck.SRECNUM
+                                                  && tableSales.NumPayment == headCheck.id
+                                                  select tableSales);
+                                //logger.Trace("Check begin #{0}", headCheck.id);
+                                //List<string, int> listGoodsName = new List<string, int>();
+                                Dictionary<ulong, int> listgoods = new Dictionary<ulong, int>();
+                                if (tableCheck.Count() != 0)
                                 {
-
-                                    var tblCashier = getCashier(_focusA, operation);
-                                    logger.Trace(string.Format("set cachier:{0}", tblCashier.Name_Cashier));
-                                    pr.FPRegisterCashier(0, tblCashier.Name_Cashier);
-                                    tblCashier.ByteReserv = pr.ByteReserv;
-                                    tblCashier.ByteResult = pr.ByteResult;
-                                    tblCashier.ByteStatus = pr.ByteStatus;
-
-                                    //tblCashier.Error = pr.er
-                                }
-                                else if (operation.Operation == 10) //in money
-                                {
-                                    var tblCashIO = getCashIO(_focusA, operation);
-                                    logger.Trace(string.Format("in money:{0}, fp:{1}", tblCashIO.Money, 30000));
-                                    //pr.FPCashIn((uint)tblCashIO.Money);
-                                    pr.FPCashIn(30000);
-                                    //tblCashIO.ByteReserv = pr.ByteReserv;
-                                    tblCashIO.MoneyFP = 30000;
-                                    tblCashIO.ByteResult = pr.ByteResult;
-                                    tblCashIO.ByteStatus = pr.ByteStatus;
-                                    tblCashIO.Error = !pr.statusOperation;
-                                    //var tbl
-                                }
-                                else if (operation.Operation == 15) //out money
-                                {
-                                    UInt32 rest = pr.GetMoneyInBox();
-
-                                    var tblCashIO = getCashIO(_focusA, operation);
-                                    var outMoney = Math.Min(rest, (uint)tblCashIO.Money);
-                                    logger.Trace("out money. in base:{0}; in box{1}, make:{2}", tblCashIO.Money, rest, outMoney);
-                                    pr.FPCashOut(outMoney);
-                                    tblCashIO.MoneyFP = (int)outMoney;
-                                    //tblCashIO.ByteReserv = pr.ByteReserv;
-                                    tblCashIO.ByteResult = pr.ByteResult;
-                                    tblCashIO.ByteStatus = pr.ByteStatus;
-                                    tblCashIO.Error = !pr.statusOperation;
-                                }
-                                else if (operation.Operation == 12) //check
-                                {
-                                    Table<tbl_Payment> tblPayment = _focusA.GetTable<tbl_Payment>();
-                                    Table<tbl_SALE> tblSales = _focusA.GetTable<tbl_SALE>();
-                                    var headCheck = (from table in tblPayment
-                                                     where table.FPNumber == operation.FPNumber
-                                                     && table.DATETIME == operation.DateTime
-                                                     && table.id == operation.NumSlave
-                                                     && table.Operation == operation.Operation
-                                                     select table).FirstOrDefault();
-                                    if (headCheck == null)
-                                    {
-                                        string errorinfo = "Строка заголовки чека пустая";
-                                        initRow.ErrorInfo = errorinfo;
-                                        _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
-                                        throw new ApplicationException(errorinfo);
-                                    }
-                                    headCheck.ForWork = true;
-                                    var tableCheck = (from tableSales in tblSales
-                                                      where tableSales.DATETIME == headCheck.DATETIME
-                                                      && tableSales.FPNumber == headCheck.FPNumber
-                                                      && tableSales.FRECNUM == headCheck.FRECNUM
-                                                      && tableSales.SAREAID == headCheck.SAREAID
-                                                      && tableSales.SESSID == headCheck.SESSID
-                                                      && tableSales.SRECNUM == headCheck.SRECNUM
-                                                      && tableSales.NumPayment == headCheck.id
-                                                      select tableSales);
-                                    //logger.Trace("Check begin #{0}", headCheck.id);
-                                    //List<string, int> listGoodsName = new List<string, int>();
-                                    Dictionary<ulong, int> listgoods = new Dictionary<ulong, int>();
-                                    if (tableCheck.Count() != 0)
-                                    {
-                                        foreach (var rowCheck in tableCheck)
-                                        {
-                                            //string forPrint = rowCheck.GoodName;                                        
-                                            ReceiptInfo rowSum;
-                                            //if ((listgoods.ContainsKey((ulong)rowCheck.packname))&&(listgoods[(ulong)rowCheck.packname]!= rowCheck.Price))
-                                            ulong packcode = (ulong)rowCheck.packname.GetValueOrDefault();
-                                            if (listgoods.ContainsKey((ulong)rowCheck.packname))
-                                            {
-                                                packcode = (ulong)rowCheck.packname + ulong.Parse(rowCheck.StrCode) * ((ulong)rowCheck.SORT * 1000000);
-                                            }
-                                            else
-                                            {
-                                                listgoods.Add((ulong)rowCheck.packname, rowCheck.Price);
-                                            }
-
-                                            Art art = new Art(int.Parse(rowCheck.StrCode), rowCheck.GoodName, packcode, (ushort)rowCheck.NalogGroup, rowCheck.FPNumber, _focusA);
-                                            logger.Trace("Check #{0} row#{1} name:{2} pr:{3}", headCheck.id, rowCheck.SORT, art.ARTNAME, rowCheck.Price);
-                                            rowSum = pr.FPSaleEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, art.NalogGroup, false, art.ARTNAME, art.PackCode);
-
-
-                                            rowCheck.ByteReserv = pr.ByteReserv;
-                                            rowCheck.ByteResult = pr.ByteResult;
-                                            rowCheck.ByteStatus = pr.ByteStatus;
-                                            rowCheck.Error = !pr.statusOperation;
-                                            rowCheck.FPSum = rowSum.CostOfGoodsOrService;
-                                            headCheck.FPSumm = rowSum.SumAtReceipt;
-                                            if (rowCheck.RowSum != rowSum.CostOfGoodsOrService)
-                                            {
-                                                string errorinfo = String.Format("Отличается сумма по строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
-                                                initRow.ErrorInfo = errorinfo;
-                                                _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
-                                                logger.Error(errorinfo);
-                                                throw new ApplicationException(errorinfo);
-                                            }
-
-                                        }
-                                        if (headCheck.FPSumm != headCheck.CheckSum)
-                                        {
-                                            string errorinfo = String.Format("Отличается сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id);
-                                            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
-                                            logger.Error(errorinfo);
-                                            throw new ApplicationException(errorinfo);
-                                        }
-                                        if (headCheck.Payment0 > 0)
-                                        {
-                                            pr.FPPayment(0, (uint)headCheck.Payment0, false, true);
-                                            logger.Trace("Check #{0} Payment0:{1}", headCheck.id, (uint)headCheck.Payment0);
-                                        }
-                                        if (headCheck.Payment1 > 0)
-                                        {
-                                            pr.FPPayment(1, (uint)headCheck.Payment1, false, true);
-                                            logger.Trace("Check #{0} Payment1:{1}", headCheck.id, (uint)headCheck.Payment1);
-                                        }
-                                        if (headCheck.Payment2 > 0)
-                                        {
-                                            pr.FPPayment(2, (uint)headCheck.Payment2, false, true);
-                                            logger.Trace("Check #{0} Payment2:{1}", headCheck.id, (uint)headCheck.Payment2);
-                                        }
-                                        if (headCheck.Payment3 > 0)
-                                        {
-                                            pr.FPPayment(3, (uint)headCheck.Payment3, false, true);
-                                            logger.Trace("Check #{0} Payment3:{1}", headCheck.id, (uint)headCheck.Payment3);
-                                        }
-                                        headCheck.ByteReserv = pr.ByteReserv;
-                                        headCheck.ByteResult = pr.ByteResult;
-                                        headCheck.ByteStatus = pr.ByteStatus;
-                                        headCheck.Error = !pr.statusOperation;
-                                        headCheck.CheckClose = true;
-                                    }
-                                    //logger.Trace("Check close #{0}", headCheck.id);
-                                    //pr.FPPayment();
-                                }
-                                else if (operation.Operation == 5) //payment
-                                {
-                                    Table<tbl_Payment> tblPayment = _focusA.GetTable<tbl_Payment>();
-                                    Table<tbl_SALE> tblSales = _focusA.GetTable<tbl_SALE>();
-                                    var headCheck = (from table in tblPayment
-                                                     where table.FPNumber == operation.FPNumber
-                                                     && table.DATETIME == operation.DateTime
-                                                     && table.id == operation.NumSlave
-                                                     && table.Operation == operation.Operation
-                                                     select table).FirstOrDefault();
-                                    if (headCheck == null)
-                                    {
-                                        string errorinfo = "Строка заголовки чека пустая";
-                                        initRow.ErrorInfo = errorinfo;
-                                        _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
-                                        throw new ApplicationException(errorinfo);
-                                    }
-                                    headCheck.ForWork = true;
-                                    var tableCheck = (from tableSales in tblSales
-                                                      where tableSales.DATETIME == headCheck.DATETIME
-                                                      && tableSales.FPNumber == headCheck.FPNumber
-                                                      && tableSales.FRECNUM == headCheck.FRECNUM
-                                                      && tableSales.SAREAID == headCheck.SAREAID
-                                                      && tableSales.SESSID == headCheck.SESSID
-                                                      && tableSales.SRECNUM == headCheck.SRECNUM
-                                                      && tableSales.NumPayment == headCheck.id
-                                                      select tableSales);
-                                    //logger.Trace("Check payment begin #{0}", headCheck.id);
-                                    Dictionary<ulong, int> listgoods = new Dictionary<ulong, int>();
                                     foreach (var rowCheck in tableCheck)
                                     {
-
+                                        //string forPrint = rowCheck.GoodName;                                        
+                                        ReceiptInfo rowSum;
+                                        //if ((listgoods.ContainsKey((ulong)rowCheck.packname))&&(listgoods[(ulong)rowCheck.packname]!= rowCheck.Price))
                                         ulong packcode = (ulong)rowCheck.packname.GetValueOrDefault();
                                         if (listgoods.ContainsKey((ulong)rowCheck.packname))
                                         {
@@ -276,27 +228,31 @@ namespace PrintFP.Primary
                                         }
 
                                         Art art = new Art(int.Parse(rowCheck.StrCode), rowCheck.GoodName, packcode, (ushort)rowCheck.NalogGroup, rowCheck.FPNumber, _focusA);
-                                        logger.Trace("Check payment #{0} row#{1} name:{2} pr:{3}", headCheck.id, rowCheck.SORT, art.ARTNAME, rowCheck.Price);
+                                        setStatusFP(string.Format("Check #{0} row#{1} name:{2} pr:{3}", headCheck.id, rowCheck.SORT, art.ARTNAME, rowCheck.Price));
+                                        rowSum = pr.FPSaleEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, art.NalogGroup, false, art.ARTNAME, art.PackCode);
 
-                                        var rowSum = pr.FPPayMoneyEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, art.NalogGroup, false, art.ARTNAME, art.PackCode);
 
+                                        rowCheck.ByteReserv = pr.ByteReserv;
+                                        rowCheck.ByteResult = pr.ByteResult;
+                                        rowCheck.ByteStatus = pr.ByteStatus;
+                                        rowCheck.Error = !pr.statusOperation;
+                                        rowCheck.FPSum = rowSum.CostOfGoodsOrService;
+                                        headCheck.FPSumm = rowSum.SumAtReceipt;
                                         if (rowCheck.RowSum != rowSum.CostOfGoodsOrService)
                                         {
                                             string errorinfo = String.Format("Отличается сумма по строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
+                                            setStatusFP(string.Format("{2}!!!! Operation={0},id={1}", operation.Operation, operation.id, errorinfo));
                                             initRow.ErrorInfo = errorinfo;
                                             _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                                             logger.Error(errorinfo);
                                             throw new ApplicationException(errorinfo);
                                         }
-                                        rowCheck.ByteReserv = pr.ByteReserv;
-                                        rowCheck.ByteResult = pr.ByteResult;
-                                        rowCheck.ByteStatus = pr.ByteStatus;
-                                        rowCheck.Error = !pr.statusOperation;
-                                        headCheck.FPSumm = rowSum.SumAtReceipt;
+
                                     }
                                     if (headCheck.FPSumm != headCheck.CheckSum)
-                                    {
+                                    {                                        
                                         string errorinfo = String.Format("Отличается сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id);
+                                        setStatusFP(string.Format("{2}!!!! Operation={0},id={1}", operation.Operation, operation.id, errorinfo));
                                         _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                                         logger.Error(errorinfo);
                                         throw new ApplicationException(errorinfo);
@@ -304,128 +260,249 @@ namespace PrintFP.Primary
                                     if (headCheck.Payment0 > 0)
                                     {
                                         pr.FPPayment(0, (uint)headCheck.Payment0, false, true);
-                                        logger.Trace("Check payment #{0} Payment0:{1}", headCheck.id, (uint)headCheck.Payment0);
+                                        setStatusFP(string.Format("Check #{0} Payment0:{1}", headCheck.id, (uint)headCheck.Payment0));
                                     }
                                     if (headCheck.Payment1 > 0)
                                     {
                                         pr.FPPayment(1, (uint)headCheck.Payment1, false, true);
-                                        logger.Trace("Check payment #{0} Payment1:{1}", headCheck.id, (uint)headCheck.Payment1);
+                                        setStatusFP(string.Format("Check #{0} Payment1:{1}", headCheck.id, (uint)headCheck.Payment1));
                                     }
                                     if (headCheck.Payment2 > 0)
                                     {
                                         pr.FPPayment(2, (uint)headCheck.Payment2, false, true);
-                                        logger.Trace("Check payment #{0} Payment2:{1}", headCheck.id, (uint)headCheck.Payment2);
+                                        setStatusFP(string.Format("Check #{0} Payment2:{1}", headCheck.id, (uint)headCheck.Payment2));
                                     }
                                     if (headCheck.Payment3 > 0)
                                     {
                                         pr.FPPayment(3, (uint)headCheck.Payment3, false, true);
-                                        logger.Trace("Check payment #{0} Payment3:{1}", headCheck.id, (uint)headCheck.Payment3);
+                                        setStatusFP(string.Format("Check #{0} Payment3:{1}", headCheck.id, (uint)headCheck.Payment3));
                                     }
                                     headCheck.ByteReserv = pr.ByteReserv;
                                     headCheck.ByteResult = pr.ByteResult;
                                     headCheck.ByteStatus = pr.ByteStatus;
                                     headCheck.Error = !pr.statusOperation;
-
                                     headCheck.CheckClose = true;
-
-                                    //logger.Trace("Check payment close #{0}", headCheck.id);
                                 }
-                                else if (operation.Operation == 35) //X
-                                {
-                                    logger.Trace("print X");
-                                    pr.FPDayReport();
-                                }
-                                else if (operation.Operation == 39) //Z
-                                {
-                                    //pr.
-                                    pr.setFPCplCutter(true);
-                                    pr.FPNullCheck();
-                                    UInt32 rest = pr.GetMoneyInBox();
-                                    if (rest != 0)
-                                    {
-                                        logger.Trace("out money:{0}", rest);
-                                        pr.FPCashOut(rest);
-                                    }
-                                    Thread.Sleep(30 * 1000);
-                                    //var status = pr.get
-                                    logger.Trace("print Z");
-                                    var rreport = pr.FPDayClrReport();
-                                    if (DateTime.Now.Day == 1)
-                                    {
-                                        var now = DateTime.Now.AddMonths(-1);
-                                        var startOfMonth = new DateTime(now.Year, now.Month, 1);
-                                        var DaysInMonth = DateTime.DaysInMonth(now.Year, now.Month);
-                                        var lastDay = new DateTime(now.Year, now.Month, DaysInMonth);
-                                        var report = pr.FPPeriodicReport(0, startOfMonth, lastDay);
-                                    }
-                                    if (DateTime.Now.Day == 11)
-                                    {
-                                        var now = DateTime.Now;
-                                        var startOfMonth = new DateTime(now.Year, now.Month, 1);
-                                        var lastDay = new DateTime(now.Year, now.Month, 10);
-                                        var report = pr.FPPeriodicReport(0, startOfMonth, lastDay);
-                                    }
-                                    if (DateTime.Now.Day == 21)
-                                    {
-                                        var now = DateTime.Now;
-                                        var startOfMonth = new DateTime(now.Year, now.Month, 1);
-                                        var lastDay = new DateTime(now.Year, now.Month, 20);
-                                        var report = pr.FPPeriodicReport(0, startOfMonth, lastDay);
-                                    }
-                                    pr.setFPCplCutter(false);
-                                    deleteArt();
-                                }
-                                else if (operation.Operation == 40) //periodic report
-                                {
-                                    if (DateTime.Now.Day < 10)
-                                    {
-                                        var now = DateTime.Now.AddMonths(-1);
-                                        var startOfMonth = new DateTime(now.Year, now.Month, 1);
-                                        var DaysInMonth = DateTime.DaysInMonth(now.Year, now.Month);
-                                        var lastDay = new DateTime(now.Year, now.Month, DaysInMonth);
-                                        pr.FPPeriodicReport(0, startOfMonth, lastDay);
-                                    }
-                                    //if (DateTime.Now.Day >= 10)
-                                    //{
-                                    {
-                                        var now = DateTime.Now;
-                                        var startOfMonth = new DateTime(now.Year, now.Month, 1);
-                                        var lastDay = new DateTime(now.Year, now.Month, 10);
-                                        pr.FPPeriodicReport(0, startOfMonth, lastDay);
-                                    }
-                                    //}
-                                    logger.Trace("print periodic report");
-                                }
-
-                                setStatuses(operation, initRow, pr);
-                                _focusA.SubmitChanges();
-                                //    if (initRow.Error)
-                                //    {
-
-                                //    }
-
+                                //logger.Trace("Check close #{0}", headCheck.id);
+                                //pr.FPPayment();
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            eventLog1.WriteEntry("Error fiscal printer:" + ex.Message);
-                            initRow.Error = true;
-                            initRow.ErrorInfo = "Error info:" + "Fatal crash app;" + ex.Message;
-                            initRow.ErrorCode = 9999; // ошибка которая привела к большому падению
+                            else if (operation.Operation == 5) //payment
+                            {
+                                Table<tbl_Payment> tblPayment = _focusA.GetTable<tbl_Payment>();
+                                Table<tbl_SALE> tblSales = _focusA.GetTable<tbl_SALE>();
+                                var headCheck = (from table in tblPayment
+                                                 where table.FPNumber == operation.FPNumber
+                                                 && table.DATETIME == operation.DateTime
+                                                 && table.id == operation.NumSlave
+                                                 && table.Operation == operation.Operation
+                                                 select table).FirstOrDefault();
+                                if (headCheck == null)
+                                {
+                                    string errorinfo = "Строка заголовки чека пустая";
+                                    setStatusFP(string.Format("{2}!!!! Operation={0},id={1}", operation.Operation, operation.id, errorinfo));
+                                    initRow.ErrorInfo = errorinfo;
+                                    _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                    throw new ApplicationException(errorinfo);
+                                }
+                                headCheck.ForWork = true;
+                                var tableCheck = (from tableSales in tblSales
+                                                  where tableSales.DATETIME == headCheck.DATETIME
+                                                  && tableSales.FPNumber == headCheck.FPNumber
+                                                  && tableSales.FRECNUM == headCheck.FRECNUM
+                                                  && tableSales.SAREAID == headCheck.SAREAID
+                                                  && tableSales.SESSID == headCheck.SESSID
+                                                  && tableSales.SRECNUM == headCheck.SRECNUM
+                                                  && tableSales.NumPayment == headCheck.id
+                                                  select tableSales);
+                                //logger.Trace("Check payment begin #{0}", headCheck.id);
+                                Dictionary<ulong, int> listgoods = new Dictionary<ulong, int>();
+                                foreach (var rowCheck in tableCheck)
+                                {
+
+                                    ulong packcode = (ulong)rowCheck.packname.GetValueOrDefault();
+                                    if (listgoods.ContainsKey((ulong)rowCheck.packname))
+                                    {
+                                        packcode = (ulong)rowCheck.packname + ulong.Parse(rowCheck.StrCode) * ((ulong)rowCheck.SORT * 1000000);
+                                    }
+                                    else
+                                    {
+                                        listgoods.Add((ulong)rowCheck.packname, rowCheck.Price);
+                                    }
+
+                                    Art art = new Art(int.Parse(rowCheck.StrCode), rowCheck.GoodName, packcode, (ushort)rowCheck.NalogGroup, rowCheck.FPNumber, _focusA);
+                                    logger.Trace("Check payment #{0} row#{1} name:{2} pr:{3}", headCheck.id, rowCheck.SORT, art.ARTNAME, rowCheck.Price);
+
+                                    var rowSum = pr.FPPayMoneyEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, art.NalogGroup, false, art.ARTNAME, art.PackCode);
+
+                                    if (rowCheck.RowSum != rowSum.CostOfGoodsOrService)
+                                    {
+                                        string errorinfo = String.Format("Отличается сумма по строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
+                                        setStatusFP(string.Format("{2}!!!! Operation={0},id={1}", operation.Operation, operation.id, errorinfo));
+                                        initRow.ErrorInfo = errorinfo;
+                                        _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                        logger.Error(errorinfo);
+                                        throw new ApplicationException(errorinfo);
+                                    }
+                                    rowCheck.ByteReserv = pr.ByteReserv;
+                                    rowCheck.ByteResult = pr.ByteResult;
+                                    rowCheck.ByteStatus = pr.ByteStatus;
+                                    rowCheck.Error = !pr.statusOperation;
+                                    headCheck.FPSumm = rowSum.SumAtReceipt;
+                                }
+                                if (headCheck.FPSumm != headCheck.CheckSum)
+                                {
+                                    string errorinfo = String.Format("Отличается сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id);
+                                    setStatusFP(string.Format("{2}!!!! Operation={0},id={1}", operation.Operation, operation.id, errorinfo));
+                                    _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                    logger.Error(errorinfo);
+                                    throw new ApplicationException(errorinfo);
+                                }
+                                if (headCheck.Payment0 > 0)
+                                {
+                                    pr.FPPayment(0, (uint)headCheck.Payment0, false, true);
+                                    logger.Trace("Check payment #{0} Payment0:{1}", headCheck.id, (uint)headCheck.Payment0);
+                                }
+                                if (headCheck.Payment1 > 0)
+                                {
+                                    pr.FPPayment(1, (uint)headCheck.Payment1, false, true);
+                                    logger.Trace("Check payment #{0} Payment1:{1}", headCheck.id, (uint)headCheck.Payment1);
+                                }
+                                if (headCheck.Payment2 > 0)
+                                {
+                                    pr.FPPayment(2, (uint)headCheck.Payment2, false, true);
+                                    logger.Trace("Check payment #{0} Payment2:{1}", headCheck.id, (uint)headCheck.Payment2);
+                                }
+                                if (headCheck.Payment3 > 0)
+                                {
+                                    pr.FPPayment(3, (uint)headCheck.Payment3, false, true);
+                                    logger.Trace("Check payment #{0} Payment3:{1}", headCheck.id, (uint)headCheck.Payment3);
+                                }
+                                headCheck.ByteReserv = pr.ByteReserv;
+                                headCheck.ByteResult = pr.ByteResult;
+                                headCheck.ByteStatus = pr.ByteStatus;
+                                headCheck.Error = !pr.statusOperation;
+
+                                headCheck.CheckClose = true;
+
+                                //logger.Trace("Check payment close #{0}", headCheck.id);
+                            }
+                            else if (operation.Operation == 35) //X
+                            {
+                                logger.Trace("print X");
+                                pr.FPDayReport();
+                            }
+                            else if (operation.Operation == 39) //Z
+                            {
+                                //pr.
+                                pr.setFPCplCutter(true);
+                                pr.FPNullCheck();
+                                UInt32 rest = pr.GetMoneyInBox();
+                                if (rest != 0)
+                                {
+                                    logger.Trace("out money:{0}", rest);
+                                    pr.FPCashOut(rest);
+                                }
+                                Thread.Sleep(30 * 1000);
+                                //var status = pr.get
+                                logger.Trace("print Z");
+                                var rreport = pr.FPDayClrReport();
+                                if (rreport.statusOperation)
+                                {
+                                    operation.CurentDateTime = DateTime.Now;
+                                    operation.ByteStatus = rreport.ByteStatus;
+                                    operation.ByteReserv = rreport.ByteReserv;
+                                    operation.ByteResult = rreport.ByteResult;
+                                    operation.Error = !rreport.statusOperation;
+                                    if (rreport.statusOperation)
+                                        operation.Closed = true;
+                                    operation.InWork = true;
+                                    _focusA.SubmitChanges();
+                                }
+                                if (DateTime.Now.Day == 1)
+                                {
+                                    var now = DateTime.Now.AddMonths(-1);
+                                    var startOfMonth = new DateTime(now.Year, now.Month, 1);
+                                    var DaysInMonth = DateTime.DaysInMonth(now.Year, now.Month);
+                                    var lastDay = new DateTime(now.Year, now.Month, DaysInMonth);
+                                    var report = pr.FPPeriodicReport(0, startOfMonth, lastDay);
+                                }
+                                if (DateTime.Now.Day == 11)
+                                {
+                                    var now = DateTime.Now;
+                                    var startOfMonth = new DateTime(now.Year, now.Month, 1);
+                                    var lastDay = new DateTime(now.Year, now.Month, 10);
+                                    var report = pr.FPPeriodicReport(0, startOfMonth, lastDay);
+                                }
+                                if (DateTime.Now.Day == 21)
+                                {
+                                    var now = DateTime.Now;
+                                    var startOfMonth = new DateTime(now.Year, now.Month, 1);
+                                    var lastDay = new DateTime(now.Year, now.Month, 20);
+                                    var report = pr.FPPeriodicReport(0, startOfMonth, lastDay);
+                                }
+                                pr.setFPCplCutter(false);
+                                deleteArt();
+                            }
+                            else if (operation.Operation == 40) //periodic report
+                            {
+                                pr.setFPCplCutter(true);
+                                if (DateTime.Now.Day < 10)
+                                {
+                                    var now = DateTime.Now.AddMonths(-1);
+                                    var startOfMonth = new DateTime(now.Year, now.Month, 1);
+                                    var DaysInMonth = DateTime.DaysInMonth(now.Year, now.Month);
+                                    var lastDay = new DateTime(now.Year, now.Month, DaysInMonth);
+                                    pr.FPPeriodicReport(0, startOfMonth, lastDay);
+                                }
+                                //if (DateTime.Now.Day >= 10)
+                                //{
+                                {
+                                    var now = DateTime.Now;
+                                    var startOfMonth = new DateTime(now.Year, now.Month, 1);
+                                    var lastDay = new DateTime(now.Year, now.Month, 10);
+                                    pr.FPPeriodicReport(0, startOfMonth, lastDay);
+                                }
+                                pr.setFPCplCutter(false);
+                                //}
+                                //logger.Trace("print periodic report");
+                            }
+
+                            setStatuses(operation, initRow, pr);
+                            //initRow.DateTimeSyncFP = DateTime.Now;
                             _focusA.SubmitChanges();
-                            //trans.Complete();
+                            //    if (initRow.Error)
+                            //    {
+
+                            //    }
+
                         }
+                        //}
+                        //catch (Exception ex)
+                        //{
+                        //    eventLog1.WriteEntry("Error fiscal printer:" + ex.Message);
+                        //    initRow.Error = true;
+                        //    initRow.ErrorInfo = "Error info:" + "Fatal crash app;" + ex.Message;
+                        //    initRow.ErrorCode = 9999; // ошибка которая привела к большому падению
+                        //    _focusA.SubmitChanges();
+                        //    //trans.Complete();
+                        //}
 
                     }
                     //logger.Trace("out Get operation");
-                    initRow.DateTimeSyncFP = DateTime.Now;
-                    _focusA.SubmitChanges();
+                    //initRow.DateTimeSyncFP = DateTime.Now;
+                    //_focusA.SubmitChanges();
                     //trans.Complete();
                     //_focusA.Transaction.Commit();
                 }
 
             }
-            eventLog1.WriteEntry("out init");
+            //eventLog1.WriteEntry("out init");
+            setStatusFP("out work, waiting...");
+        }
+
+        private void setStatusFP(string infoStatus)
+        {
+            PrintFP.UpdateStatusFP.setStatusFP(FPnumber, infoStatus);
         }
 
         private void deleteArt()
