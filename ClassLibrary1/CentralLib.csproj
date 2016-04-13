@@ -77,7 +77,6 @@
     <Compile Include="Helper\IBitHelper.cs" />
     <Compile Include="Helper\IByteHelper.cs" />
     <Compile Include="Protocols\BaseProtocol.cs" />
-    <Compile Include="Protocols\ReturnedStruct.cs" />
     <Compile Include="Protocols\Protocol_EP06.cs" />
     <Compile Include="Protocols\Protocol_OP02.cs" />
     <Compile Include="Protocols\SingletonProtocol.cs" />
@@ -85,6 +84,7 @@
     <Compile Include="Protocols\IProtocols.cs" />
     <Compile Include="Protocols\Protocol_EP11.cs" />
     <Compile Include="Protocols\Struct.cs" />
+    <Compile Include="ReturnedStruct.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="NLog.config">

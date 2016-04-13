@@ -25,7 +25,7 @@ namespace PrintFP
         private static bool run, automatic;
         private static System.Object lockThis = new System.Object();
         private static MyEventLog eventLog1;
-        private static ManualResetEvent shutdownEvent;
+        
 
         static int Main(params string[] args)
         {
@@ -84,55 +84,40 @@ namespace PrintFP
 
 
 
-            shutdownEvent = new ManualResetEvent(false);
-            if (run && !automatic)
-            {
-                Thread status = new Thread(ReadDataFromConsole);
-                status.Start();
-            }
-            else if (automatic)
-            {
-                new Thread(() =>
-                {
-                    TimeSpan delay = new TimeSpan(0, 0, 10);
-                    var shutdownEventauto = new ManualResetEvent(false);
-                    while (shutdownEventauto.WaitOne(delay, true) == false)
-                    {
-                        using (DataClasses1DataContext focus = new DataClasses1DataContext())
-                        {
-                            var rowinit = (from tinit in focus.GetTable<tbl_ComInit>()
-                                        where tinit.FPNumber == int.Parse(fpnumber)
-                                        select tinit).FirstOrDefault();
-                            if (!(bool)rowinit.auto)
-                            {
-                                shutdownEvent.Set();
-                                shutdownEventauto.Set();
-                            }
-                        }
-                    }
-                }).Start();
-            }
+            //shutdownEvent = new ManualResetEvent(false);
+           
+            //else if (automatic)
+            //{
+            //    new Thread(() =>
+            //    {
+            //        TimeSpan delay = new TimeSpan(0, 0, 10);
+            //        var shutdownEventauto = new ManualResetEvent(false);
+            //        while (shutdownEventauto.WaitOne(delay, true) == false)
+            //        {
+            //            using (DataClasses1DataContext focus = new DataClasses1DataContext())
+            //            {
+            //                var rowinit = (from tinit in focus.GetTable<tbl_ComInit>()
+            //                            where tinit.FPNumber == int.Parse(fpnumber)
+            //                            select tinit).FirstOrDefault();
+            //                if (!(bool)rowinit.auto)
+            //                {
+            //                    shutdownEvent.Set();
+            //                    shutdownEventauto.Set();
+            //                }
+            //            }
+            //        }
+            //    }).Start();
+            //}
 
             //ManualReset();
             
-            Init init = new Init(fpnumber, server, automatic);
-            init.Work(shutdownEvent);
+            Init init = new Init(fpnumber, server, automatic,run);
+            init.Work();
             UpdateStatusFP.setStatusFP(FPnumber, "outwork");
             return (int)rStatus;
         }
 
-        private static void ReadDataFromConsole(object state)
-        {
-            Console.WriteLine("Enter \"x\" to exit.");
-
-            while (Console.ReadKey().KeyChar != 'x')
-            {
-                Console.Out.WriteLine("");
-                Console.Out.WriteLine("Enter again!");
-            }
-
-            shutdownEvent.Set();
-        }
+      
 
 
         //private static void ManualReset()

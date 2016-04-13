@@ -20,9 +20,10 @@ namespace PrintFP.Primary
         private int FPnumber;
         private static MyEventLog eventLog1;
         private System.Object lockThis = new System.Object();
-        
+        private bool automatic, manual;
+        private static ManualResetEvent shutdownEvent;
 
-        public Init(string fpnumber, string server, bool automatic = false)
+        public Init(string fpnumber, string server, bool automatic = false, bool manual=false)
         {
             NLog.GlobalDiagnosticsContext.Set("FPNumber", fpnumber);
             //logger.Trace("Init");
@@ -30,35 +31,73 @@ namespace PrintFP.Primary
             this.FPnumber = int.Parse(fpnumber);
             this.server = server;
             eventLog1 = new MyEventLog(automatic, fpnumber);
+            this.automatic = automatic;
+            this.manual = manual;
             //logger.Trace("Init fp:{0}; server:{1}", fpnumber, server);
         }
 
-        public void Work(ManualResetEvent shutdownEvent)
+        private static void ReadDataFromConsole(object state)
         {
-            //TODO TRY CATCH
-            ManualReset(shutdownEvent);
+            Console.WriteLine("Enter \"x\" to exit.");
+
+            while (Console.ReadKey().KeyChar != 'x')
+            {
+                Console.Out.WriteLine("");
+                Console.Out.WriteLine("Enter again!");
+            }
+
+            shutdownEvent.Set();
         }
 
 
-        private void ManualReset(ManualResetEvent shutdownEvent)
+        public void Work()
+        {
+            //TODO TRY CATCH
+
+            if (manual && !automatic)
+            {
+                Thread status = new Thread(ReadDataFromConsole);
+                status.Start();
+            }
+
+            ManualReset();
+        }
+
+
+        private void ManualReset()
         {
             UpdateStatusFP.setStatusFP(FPnumber, "waiting out");
             TimeSpan delay = new TimeSpan(0, 0, Properties.Settings.Default.TimerIntervalSec);
             shutdownEvent = new ManualResetEvent(false);
             while (shutdownEvent.WaitOne(delay, true) == false)
             {
+                if (automatic)
+                {
+                    using (DataClasses1DataContext focus = new DataClasses1DataContext())
+                    {
+                        var rowinit = (from tinit in focus.GetTable<tbl_ComInit>()
+                                       where tinit.FPNumber == int.Parse(fpnumber)
+                                       select tinit).FirstOrDefault();
+                        if (!(bool)rowinit.auto)
+                        {
+                            shutdownEvent.Set();
+                            return;
+                        }
+                    }
+                }
                 //logger.Trace("lockthis in {0}", DateTime.Now);
                 lock (lockThis)
                 {
-                    Do();
-                    //logger.Trace("lockthis {0}", DateTime.Now);
-                    //Init init = new Init(fpnumber, server, automatic);
-                    //init.Work();
+                    try
+                    {
+                        Do();
+                        UpdateStatusFP.setStatusFP(FPnumber, "waiting...");
+                    }
+                    catch { UpdateStatusFP.setStatusFP(FPnumber, "Была ошибка, waiting..."); }
                 }
                 //logger.Trace("lockthis out {0}", DateTime.Now);
             }
-            UpdateStatusFP.setStatusFP(FPnumber, "waiting...");
-            //return shutdownEvent;
+            UpdateStatusFP.setStatusFP(FPnumber, "Exit...");
         }
 
 
@@ -82,7 +121,7 @@ namespace PrintFP.Primary
                 //logger.Trace("cominit:{0}",comInit.ToString());
                 //eventLog1.WriteEntry("start foreach initRow");
                 //foreach (var initRow in comInit)
-                if (initRow!=null)
+                if (initRow != null)
                 {
                     DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture).AddHours(-1);
                     DateTime tEnd = DateTime.ParseExact(initRow.DateTimeStop.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
@@ -108,7 +147,8 @@ namespace PrintFP.Primary
                         //{
                         //    //using (Protocol_EP11 pr = new Protocol_EP11(initRow.Port))
                         BaseProtocol searchProtocol;
-                        try {
+                        try
+                        {
                             setStatusFP("start get protocols....");
                             if ((initRow.MoxaIP.Trim().Length != 0) && ((int)initRow.MoxaPort > 0))
                             {
@@ -117,28 +157,37 @@ namespace PrintFP.Primary
                             else
                                 searchProtocol = (BaseProtocol)SingletonProtocol.Instance(initRow.Port).GetProtocols();
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             setStatusFP(string.Format("Error in protocol:{0}", ex.Message));
 
-                                initRow.Error = true;
-                                initRow.ErrorInfo = "Error info:" + "Fatal crash app;" + ex.Message;
-                                initRow.ErrorCode = 9999; // ошибка которая привела к большому падению
-                                _focusA.SubmitChanges();
+                            initRow.Error = true;
+                            initRow.ErrorInfo = "Error info:" + "Fatal crash app;" + ex.Message;
+                            initRow.ErrorCode = 9999; // ошибка которая привела к большому падению
+                            _focusA.SubmitChanges();
 
-                            return;
+                            throw new ApplicationException(initRow.ErrorInfo);
+                        }
+                        if (searchProtocol==null)
+                        {
+                            initRow.Error = true;
+                            initRow.ErrorInfo = "Error info:" + "Fatal crash app; Протокол не определен" ;
+                            setStatusFP(initRow.ErrorInfo);
+                            initRow.ErrorCode = 9999; // ошибка которая привела к большому падению
+                            _focusA.SubmitChanges();
+                            throw new ApplicationException(initRow.ErrorInfo);
                         }
 
                         using (var pr = searchProtocol)
                         {
-                            eventLog1.WriteEntry(searchProtocol.GetType().ToString() + "\n" + operation.Operation.ToString());
+                            setStatusFP(searchProtocol.GetType().ToString() + operation.Operation.ToString());
 
                             if (!InitialSet(_focusA, initRow, pr, operation))
                             {
                                 setStatusFP(string.Format("Problem init!!!! Operation={0},id={1}", operation.Operation, operation.id));
                                 return;
                             }
-                            setStatusFP(string.Format("Operation={0},id={1}", operation.Operation,operation.id));
+                            setStatusFP(string.Format("Operation={0},id={1}", operation.Operation, operation.id));
                             if (operation.Operation == 3) // set cachier
                             {
 
@@ -154,7 +203,7 @@ namespace PrintFP.Primary
                             else if (operation.Operation == 10) //in money
                             {
                                 var tblCashIO = getCashIO(_focusA, operation);
-                                logger.Trace(string.Format("in money:{0}, fp:{1}", tblCashIO.Money, 30000));
+                                setStatusFP(string.Format("in money:{0}, fp:{1}", tblCashIO.Money, 30000));
                                 //pr.FPCashIn((uint)tblCashIO.Money);
                                 pr.FPCashIn(30000);
                                 //tblCashIO.ByteReserv = pr.ByteReserv;
@@ -170,7 +219,7 @@ namespace PrintFP.Primary
 
                                 var tblCashIO = getCashIO(_focusA, operation);
                                 var outMoney = Math.Min(rest, (uint)tblCashIO.Money);
-                                logger.Trace("out money. in base:{0}; in box{1}, make:{2}", tblCashIO.Money, rest, outMoney);
+                                setStatusFP(string.Format("out money. in base:{0}; in box{1}, make:{2}", tblCashIO.Money, rest, outMoney));
                                 pr.FPCashOut(outMoney);
                                 tblCashIO.MoneyFP = (int)outMoney;
                                 //tblCashIO.ByteReserv = pr.ByteReserv;
@@ -196,7 +245,7 @@ namespace PrintFP.Primary
                                     _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                                     throw new ApplicationException(errorinfo);
                                 }
-                                setStatusFP(string.Format("HEAD CHECK!!!! Operation={0},id={1}, row count={2}", operation.Operation, operation.id,headCheck.RowCount));
+                                setStatusFP(string.Format("HEAD CHECK!!!! Operation={0},id={1}, row count={2}", operation.Operation, operation.id, headCheck.RowCount));
                                 headCheck.ForWork = true;
                                 var tableCheck = (from tableSales in tblSales
                                                   where tableSales.DATETIME == headCheck.DATETIME
@@ -250,7 +299,7 @@ namespace PrintFP.Primary
 
                                     }
                                     if (headCheck.FPSumm != headCheck.CheckSum)
-                                    {                                        
+                                    {
                                         string errorinfo = String.Format("Отличается сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id);
                                         setStatusFP(string.Format("{2}!!!! Operation={0},id={1}", operation.Operation, operation.id, errorinfo));
                                         _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);

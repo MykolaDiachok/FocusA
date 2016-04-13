@@ -10,6 +10,7 @@ using System.ServiceProcess;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Management;
 
 namespace PrintFPService
 {
@@ -188,30 +189,32 @@ namespace PrintFPService
                                    && table.CompName.ToLower() == compname.ToLower()
                                    select table).ToList();
                 }
-                foreach (var init in comInit)
+                foreach (var rowinit in comInit)
                 {
-                    if (!listApp.ContainsKey(init.FPNumber.GetValueOrDefault()))
+                    
+                    if (!listApp.ContainsKey(rowinit.FPNumber.GetValueOrDefault()))//(listApp[rowinit.FPNumber.GetValueOrDefault()]==null)
                     {
-                        StartApp newApp = new StartApp(new string[] { string.Format("--fp={0}", init.FPNumber) });
-                        listApp.Add(init.FPNumber.GetValueOrDefault(), newApp);
+                        StartApp newApp = new StartApp(new Guid(), new string[] { string.Format("--fp={0}", rowinit.FPNumber) });
+                        listApp.Add(rowinit.FPNumber.GetValueOrDefault(), newApp);
                         newApp.OnStart();
                         Thread.Sleep(300);
                         //init.Init = true;
-                        if (!init.WorkOff.HasValue)
+                        if (!rowinit.WorkOff.HasValue)
                         {
-                            init.WorkOff = false;
+                            rowinit.WorkOff = false;
                             _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                         }
                     }
                     else
                     {
-                        var workAPP = listApp[init.FPNumber.GetValueOrDefault()];
+                        var workAPP = listApp[rowinit.FPNumber.GetValueOrDefault()];
                         if (!workAPP.Active())
                         {
-                            workAPP.OnStop();
-                            Thread.Sleep(300);
-                            workAPP.OnStart();
-                            Thread.Sleep(300);
+                            listApp.Remove(rowinit.FPNumber.GetValueOrDefault());
+                            //workAPP.OnStop();
+                            //Thread.Sleep(300);
+                            //workAPP.OnStart();
+                            //Thread.Sleep(300);
                         }
                     }
 
@@ -243,11 +246,22 @@ namespace PrintFPService
                                    && table.FPNumber == app.Key
                                    select table).FirstOrDefault();
                     }
-                    if ((comInit == null) || comInit.WorkOff.GetValueOrDefault())
+                    if (comInit == null) 
                     {
                         forDelete.Add(app.Key);
                         if (app.Value.Active())
                             app.Value.OnStop();
+                    }
+                    if (comInit.WorkOff.GetValueOrDefault())
+                    {
+                        forDelete.Add(app.Key);
+                        if (app.Value.Active())
+                            app.Value.OnStop();
+                    }
+                    if (!app.Value.Active())
+                    {
+                        forDelete.Add(app.Key);
+                        app.Value.OnStop();
                     }
                 }
                 foreach (var del in forDelete)
@@ -255,6 +269,7 @@ namespace PrintFPService
                     listApp.Remove(del);
                 }
             }
+            KillProc();
         }
 
         private void deleteApps()
@@ -266,8 +281,7 @@ namespace PrintFPService
                 {
 
                     var comInit = (from table in tblComInit
-                                   where table.Init == true
-                                   && table.CompName.ToLower() == compname.ToLower()
+                                   where  table.CompName.ToLower() == compname.ToLower()
                                    && table.FPNumber == app.Key
                                    select table).FirstOrDefault();
                     if (comInit != null)
@@ -277,10 +291,37 @@ namespace PrintFPService
                         _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                     }
 
-                    if (app.Value.Active())
+                    //if (app.Value.Active())
                         app.Value.OnStop();                   
             }
                 listApp.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Поиск и уничтожение процессов которые могли подвиснуть
+        /// и привести к возможности дублжа информации, поэтому смотрим все процессы PrintFp
+        /// и если в словаре нет такого процесса, то киляем
+        /// TODO возможно стоит смотреть и на именования которые еть в базе!!!!
+        /// </summary>
+        private void KillProc()
+        {
+            Process[] processlist = Process.GetProcesses().Where(x => x.ProcessName.ToLower() == "PrintFp".ToLower()).ToArray();
+
+            foreach (Process theprocess in processlist)
+            {
+                var getApp = listApp
+                    .Where(x => x.Value.Active() && x.Value.proccesId == theprocess.Id)
+                    .Select(e => (KeyValuePair<int, StartApp>?)e)
+                    .FirstOrDefault();
+               if (getApp==null)
+                {
+                    if (theprocess.GetCommandLine().Contains("-a --fp="))
+                    {
+                        theprocess.Kill();
+                        theprocess.Close();
+                    }
+                }
             }
         }
 
@@ -309,6 +350,7 @@ namespace PrintFPService
     public class StartApp
     {
         private ProcessStartInfo processInfo;
+        public Guid appGuid { get; private set; }
         private Process process;
         public int proccesId
         {
@@ -319,15 +361,12 @@ namespace PrintFPService
         }
         private bool active;
         //private SyncHameleon.Postrgres post;
-        private static string fpnumber;
-        private static string compname;
+        public string fpnumber { get; private set; }
+        public string compname { get; private set; }
         private System.Diagnostics.EventLog eventLog1;
 
-
-        public StartApp(params string[] args)
+        private void baseInit()
         {
-
-            
             eventLog1 = new System.Diagnostics.EventLog();
             if (!System.Diagnostics.EventLog.SourceExists("ServiceFP"))
             {
@@ -336,19 +375,35 @@ namespace PrintFPService
             }
             eventLog1.Source = "ServiceFP";
             eventLog1.Log = "ServiceFPLog";
+            eventLog1.WriteEntry("On init:" + fpnumber, EventLogEntryType.Information);
+        }
 
+        public StartApp (Guid inGuid, int inFPNumber)
+        {
+            appGuid = inGuid;
+            fpnumber = inFPNumber.ToString();
+            baseInit();
+            init(compname, fpnumber);
+        }
+
+        public StartApp(Guid inGuid, params string[] args)
+        {
+
+
+            baseInit();
             var os = new OptionSet()
                 .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumber = a)
                        .Add("cn|compname=", "set computer name", cn => compname = cn);
             try
             {
                 var p = os.Parse(args);
+                baseInit();
             }
             catch (Exception e)
             {
                 eventLog1.WriteEntry(e.Message, EventLogEntryType.Error);
             }
-            eventLog1.WriteEntry("On init:" + fpnumber, EventLogEntryType.Information);
+            
             init(compname, fpnumber);
         }
 
@@ -358,7 +413,7 @@ namespace PrintFPService
             {
                 UseShellExecute = false, // change value to false
                 FileName = AppDomain.CurrentDomain.BaseDirectory + @"PrintFp.exe",
-                Arguments = string.Format("-r -a --fp={0}", fpnumber),
+                Arguments = string.Format("-a --fp={0} --g={1}", fpnumber, appGuid),
                 RedirectStandardError = true,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
@@ -422,4 +477,25 @@ namespace PrintFPService
 
     }
 
+
+    public static class MyExtensions
+    {
+        public static string GetCommandLine(this Process process)
+        {
+            //var commandLine = new StringBuilder(process.MainModule.FileName);
+            var commandLine = new StringBuilder();
+
+            commandLine.Append(" ");
+            using (var searcher = new ManagementObjectSearcher("SELECT CommandLine FROM Win32_Process WHERE ProcessId = " + process.Id))
+            {
+                foreach (var @object in searcher.Get())
+                {
+                    commandLine.Append(@object["CommandLine"]);
+                    commandLine.Append(" ");
+                }
+            }
+
+            return commandLine.ToString();
+        }
+    }
 }
