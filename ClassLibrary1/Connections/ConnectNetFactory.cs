@@ -686,13 +686,7 @@ namespace CentralLib.Connections
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Описание ошибки:{0}", this.errorInfo);
 #endif
-            }
-            finally
-            {
-
-            }
-            
-            return null;
+            }           
         }
 
 
