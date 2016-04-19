@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CentralLib.Protocols
 {
-    public struct Status 
+    public class Status
     {
         public bool usingCollection { get; private set; } //используются сборы
         public bool modeOfRegistrationsOfPayments { get; private set; } //режим регистраций оплат в чеке(запрещены все регистрации  кроме оплат и комментариев)
@@ -98,7 +98,7 @@ namespace CentralLib.Protocols
     /// <summary>
     /// Значение битов байта Резерва
     /// </summary>
-    public struct strByteReserv 
+    public struct strByteReserv
     {
         public byte Reserv { get; }
         /// <summary>
@@ -174,7 +174,7 @@ namespace CentralLib.Protocols
     /// <summary>
     /// Описание структуры статуса ФР
     /// </summary>
-    public struct strByteStatus 
+    public class strByteStatus
     {
         public byte ByteStatus { get; }
         /// <summary>
@@ -210,7 +210,7 @@ namespace CentralLib.Protocols
         /// </summary>
         public bool? CommandDoesNotExistOrIsForbiddenInCurrentMode { get; }
 
-        public strByteStatus(byte inByte) : this()
+        public strByteStatus(byte inByte)
         {
             this.ByteStatus = inByte;
             this.PrinterNotReady = (inByte & (1 << 0)) != 0;
@@ -246,7 +246,7 @@ namespace CentralLib.Protocols
         }
     }
 
-    public struct strByteResult 
+    public struct strByteResult
     {
         public byte ByteResult { get; }
         public strByteResult(byte inByte) : this()
@@ -364,7 +364,7 @@ namespace CentralLib.Protocols
     /// <summary>
     /// Информация по бумаге
     /// </summary>
-    public struct PapStat 
+    public class PapStat
     {
         /// <summary>
         /// ошибка связи с принтером
@@ -387,7 +387,7 @@ namespace CentralLib.Protocols
         /// </summary>
         public bool? ControlPaperIsFinished; //контрольная лента закончилась
 
-        public PapStat(byte inputByte) : this()
+        public PapStat(byte inputByte)
         {
             BitArray _bit = new BitArray(new byte[] { inputByte });
             ErrorOfConnectionWithPrinter = _bit[0];
@@ -400,7 +400,7 @@ namespace CentralLib.Protocols
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            if ((ErrorOfConnectionWithPrinter!=null) &&((bool)ErrorOfConnectionWithPrinter))
+            if ((ErrorOfConnectionWithPrinter != null) && ((bool)ErrorOfConnectionWithPrinter))
                 sb.Append("ошибка связи с принтером;");
             if ((ReceiptPaperIsAlmostEnded != null) && ((bool)ReceiptPaperIsAlmostEnded))
                 sb.Append("чековая лента почти заканчивается;");
@@ -420,12 +420,12 @@ namespace CentralLib.Protocols
     /// <summary>
     /// 
     /// </summary>
-    public struct DayReport
+    public class DayReport
     {
         public ReturnedStruct returnedStruct { get; set; }
         //BitConverter.ToUInt32 = 4 байта
         //BitConverter.ToUInt16 = 2 байта
-        public DayReport(byte[] bytesReturn, byte[] bytesReturn0, byte[] bytesReturn1, byte[] bytesReturn2, byte[] bytesReturn3) : this()
+        public DayReport(byte[] bytesReturn, byte[] bytesReturn0, byte[] bytesReturn1, byte[] bytesReturn2, byte[] bytesReturn3)
         {
             #region bytesReturn
             int tst = 0;
@@ -433,6 +433,7 @@ namespace CentralLib.Protocols
             this.CounterOfSalesByTaxGroupsAndTypesOfPayments = new SumTaxGroupsAndTypesOfPayments(bytesReturn, ref tst);
             this.DailyMarkupBySale = BitConverter.ToUInt32(bytesReturn, tst); tst += 4;
             this.DailyDiscountBySale = BitConverter.ToUInt32(bytesReturn, tst); tst += 4;
+            this.DailySumOfServiceCashEntering = BitConverter.ToUInt32(bytesReturn, tst); tst += 4;
             this.CounterOfPayoutReceipts = BitConverter.ToUInt16(bytesReturn, tst); tst += 2;
             this.CountersOfPayoutByTaxGroupsAndTypesOfPayments = new SumTaxGroupsAndTypesOfPayments(bytesReturn, ref tst);
             this.DailyMarkupByPayouts = BitConverter.ToUInt32(bytesReturn, tst); tst += 4;
@@ -501,6 +502,21 @@ namespace CentralLib.Protocols
 
         public DayReport(byte[] bytesReturn)
         {
+            int tst = 0;
+            this.CounterOfSaleReceipts = BitConverter.ToUInt16(bytesReturn, tst); tst += 2;
+            this.CounterOfSalesByTaxGroupsAndTypesOfPayments = new SumTaxGroupsAndTypesOfPayments(bytesReturn, ref tst, 5);
+            this.DailyMarkupBySale = bytesReturn.returnUint32FromBytes(tst,5); tst += 5;
+            this.DailyDiscountBySale = bytesReturn.returnUint32FromBytes(tst, 5); tst += 5;
+            this.DailySumOfServiceCashEntering = bytesReturn.returnUint32FromBytes(tst, 5); tst += 5;
+            this.CounterOfPayoutReceipts = BitConverter.ToUInt16(bytesReturn, tst); tst += 2;
+            this.CountersOfPayoutByTaxGroupsAndTypesOfPayments = new SumTaxGroupsAndTypesOfPayments(bytesReturn, ref tst, 5);
+            this.DailyMarkupByPayouts = bytesReturn.returnUint32FromBytes(tst, 5); tst += 5;
+            this.DailyDiscountByPayouts = bytesReturn.returnUint32FromBytes(tst, 5); tst += 5;
+            this.DailySumOfServiceCashGivingOut = bytesReturn.returnUint32FromBytes(tst, 5); tst += 5;
+        }
+
+        public DayReport()
+        {
             this.CounterOfSaleReceipts = 0;
             this.CounterOfSalesByTaxGroupsAndTypesOfPayments = new SumTaxGroupsAndTypesOfPayments();
             this.DailyMarkupBySale = 0;
@@ -516,11 +532,11 @@ namespace CentralLib.Protocols
 
             this.DateTimeOfEndOfShift = DateTime.Now;
             this.DateOfEndOfShift = this.DateTimeOfEndOfShift.ToString("dd.MM.yy");
-            this.TimeOfEndOfShift = this.DateTimeOfEndOfShift.ToString("HH:mm");                
+            this.TimeOfEndOfShift = this.DateTimeOfEndOfShift.ToString("HH:mm");
             this.dtDateOfTheLastDailyReport = DateTime.Now;
             this.DateOfTheLastDailyReport = null;
             this.SumOfTaxByTaxGroupsForOverlayVAT = new SumTaxByTaxGroups();
-            this.CounterOfArticles = 0;                      
+            this.CounterOfArticles = 0;
             this.QuantityOfCancelSalesReceipt = 0;
             this.QuantityOfCancelPaymentReceipt = 0;
             this.SumOfCancelSalesReceipt = 0;
@@ -647,27 +663,55 @@ namespace CentralLib.Protocols
 
     }
 
-    public struct SumTaxGroupsAndTypesOfPayments
+    public class SumTaxGroupsAndTypesOfPayments
     {
-        public SumTaxGroupsAndTypesOfPayments(byte[] inBytes, ref int ccounter) : this()
-        {
-            TaxA = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            TaxB = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            TaxC = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            TaxD = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            TaxE = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            TaxF = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+        public SumTaxGroupsAndTypesOfPayments()
+        { }
 
-            Card = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            Credit = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            Check = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            Cash = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            Certificat = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            Voucher = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            ElectronicMoney = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            InsurancePayment = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            OverPayment = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            Payment = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+        public SumTaxGroupsAndTypesOfPayments(byte[] inBytes, ref int ccounter, int countstep = 5)
+        {
+            
+            
+            TaxA = inBytes.returnUint32FromBytes(ccounter,countstep); ccounter += countstep;
+            TaxB = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            TaxC = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            TaxD = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            TaxE = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            TaxF = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+
+            Card = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            Credit = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            Check = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            Cash = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            Certificat = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            Voucher = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            ElectronicMoney = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            InsurancePayment = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            OverPayment = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            Payment = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+        }
+
+
+        public SumTaxGroupsAndTypesOfPayments(byte[] inBytes, ref int ccounter)
+        {
+            int countstep = 4;
+            TaxA = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            TaxB = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            TaxC = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            TaxD = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            TaxE = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            TaxF = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+
+            Card = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            Credit = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            Check = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            Cash = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            Certificat = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            Voucher = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            ElectronicMoney = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            InsurancePayment = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            OverPayment = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            Payment = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
         }
         //TODO описать счетчики продаж по налоговым группам и формам оплат
         //4*(6+10) 
@@ -737,11 +781,12 @@ namespace CentralLib.Protocols
         public UInt32 Payment;
     }
 
-    public struct SumTaxByTaxGroups
+    public class SumTaxByTaxGroups
     {
+        public SumTaxByTaxGroups() { }
         //TODO суммы налогов по налоговым группам для наложенного НДС
         //4*(6+6)
-        public SumTaxByTaxGroups(byte[] inBytes, ref int ccounter) : this()
+        public SumTaxByTaxGroups(byte[] inBytes, ref int ccounter)
         {
             TaxA = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
             TaxB = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
@@ -812,7 +857,7 @@ namespace CentralLib.Protocols
     /// <summary>
     /// Описание налогов и что можно с ними делать
     /// </summary>
-    public struct Taxes
+    public class Taxes
     {
         public ReturnedStruct returnedStruct { get; set; }
         public short MaxGroup;
@@ -825,7 +870,7 @@ namespace CentralLib.Protocols
 
     }
 
-    public struct Tax
+    public class Tax
     {
         public byte TaxGroup;
         public ushort TaxNumber;
@@ -851,7 +896,7 @@ namespace CentralLib.Protocols
     /// <summary>
     /// Информация по продаже
     /// </summary>
-    public struct ReceiptInfo
+    public class ReceiptInfo
     {
         public ReturnedStruct returnedStruct { get; set; }
         /// <summary>
@@ -868,7 +913,7 @@ namespace CentralLib.Protocols
     /// <summary>
     /// Возврат после регистрация оплаты
     /// </summary>
-    public struct PaymentInfo
+    public class PaymentInfo
     {
         public ReturnedStruct returnedStruct { get; set; }
         public override string ToString()
@@ -890,7 +935,7 @@ namespace CentralLib.Protocols
     }
 
 
-
+   
 
 
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CentralLib
 {
-    public struct ReturnedStruct
+    public class ReturnedStruct
     {
         public byte command { get; set; }
         /// <summary>

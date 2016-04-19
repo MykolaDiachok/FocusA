@@ -788,7 +788,7 @@ namespace SyncHameleon
             };
             cashIO.Old_Money = cashIO.Money;
             _focusA.tbl_CashIOs.InsertOnSubmit(cashIO);
-            _focusA.SubmitChanges();
+            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
             changeTable.Change_tbl_CashIO();
             tbl_Operation op = new tbl_Operation
             {

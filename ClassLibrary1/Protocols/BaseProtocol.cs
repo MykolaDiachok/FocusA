@@ -6,25 +6,36 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CentralLib.Connections;
+using NLog;
 
 namespace CentralLib.Protocols
 {
     public class BaseProtocol : IDisposable, IProtocols
     {
-        public virtual UInt16 MaxStringLenght {
-            get; set; 
+        public Logger logger = LogManager.GetCurrentClassLogger();
+        public int FPNumber { get; private set; }
+
+        public virtual UInt16 MaxStringLenght
+        {
+            get; set;
         }
 
         private DefaultPortCom defaultPortCom;
 
-        public BaseProtocol(DefaultPortCom dComPort)
+        public BaseProtocol(DefaultPortCom dComPort, int inFPNumber)
         {
+            NLog.GlobalDiagnosticsContext.Set("FPNumber", inFPNumber);
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
+            this.FPNumber = inFPNumber;
             this.defaultPortCom = dComPort;
             defaultInitial(dComPort);
         }
 
-        public BaseProtocol(int port)
+        public BaseProtocol(int port, int inFPNumber)
         {
+            NLog.GlobalDiagnosticsContext.Set("FPNumber", inFPNumber);
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
+            this.FPNumber = inFPNumber;
             if (port == 0) // for test            
                 return;
 
@@ -35,17 +46,21 @@ namespace CentralLib.Protocols
         public string IpAdress { get; private set; }
         public int port { get; private set; }
 
-        public BaseProtocol(string IpAdress, int port)
+        public BaseProtocol(string IpAdress, int port, int inFPNumber)
         {
+            NLog.GlobalDiagnosticsContext.Set("FPNumber", inFPNumber);
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
+            this.FPNumber = inFPNumber;
             this.IpAdress = IpAdress;
             this.port = port;
-            this.connFP = new ConnectNetFactory(IpAdress, port, 40);
+            this.connFP = new ConnectNetFactory(IpAdress, port, 40, inFPNumber);
         }
 
         private void defaultInitial(DefaultPortCom initialPort)
         {
             //base.currentProtocol = WorkProtocol.EP11;
-            this.connFP = new CentralLib.Connections.ConnectFactory(initialPort,true,true);
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
+            this.connFP = new CentralLib.Connections.ConnectFactory(initialPort, true, true);
 
             try
             {
@@ -70,6 +85,7 @@ namespace CentralLib.Protocols
 
         public void Dispose()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             if (connFP.IsOpen)
                 connFP.Close();
             ((IDisposable)connFP).Dispose();
@@ -131,10 +147,10 @@ namespace CentralLib.Protocols
             }
         }
 
-        
+
 
         private DayReport tDayReport;
-        public virtual  DayReport dayReport
+        public virtual DayReport dayReport
         {
             get
             {
@@ -146,6 +162,7 @@ namespace CentralLib.Protocols
 
         private DayReport getDayReport()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] bytesReturn;
             {
                 byte[] forsending = new byte[] { 42 };
@@ -160,7 +177,7 @@ namespace CentralLib.Protocols
                     return new DayReport();
                 }
             }
-           
+
 
             return new DayReport(bytesReturn);
         }
@@ -170,7 +187,7 @@ namespace CentralLib.Protocols
         {
             get
             {
-
+                logger.Trace("get "+this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
                 byte[] answer = ExchangeWithFP(new byte[] { 1 }).bytesReturn;
 
                 if (connFP.statusOperation)
@@ -205,13 +222,14 @@ namespace CentralLib.Protocols
             }
             set
             {
+                logger.Trace("set "+this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
                 byte hh = Convert.ToByte(Convert.ToInt32(value.ToString("HH"), 16));
                 byte mm = Convert.ToByte(Convert.ToInt32(value.ToString("mm"), 16));
                 byte ss = Convert.ToByte(Convert.ToInt32(value.ToString("ss"), 16));
                 byte[] answerTime = ExchangeWithFP(new byte[] { 4, hh, mm, ss }).bytesReturn;
 
-                
-                
+
+
                 //if (connFP.statusOperation)
                 //{
                 //    byte dd = Convert.ToByte(Convert.ToInt32(value.ToString("dd"), 16));
@@ -243,6 +261,7 @@ namespace CentralLib.Protocols
         /// </summary>
         public virtual ReturnedStruct getStatus()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[] { 0 };
             var forReturn = ExchangeWithFP(forsending);
             byte[] answer = forReturn.bytesReturn;
@@ -358,7 +377,7 @@ namespace CentralLib.Protocols
         public WorkProtocol currentProtocol;
         public IConnectFactory connFP { get; set; }
 
-        
+
         public string errorInfo;
 
         public byte? lastByteCommand = null;
@@ -376,6 +395,7 @@ namespace CentralLib.Protocols
 
         private byte[] prExchangeWithFP(byte[] inputByte)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] answer;
             this.lastByteCommand = inputByte[0];
             answer = connFP.dataExchange(inputByte, useCRC16, false);
@@ -404,24 +424,31 @@ namespace CentralLib.Protocols
 
         public ReturnedStruct ExchangeWithFP(byte[] inputByte)
         {
-
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             ReturnedStruct forReturn = new ReturnedStruct();
             forReturn.bytesSend = inputByte;
             forReturn.command = inputByte[0];
             byte[] answer;
             this.lastByteCommand = inputByte[0];
+            logger.Trace(">>>connFP.dataExchange");
             answer = connFP.dataExchange(inputByte, useCRC16, false);
+            logger.Trace("<<<connFP.dataExchange");
             if (!connFP.statusOperation) //repetition if error
             {
+                logger.Trace("Sleep=800");
                 Thread.Sleep(800);
-
+                logger.Trace(">>>connFP.dataExchange");
                 answer = connFP.dataExchange(inputByte, useCRC16, true);
+                logger.Trace("<<<connFP.dataExchange");
             }
             if (!connFP.statusOperation) //repetition if error
             {
                 //TODO: большая проблема искать в чем причина
+                logger.Trace("Sleep2=800");
                 Thread.Sleep(800);
+                logger.Trace(">>>connFP.dataExchange");
                 answer = connFP.dataExchange(inputByte, useCRC16, true);
+                logger.Trace("<<<connFP.dataExchange");
 
             }
             forReturn.bytesReturn = answer;
@@ -433,7 +460,7 @@ namespace CentralLib.Protocols
             this.ByteReserv = connFP.ByteReserv;
             forReturn.ByteReserv = connFP.ByteReserv;
             this.errorInfo = connFP.errorInfo;
-            
+
             this.statusOperation = connFP.statusOperation;
             forReturn.statusOperation = connFP.statusOperation;
 
@@ -447,6 +474,7 @@ namespace CentralLib.Protocols
         #region GetMemmory
         public byte[] GetMemmory(byte[] AddressOfBlock, byte NumberOfPage, byte SizeOfBlock) //прочитать блок памяти регистратора
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[] { 28 };
             forsending = byteHelper.Combine(forsending, new byte[] { AddressOfBlock[1], AddressOfBlock[0] });
             forsending = byteHelper.Combine(forsending, new byte[] { NumberOfPage, SizeOfBlock });
@@ -460,11 +488,12 @@ namespace CentralLib.Protocols
 
         private string getstringProtocol()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[] { 28, 00, 30 };
             byte[] answer = ExchangeWithFP(forsending).bytesReturn;
             forsending = new byte[] { 0 };
             answer = ExchangeWithFP(forsending).bytesReturn;
-            string tCurProtocol="";
+            string tCurProtocol = "";
             if ((connFP.statusOperation) && (answer.Length > 21))
             {
                 tCurProtocol = byteHelper.EncodingBytes(answer, answer.Length - 5, 5);
@@ -474,8 +503,9 @@ namespace CentralLib.Protocols
 
         public BaseProtocol getCurrentProtocol()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             string tPr = getstringProtocol();
-            
+
 
 
             if (connFP.IsOpen)
@@ -489,12 +519,12 @@ namespace CentralLib.Protocols
                 if (this.defaultPortCom != null)
                 {
                     this.connFP = new CentralLib.Connections.ConnectFP_EP11(this.defaultPortCom);
-                    return new Protocol_EP11(this.defaultPortCom);
+                    return new Protocol_EP11(this.defaultPortCom, FPNumber);
                 }
                 else
                 {
-                    this.connFP = new ConnectNetFP_EP11(this.IpAdress, this.port);
-                    return new Protocol_EP11(this.IpAdress, this.port);
+                    this.connFP = new ConnectNetFP_EP11(this.IpAdress, this.port, FPNumber);
+                    return new Protocol_EP11(this.IpAdress, this.port, FPNumber);
                 }
             }
             else if ((tPr.Length > 2) && ((tPr.Substring(0, 2) == "ЕП")))
@@ -505,12 +535,12 @@ namespace CentralLib.Protocols
                 if (this.defaultPortCom != null)
                 {
                     this.connFP = new CentralLib.Connections.ConnectFP_EP06(this.defaultPortCom);
-                    return new Protocol_EP06(this.defaultPortCom);
+                    return new Protocol_EP06(this.defaultPortCom, FPNumber);
                 }
                 else
                 {
-                    this.connFP = new ConnectNetFP_EP06(this.IpAdress, this.port);
-                    return new Protocol_EP06(this.IpAdress, this.port);
+                    this.connFP = new ConnectNetFP_EP06(this.IpAdress, this.port, FPNumber);
+                    return new Protocol_EP06(this.IpAdress, this.port, FPNumber);
                 }
             }
             else if (tPr == "ОП-02")
@@ -520,21 +550,22 @@ namespace CentralLib.Protocols
                 if (this.defaultPortCom != null)
                 {
                     this.connFP = new CentralLib.Connections.ConnectFP_EP06(this.defaultPortCom);
-                    return new Protocol_OP02(this.defaultPortCom);
+                    return new Protocol_OP02(this.defaultPortCom, FPNumber);
                 }
                 else
                 {
-                    this.connFP = new ConnectNetFP_EP06(this.IpAdress, this.port);
-                    return new Protocol_OP02(this.IpAdress, this.port);
-                } 
+                    this.connFP = new ConnectNetFP_EP06(this.IpAdress, this.port, FPNumber);
+                    return new Protocol_OP02(this.IpAdress, this.port, FPNumber);
+                }
             }
 
-                throw new ApplicationException("Протокол не определен, работа программы не возможна");
+            throw new ApplicationException("Протокол не определен, работа программы не возможна");
             //return null;
         }
 
         public virtual ReturnedStruct FPArtReport(ushort pass = 0, uint? CodeBeginning = default(uint?), uint? CodeFinishing = default(uint?))
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             throw new NotImplementedException();
         }
 
@@ -547,6 +578,7 @@ namespace CentralLib.Protocols
         /// <returns>номер пакета чека в КЛЕФ</returns>
         public virtual UInt32 FPCashOut(UInt32 Summa)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[] { 24 };
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(Summa));
             byte[] answer = ExchangeWithFP(forsending).bytesReturn;
@@ -562,6 +594,7 @@ namespace CentralLib.Protocols
         /// <returns>номер пакета чека в КЛЕФ</returns>
         public virtual UInt32 FPCashIn(UInt32 Summa)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[] { 16 };
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(Summa));
             byte[] answer = ExchangeWithFP(forsending).bytesReturn;
@@ -583,17 +616,19 @@ namespace CentralLib.Protocols
         /// <param name="OpenRefundReceipt">= 1 – открытие чека выплаты</param>
         public virtual ReturnedStruct FPCommentLine(string CommentLine, bool OpenRefundReceipt = false)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[] { 11 };//Comment            
             byte length;
             byte[] stringBytes = byteHelper.CodingBytes(CommentLine, 27, out length);
             length = byteHelper.SetBit(length, 7, OpenRefundReceipt);
             forsending = byteHelper.Combine(forsending, new byte[] { length });
             forsending = byteHelper.Combine(forsending, stringBytes);
-           return ExchangeWithFP(forsending);
+            return ExchangeWithFP(forsending);
         }
 
         public virtual ReturnedStruct FPCplOnline()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             throw new NotImplementedException();
         }
 
@@ -604,9 +639,10 @@ namespace CentralLib.Protocols
         /// <param name="pass"></param>
         public virtual ReturnedStruct FPDayClrReport(ushort pass = 0)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[] { 13 };
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(pass));
-            return ExchangeWithFP(forsending);            
+            return ExchangeWithFP(forsending);
         }
 
         /// <summary>
@@ -616,6 +652,7 @@ namespace CentralLib.Protocols
         /// <param name="pass">пароль отчетов</param>
         public virtual ReturnedStruct FPDayReport(ushort pass = 0)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[3];
             byte[] passByte = BitConverter.GetBytes(pass);
             forsending[0] = 9;
@@ -627,11 +664,13 @@ namespace CentralLib.Protocols
 
         public virtual string FPGetPayName(byte PayType)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             throw new NotImplementedException();
         }
 
         public virtual ReturnedStruct FPGetTaxRate()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             throw new NotImplementedException();
         }
 
@@ -640,12 +679,14 @@ namespace CentralLib.Protocols
         /// </summary>
         public virtual ReturnedStruct FPLineFeed()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[] { 14 };
             return ExchangeWithFP(forsending);
         }
 
         public virtual ReturnedStruct FPOpenBox(byte impulse = 0)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             throw new NotImplementedException();
         }
 
@@ -668,10 +709,11 @@ namespace CentralLib.Protocols
         /// <returns>остаток или сдача (бит 31 = 1 – сдача), номер пакета чека в КЛЕФ</returns>
         public virtual PaymentInfo FPPayment(byte Payment_Status, uint Payment, bool CheckClose, bool FiscStatus, string AuthorizationCode = "")
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[] { 20 };
             Payment_Status = byteHelper.SetBit(Payment_Status, 6, !FiscStatus);
             forsending = byteHelper.Combine(forsending, new byte[] { Payment_Status });
-            byte[] bytePayment = BitConverter.GetBytes(byteHelper.WriteBitUInt32(Payment, 31, CheckClose));            
+            byte[] bytePayment = BitConverter.GetBytes(byteHelper.WriteBitUInt32(Payment, 31, CheckClose));
             forsending = byteHelper.Combine(forsending, bytePayment);
             forsending = byteHelper.Combine(forsending, new byte[] { 0 });
             //if (AuthorizationCode.Length != 0)
@@ -681,7 +723,7 @@ namespace CentralLib.Protocols
             byte[] answer = _paymentInfo.returnedStruct.bytesReturn;
             if ((statusOperation) && (answer.Length > 3))
             {
-                
+
                 UInt32 tinfo = BitConverter.ToUInt32(answer, 0);
                 if (byteHelper.GetBit(answer[3], 7))
                 {
@@ -720,8 +762,10 @@ namespace CentralLib.Protocols
         /// <param name="StrCode">код товара</param>
         /// <param name="PrintingOfBarCodesOfGoods">=1 – печать штрих-кода товара (EAN13) - !!!! работает только в 11 протоколе</param>
         /// <returns></returns>
-        public virtual ReceiptInfo FPPayMoneyEx(ushort Amount, byte Amount_Status, bool IsOneQuant, int Price, ushort NalogGroup, bool MemoryGoodName, string GoodName, ulong StrCode, bool PrintingOfBarCodesOfGoods = false)
+        public virtual ReceiptInfo FPPayMoneyEx(ushort Amount, byte Amount_Status, bool IsOneQuant, int Price,
+            ushort NalogGroup, bool MemoryGoodName, string GoodName, ulong StrCode, bool PrintingOfBarCodesOfGoods = false)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[] { 8 };
 
             forsending = byteHelper.Combine(forsending, byteHelper.ConvertUint32ToArrayByte3(Amount));
@@ -769,6 +813,7 @@ namespace CentralLib.Protocols
 
         public virtual ReturnedStruct FPPeriodicReport(ushort pass, DateTime FirstDay, DateTime LastDay)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[9];
             byte[] passByte = BitConverter.GetBytes(pass);
             forsending[0] = 17;
@@ -786,6 +831,7 @@ namespace CentralLib.Protocols
 
         public virtual ReturnedStruct FPPeriodicReport2(ushort pass, ushort FirstNumber, ushort LastNumber)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[7];
             byte[] passByte = BitConverter.GetBytes(pass);
             forsending[0] = 31;
@@ -803,6 +849,7 @@ namespace CentralLib.Protocols
 
         public virtual ReturnedStruct FPPeriodicReportShort(ushort pass, DateTime FirstDay, DateTime LastDay)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[9];
             byte[] passByte = BitConverter.GetBytes(pass);
             forsending[0] = 26;
@@ -824,12 +871,14 @@ namespace CentralLib.Protocols
         /// </summary>
         public virtual ReturnedStruct FPPrintVer()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[] { 32 };
             return ExchangeWithFP(forsending);
         }
 
         public virtual uint FPPrintZeroReceipt()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[] { 11 };//Comment            
             byte length;
             byte[] stringBytes = byteHelper.CodingBytes("Нульовий чек", 27, out length);
@@ -858,6 +907,7 @@ namespace CentralLib.Protocols
         /// <param name="Password">Пароль</param>
         public virtual ReturnedStruct FPRegisterCashier(byte CashierID, string Name, ushort Password = 0)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[] { 6 };//SetCashier
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(Password));
             forsending = byteHelper.Combine(forsending, new byte[] { CashierID });
@@ -874,6 +924,7 @@ namespace CentralLib.Protocols
         /// </summary>
         public virtual ReturnedStruct FPResetOrder() //обнуление чека
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[] { 15 };
             return ExchangeWithFP(forsending);
         }
@@ -900,11 +951,12 @@ namespace CentralLib.Protocols
         /// <param name="PrintingOfBarCodesOfGoods">печать штрих-кода товара (EAN13) - !!!!! Используется только в 11 протоколе</param>
         public virtual ReceiptInfo FPSaleEx(ushort Amount, byte Amount_Status, bool IsOneQuant, int Price, ushort NalogGroup, bool MemoryGoodName, string GoodName, ulong StrCode, bool PrintingOfBarCodesOfGoods = false)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[] { 18 };
 
             forsending = byteHelper.Combine(forsending, byteHelper.ConvertUint32ToArrayByte3(Amount));
             Amount_Status = byteHelper.SetBit(Amount_Status, 7, IsOneQuant);
-            if (Amount==1)
+            if (Amount == 1)
             {
                 Amount_Status = byteHelper.SetBit(Amount_Status, 7, true);
             }
@@ -939,7 +991,7 @@ namespace CentralLib.Protocols
             }
             forsending = byteHelper.Combine(forsending, byteHelper.ConvertUint64ToArrayByte6(StrCode));
             byte[] answer = ExchangeWithFP(forsending).bytesReturn;
-            if (answer.Length!=8)
+            if (answer.Length != 8)
             {
                 throw new ApplicationException(String.Format("не правильный ответ сервера на строку чека, нужно 8 байт - ответ {0}!!!!", answer.Length));
             }
@@ -955,27 +1007,32 @@ namespace CentralLib.Protocols
 
         public virtual ReturnedStruct FPSetHeadLine(ushort Password, string StringInfo1, bool StringInfo1DoubleHeight, bool StringInfo1DoubleWidth, string StringInfo2, bool StringInfo2DoubleHeight, bool StringInfo2DoubleWidth, string StringInfo3, bool StringInfo3DoubleHeight, bool StringInfo3DoubleWidth, string TaxNumber, bool AddTaxInfo)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             throw new NotImplementedException();
         }
 
         public virtual ReturnedStruct FPSetPassword(byte UserID, ushort OldPassword, ushort NewPassword)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             throw new NotImplementedException();
         }
 
         public virtual ReturnedStruct FPSetTaxRate(ushort Password, Taxes tTaxes)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             throw new NotImplementedException();
         }
 
         public virtual bool showBottomString(string Info)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             //throw new NotImplementedException();
             return true;
         }
 
         public virtual bool showTopString(string Info)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             //throw new NotImplementedException();
             return true;
         }
@@ -987,9 +1044,10 @@ namespace CentralLib.Protocols
         /// <returns></returns>
         public UInt32 GetMoneyInBox()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[] { 33 };
             byte[] answer = ExchangeWithFP(forsending).bytesReturn;
-            if (answer.Length==5)
+            if (answer.Length == 5)
             {
                 return BitConverter.ToUInt32(answer, 0);
             }
@@ -1004,6 +1062,7 @@ namespace CentralLib.Protocols
         /// <returns></returns>
         public bool FPCplCutter()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[] { 46 };
             byte[] answer = ExchangeWithFP(forsending).bytesReturn;
             return statusOperation;
@@ -1016,6 +1075,7 @@ namespace CentralLib.Protocols
         /// <param name="Enable">Если true то включаем, если false то нет</param>
         public virtual bool setFPCplCutter(bool Enable)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             byte[] forsending = new byte[] { 28, 0x1A, 0x30, 16, 1 };
             byte[] answer = ExchangeWithFP(forsending).bytesReturn;
             bool csetCutterFobbiden = byteHelper.GetBit(answer[0], 3); // true запрещена, false разрешена
@@ -1028,8 +1088,9 @@ namespace CentralLib.Protocols
 
         public void FPNullCheck()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             FPPrintZeroReceipt();
-            
+
         }
     }
 }

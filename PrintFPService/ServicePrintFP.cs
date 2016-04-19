@@ -11,12 +11,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Management;
+using NLog;
 
 namespace PrintFPService
 {
     public partial class ServicePrintFP : ServiceBase
     {
-        private System.Diagnostics.EventLog eventLog1;
+        //private System.Diagnostics.EventLog eventLog1;
+        private Logger logger = LogManager.GetCurrentClassLogger();
         private SmartApps apps;
 
         private string[] args;
@@ -25,21 +27,22 @@ namespace PrintFPService
         {
             InitializeComponent();
             this.ServiceName = "ServicePrintFP";
-            eventLog1 = new System.Diagnostics.EventLog();
-            if (!System.Diagnostics.EventLog.SourceExists("ServiceFP"))
-            {
-                System.Diagnostics.EventLog.CreateEventSource(
-                    "ServiceFP", "ServiceFPLog");
-            }
-            eventLog1.Source = "ServiceFP";
-            eventLog1.Log = "ServiceFPLog";
+            //eventLog1 = new System.Diagnostics.EventLog();
+            //if (!System.Diagnostics.EventLog.SourceExists("ServiceFP"))
+            //{
+            //    System.Diagnostics.EventLog.CreateEventSource(
+            //        "ServiceFP", "ServiceFPLog");
+            //}
+            //eventLog1.Source = "ServiceFP";
+            //eventLog1.Log = "ServiceFPLog";
             this.args = args;
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
         }
 
         public void onDebug(params string[] args)
         {
 
-            eventLog1.WriteEntry("In onDebug");
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             OnStart(args);
         }
 
@@ -52,12 +55,12 @@ namespace PrintFPService
 
         protected override void OnStart(params string[] args)
         {
-            eventLog1.WriteEntry("In OnStart");
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             string compname = "";
             List<int> fpnumbers = new List<int>();
             if (args.Length != 0)
             {
-                eventLog1.WriteEntry("Next1");
+                logger.Trace("Next step 1");
                 var os = new OptionSet()
                         .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumbers.Add(int.Parse(a)))
                        .Add("cn|compname=", "set computer name", cn => compname = cn);
@@ -67,7 +70,7 @@ namespace PrintFPService
                 }
                 catch (Exception e)
                 {
-                    eventLog1.WriteEntry(e.Message, EventLogEntryType.Error);
+                    logger.Error(e);
                     throw e;
                 }
 
@@ -77,10 +80,10 @@ namespace PrintFPService
             }
             else if (this.args.Length != 0)
             {
-                eventLog1.WriteEntry("Next2");
+                logger.Trace("Next step 2");
                 foreach (var arg in this.args)
                 {
-                    eventLog1.WriteEntry(arg);
+                    logger.Trace(arg);
                 }
 
                 var os = new OptionSet()
@@ -92,7 +95,7 @@ namespace PrintFPService
                 }
                 catch (Exception e)
                 {
-                    eventLog1.WriteEntry(e.Message, EventLogEntryType.Error);
+                    logger.Error(e);
                     throw e;
                 }
 
@@ -105,7 +108,7 @@ namespace PrintFPService
 
         protected override void OnStop()
         {
-            eventLog1.WriteEntry("In OnStop");
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             if (apps != null)
                 apps.OnStop();
         }
@@ -119,46 +122,55 @@ namespace PrintFPService
         private List<int> fpnumbers = new List<int>();
         private System.Timers.Timer _timer;
         private System.Object lockThis = new System.Object();
+        private static Logger logger = LogManager.GetCurrentClassLogger();
+
 
         public SmartApps(string compname)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             listApp = new Dictionary<int, StartApp>();
             this.compname = compname;
+            logger.Trace("SmartApps=>{0}", compname);
 
         }
 
         public SmartApps(string compname, List<int> fpnumbers)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             listApp = new Dictionary<int, StartApp>();
             this.compname = compname;
             this.fpnumbers = fpnumbers;
+            logger.Trace("SmartApps=>{0} =>{1}", compname, fpnumbers.ToString());
 
         }
 
         public void OnStart()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             lock (lockThis)
             {
                 InitApps();
             }
-                setTimer();
-            
+            setTimer();
+
         }
 
         public void OnStart(string compname)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             this.compname = compname;
             OnStart();
         }
 
         public void OnStop()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             lock (lockThis)
             {
                 _timer.Stop();
                 _timer.Close();
 
-                Thread.Sleep(300);
+                Thread.Sleep(1000);
                 deleteApps();
                 _timer.Dispose();
             }
@@ -166,6 +178,7 @@ namespace PrintFPService
 
         private void InitApps()
         {
+            logger.Trace(this.GetType().FullName+"."+ System.Reflection.MethodBase.GetCurrentMethod().Name);
             using (DataClassesFocusADataContext _focusA = new DataClassesFocusADataContext())
             {
                 Table<tbl_ComInit> tblComInit = _focusA.GetTable<tbl_ComInit>();
@@ -173,28 +186,28 @@ namespace PrintFPService
                 var tfp = fpnumbers.ToArray();
                 if (fpnumbers.Count > 0)
                 {
-                    comInit = (from table in tblComInit                                                                     
-                                   where table.Init == true                                   
-                                   && table.WorkOff != true
-                                   && table.auto==true
-                                   && table.CompName.ToLower() == compname.ToLower()
-                                   select table).Where(x=>fpnumbers.Contains(x.FPNumber.GetValueOrDefault())).ToList();
+                    comInit = (from table in tblComInit
+                               where table.Init == true
+                               && table.WorkOff != true
+                               && table.auto == true
+                               && table.CompName.ToLower() == compname.ToLower()
+                               select table).Where(x => fpnumbers.Contains(x.FPNumber.GetValueOrDefault())).ToList();
                 }
                 else
                 {
-                    comInit = (from table in tblComInit                                   
-                                   where table.Init == true
-                                   && table.WorkOff != true
-                                   && table.auto == true
-                                   && table.CompName.ToLower() == compname.ToLower()
-                                   select table).ToList();
+                    comInit = (from table in tblComInit
+                               where table.Init == true
+                               && table.WorkOff != true
+                               && table.auto == true
+                               && table.CompName.ToLower() == compname.ToLower()
+                               select table).ToList();
                 }
                 foreach (var rowinit in comInit)
                 {
-                    
+
                     if (!listApp.ContainsKey(rowinit.FPNumber.GetValueOrDefault()))//(listApp[rowinit.FPNumber.GetValueOrDefault()]==null)
-                    {
-                        StartApp newApp = new StartApp(new Guid(), new string[] { string.Format("--fp={0}", rowinit.FPNumber) });
+                    {                       
+                        StartApp newApp = new StartApp(Guid.NewGuid(), new string[] { string.Format("--fp={0}", rowinit.FPNumber) });
                         listApp.Add(rowinit.FPNumber.GetValueOrDefault(), newApp);
                         newApp.OnStart();
                         Thread.Sleep(300);
@@ -224,6 +237,7 @@ namespace PrintFPService
 
         private void controlApps()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             using (DataClassesFocusADataContext _focusA = new DataClassesFocusADataContext())
             {
                 Table<tbl_ComInit> tblComInit = _focusA.GetTable<tbl_ComInit>();
@@ -233,7 +247,7 @@ namespace PrintFPService
                     tbl_ComInit comInit;
                     if (fpnumbers.Count != 0)
                     {
-                        comInit = (from table in tblComInit                                   
+                        comInit = (from table in tblComInit
                                    where table.Init == true
                                    && table.CompName.ToLower() == compname.ToLower()
                                    && table.FPNumber == app.Key
@@ -246,7 +260,7 @@ namespace PrintFPService
                                    && table.FPNumber == app.Key
                                    select table).FirstOrDefault();
                     }
-                    if (comInit == null) 
+                    if (comInit == null)
                     {
                         forDelete.Add(app.Key);
                         if (app.Value.Active())
@@ -269,11 +283,12 @@ namespace PrintFPService
                     listApp.Remove(del);
                 }
             }
-            KillProc();
+            //KillProc();
         }
 
         private void deleteApps()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             using (DataClassesFocusADataContext _focusA = new DataClassesFocusADataContext())
             {
                 Table<tbl_ComInit> tblComInit = _focusA.GetTable<tbl_ComInit>();
@@ -281,19 +296,27 @@ namespace PrintFPService
                 {
 
                     var comInit = (from table in tblComInit
-                                   where  table.CompName.ToLower() == compname.ToLower()
+                                   where table.CompName.ToLower() == compname.ToLower()
                                    && table.FPNumber == app.Key
                                    select table).FirstOrDefault();
                     if (comInit != null)
                     {
                         comInit.Error = true;
-                        comInit.ErrorInfo = "остановка сервиса";
+                        comInit.ErrorInfo = "остановка сервиса, завершение процессов";
+                        logger.Warn(comInit.ErrorInfo);
                         _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                     }
-
+                    var loginfo = (from log in _focusA.GetTable<tbl_SyncFP>()
+                                   where log.FPNumber == app.Key
+                                   select log).FirstOrDefault();
+                    if (loginfo != null)
+                    {
+                        loginfo.DateTimeSync = DateTime.Now;
+                        loginfo.Status = "остановка сервиса, завершение процесса";
+                    }
                     //if (app.Value.Active())
-                        app.Value.OnStop();                   
-            }
+                    app.Value.OnStop();
+                }
                 listApp.Clear();
             }
         }
@@ -306,6 +329,7 @@ namespace PrintFPService
         /// </summary>
         private void KillProc()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             Process[] processlist = Process.GetProcesses().Where(x => x.ProcessName.ToLower() == "PrintFp".ToLower()).ToArray();
 
             foreach (Process theprocess in processlist)
@@ -314,8 +338,9 @@ namespace PrintFPService
                     .Where(x => x.Value.Active() && x.Value.proccesId == theprocess.Id)
                     .Select(e => (KeyValuePair<int, StartApp>?)e)
                     .FirstOrDefault();
-               if (getApp==null)
+                if (getApp == null)
                 {
+                    //TODO переделать анализ строки процессов под regex, с более правильным анализом
                     if (theprocess.GetCommandLine().Contains("-a --fp="))
                     {
                         theprocess.Kill();
@@ -327,6 +352,8 @@ namespace PrintFPService
 
         private void setTimer()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
+            
             _timer = new System.Timers.Timer();
             _timer.Interval = (30000);
             //_timer.Interval = (100);
@@ -336,6 +363,7 @@ namespace PrintFPService
 
         private void HandleTimerElapsed()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             _timer.Stop();
             lock (lockThis)
             {
@@ -345,6 +373,29 @@ namespace PrintFPService
             _timer.Start();
         }
 
+        /// <summary>
+        /// Для самостоятельного отключения app по возможности
+        /// </summary>
+        private void setAutoAllOFF()
+        {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
+            using (DataClassesFocusADataContext focusA = new DataClassesFocusADataContext())
+            {
+                foreach (var app in listApp)
+                {
+                    var rowinit = (from tinit in focusA.GetTable<tbl_ComInit>()
+                                   where tinit.FPNumber == app.Key
+                                   select tinit).FirstOrDefault();
+                    if (rowinit!=null)
+                    {
+                        rowinit.auto = false;
+                    }                   
+                }
+                focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+            }
+        }
+
+
     }
 
     public class StartApp
@@ -352,6 +403,9 @@ namespace PrintFPService
         private ProcessStartInfo processInfo;
         public Guid appGuid { get; private set; }
         private Process process;
+
+        private Logger logger = LogManager.GetCurrentClassLogger();
+
         public int proccesId
         {
             get
@@ -362,106 +416,128 @@ namespace PrintFPService
         private bool active;
         //private SyncHameleon.Postrgres post;
         public string fpnumber { get; private set; }
+        public int FPNumber { get; private set; }
         public string compname { get; private set; }
-        private System.Diagnostics.EventLog eventLog1;
+        ///private System.Diagnostics.EventLog eventLog1;
 
-        private void baseInit()
-        {
-            eventLog1 = new System.Diagnostics.EventLog();
-            if (!System.Diagnostics.EventLog.SourceExists("ServiceFP"))
-            {
-                System.Diagnostics.EventLog.CreateEventSource(
-                    "ServiceFP", "ServiceFPLog");
-            }
-            eventLog1.Source = "ServiceFP";
-            eventLog1.Log = "ServiceFPLog";
-            eventLog1.WriteEntry("On init:" + fpnumber, EventLogEntryType.Information);
-        }
+        //private void baseInit()
+        //{
+        //    eventLog1 = new System.Diagnostics.EventLog();
+        //    if (!System.Diagnostics.EventLog.SourceExists("ServiceFP"))
+        //    {
+        //        System.Diagnostics.EventLog.CreateEventSource(
+        //            "ServiceFP", "ServiceFPLog");
+        //    }
+        //    eventLog1.Source = "ServiceFP";
+        //    eventLog1.Log = "ServiceFPLog";
+        //    eventLog1.WriteEntry("On init:" + fpnumber, EventLogEntryType.Information);
+        //}
 
-        public StartApp (Guid inGuid, int inFPNumber)
+        public StartApp(Guid inGuid, int inFPNumber)
         {
             appGuid = inGuid;
             fpnumber = inFPNumber.ToString();
-            baseInit();
+            FPNumber = inFPNumber;
+            NLog.GlobalDiagnosticsContext.Set("FPNumber", fpnumber);
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
+            // baseInit();
             init(compname, fpnumber);
         }
 
         public StartApp(Guid inGuid, params string[] args)
         {
+            appGuid = inGuid;
 
 
-            baseInit();
+            //baseInit();
             var os = new OptionSet()
                 .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumber = a)
                        .Add("cn|compname=", "set computer name", cn => compname = cn);
             try
             {
                 var p = os.Parse(args);
-                baseInit();
+                NLog.GlobalDiagnosticsContext.Set("FPNumber", fpnumber);
+                FPNumber = int.Parse(fpnumber);
+                logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
+                //baseInit();
             }
             catch (Exception e)
             {
-                eventLog1.WriteEntry(e.Message, EventLogEntryType.Error);
+                logger.Error(e);
+                //eventLog1.WriteEntry(e.Message, EventLogEntryType.Error);
             }
-            
+
             init(compname, fpnumber);
         }
 
         private void init(string compname, string fpnumber)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             processInfo = new ProcessStartInfo
             {
-                UseShellExecute = false, // change value to false
+                //UseShellExecute = false, // change value to false
+                UseShellExecute = false,
                 FileName = AppDomain.CurrentDomain.BaseDirectory + @"PrintFp.exe",
                 Arguments = string.Format("-a --fp={0} --g={1}", fpnumber, appGuid),
-                RedirectStandardError = true,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                CreateNoWindow = true,
+                //RedirectStandardError = true,
+                //RedirectStandardInput = true,
+                //RedirectStandardOutput = true,
+                //CreateNoWindow = true,
+                CreateNoWindow=false,
                 ErrorDialog = false,
                 WindowStyle = ProcessWindowStyle.Hidden,
-                Verb = "runas"
+                //ErrorDialog = false,
+                //WindowStyle = ProcessWindowStyle.Hidden,
+                 Verb = "runas"
             };
-            process = new Process();            
+            process = new Process();
             process.StartInfo = processInfo;
             process.EnableRaisingEvents = true;
             process.Exited += new EventHandler(myProcess_Exited);
+            active = true;
         }
 
         public bool Active()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             try
             {
-                var chosen = Process.GetProcessById(process.Id);                
+                var chosen = Process.GetProcessById(process.Id);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                eventLog1.WriteEntry("Active:" + fpnumber+" get a no fatal error->"+ ex.Message, EventLogEntryType.Information);
+                logger.Error(ex);
+                //eventLog1.WriteEntry("Active:" + fpnumber+" get a no fatal error->"+ ex.Message, EventLogEntryType.Information);
                 return false;
             }
-                        
+
             return active;
         }
 
         public void OnStart()
         {
-            eventLog1.WriteEntry("On start:"+fpnumber, EventLogEntryType.Information);
+            //eventLog1.WriteEntry("On start:"+fpnumber, EventLogEntryType.Information);
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             try
             {
                 active = process.Start();
+                logger.Trace("set active={0}", active);
             }
-            catch(ObjectDisposedException ex)
+            catch (ObjectDisposedException ex)
             {
                 init(compname, fpnumber);
                 active = process.Start();
-                eventLog1.WriteEntry(ex.Message, EventLogEntryType.Error);
+                
+                logger.Error(ex);
+                //eventLog1.WriteEntry(ex.Message, EventLogEntryType.Error);
             }
 
         }
 
         public void OnStop()
         {
-            eventLog1.WriteEntry("On stop:" + fpnumber, EventLogEntryType.Information);
+            //eventLog1.WriteEntry("On stop:" + fpnumber, EventLogEntryType.Information);
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             if ((active) && (process != null) && (process.Id != 0))
                 process.Kill();
             process.Close();
@@ -471,7 +547,30 @@ namespace PrintFPService
 
         private void myProcess_Exited(object sender, System.EventArgs e)
         {
-            eventLog1.WriteEntry("On myProcess_Exited:" + fpnumber, EventLogEntryType.Information);
+            //eventLog1.WriteEntry("On myProcess_Exited:" + fpnumber, EventLogEntryType.Information);
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
+            using (DataClassesFocusADataContext _focusA = new DataClassesFocusADataContext())
+            {
+                var tinit = (from rowinit in _focusA.GetTable<tbl_ComInit>()
+                             where rowinit.FPNumber == FPNumber
+                             select rowinit).FirstOrDefault();
+                if (tinit != null)
+                {
+                    tinit.Error = true;
+                    tinit.ErrorInfo = "Завершение процесса";
+                }
+                var loginfo = (from log in _focusA.GetTable<tbl_SyncFP>()
+                               where log.FPNumber == FPNumber
+                               select log).FirstOrDefault();
+                if (loginfo != null)
+                {
+                    loginfo.DateTimeSync = DateTime.Now;
+                    loginfo.Status = "Завершение процесса";
+                }
+                _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+            }
+
+            logger.Error(e);
             active = false;
         }
 

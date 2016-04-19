@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.Collections.Generic;
 using System.Data.Linq;
 using System.Linq;
@@ -9,6 +10,8 @@ namespace PrintFP
 {
     public static class UpdateStatusFP
     {
+        private static Logger logger = LogManager.GetCurrentClassLogger();
+
         public static void setStatusFP(int FPnumber, string infoStatus)
         {
             using (DataClasses1DataContext focusA = new DataClasses1DataContext())
@@ -31,6 +34,8 @@ namespace PrintFP
                     st.DateTimeSync = DateTime.Now;
                     st.Status = infoStatus;
                 }
+                NLog.GlobalDiagnosticsContext.Set("FPNumber", FPnumber);
+                logger.Trace(infoStatus);
                 focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
             }
         }

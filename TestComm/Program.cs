@@ -23,40 +23,42 @@ namespace TestComm
 
     class Program
     {
-        static int ConsecutiveNumber = 0;
+        //static int ConsecutiveNumber = 0;
         static ByteHelper byteHelper = new ByteHelper();
         private static Logger logger = LogManager.GetCurrentClassLogger();
+        //private static ProcessStartInfo processInfo;
+        public static Guid appGuid = Guid.NewGuid();
+        //private static Process process;
+
 
         static void Main(string[] args)
         {
-            NLog.GlobalDiagnosticsContext.Set("FPNumber", 1);
-            System.Data.SqlClient.SqlConnection sqlConnection1 = new System.Data.SqlClient.SqlConnection("Data Source=focus-a;Initial Catalog=FPWork;User ID=sa;Password=1СПредприятие82");
-
-            System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand();
-            cmd.CommandType = System.Data.CommandType.Text;
-            cmd.CommandText = "INSERT tbl_Log (FPNumber, Timestamp) VALUES (5, getdate())";
-            cmd.Connection = sqlConnection1;
-
-            sqlConnection1.Open();
-            cmd.ExecuteNonQuery();
-            sqlConnection1.Close();
 
 
-            Process[] processlist = Process.GetProcesses().Where(x=>x.ProcessName.ToLower()=="PrintFp".ToLower()).ToArray();
 
-            foreach (Process theprocess in processlist)
+
+            //logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
+            ProcessStartInfo processInfo = new ProcessStartInfo
             {
-                try
-                {
-                    logger.Trace("id={0}, name={1}", theprocess.Id, theprocess.ProcessName);
-                    logger.Trace(theprocess.GetCommandLine());
-                    logger.Trace(new string('-',50));
-                }
-                catch
-                {
+                UseShellExecute = false, // change value to false
+                FileName = AppDomain.CurrentDomain.BaseDirectory + @"PrintFp.exe",
+                Arguments = string.Format("-a --fp={0}", 10014193, appGuid),
+                //RedirectStandardError = true,
+                //RedirectStandardInput = true,
+                //RedirectStandardOutput = true,
+                CreateNoWindow = true,
+                ErrorDialog = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                Verb = "runas"
+            };
+            Process process = new Process();
+            process.StartInfo = processInfo;
+            //bool active = process.Start();
 
-                }
-            }
+            ThreadStart ths = new ThreadStart(() => process.Start());
+            Thread th = new Thread(ths);
+            th.Start();
+
 
             //byteHelper = new ByteHelper();
             //ConsecutiveNumber = 1;

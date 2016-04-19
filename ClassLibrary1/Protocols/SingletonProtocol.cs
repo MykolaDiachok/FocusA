@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,18 +11,21 @@ namespace CentralLib.Protocols
     {
         static SingletonProtocol uniqueInstance;
         BaseProtocol singletonProtocol;
+        public static Logger logger = LogManager.GetCurrentClassLogger();
 
 
-        protected SingletonProtocol(int port)
+        protected SingletonProtocol(int port, int inFPNumber)
         {
-            
-            singletonProtocol = new BaseProtocol(port).getCurrentProtocol();
+            NLog.GlobalDiagnosticsContext.Set("FPNumber", inFPNumber);
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
+            singletonProtocol = new BaseProtocol(port, inFPNumber).getCurrentProtocol();
         }
 
-        protected SingletonProtocol(string IpAdress, int port)
+        protected SingletonProtocol(string IpAdress, int port, int inFPNumber)
         {
-
-            singletonProtocol = new BaseProtocol(IpAdress, port).getCurrentProtocol();
+            NLog.GlobalDiagnosticsContext.Set("FPNumber", inFPNumber);
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
+            singletonProtocol = new BaseProtocol(IpAdress, port, inFPNumber).getCurrentProtocol();
         }
 
         /// <summary>
@@ -29,12 +33,14 @@ namespace CentralLib.Protocols
         /// </summary>
         /// <param name="inport"></param>
         /// <returns></returns>
-        public static SingletonProtocol Instance(int inport)
+        public static SingletonProtocol Instance(int inport, int inFPNumber)
         {
+            NLog.GlobalDiagnosticsContext.Set("FPNumber", inFPNumber);
+            logger.Trace("SingletonProtocol." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             if ((uniqueInstance == null))
             {
-                
-                uniqueInstance = new SingletonProtocol(inport);                
+
+                uniqueInstance = new SingletonProtocol(inport, inFPNumber);
             }
             return uniqueInstance;
         }
@@ -45,12 +51,14 @@ namespace CentralLib.Protocols
         /// <param name="IpAdress"></param>
         /// <param name="port"></param>
         /// <returns></returns>
-        public static SingletonProtocol Instance(string IpAdress, int port)
+        public static SingletonProtocol Instance(string IpAdress, int port, int inFPNumber)
         {
+            NLog.GlobalDiagnosticsContext.Set("FPNumber", inFPNumber);
+            logger.Trace("SingletonProtocol." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             if ((uniqueInstance == null))
             {
 
-                uniqueInstance = new SingletonProtocol(IpAdress,port);
+                uniqueInstance = new SingletonProtocol(IpAdress, port, inFPNumber);
             }
             return uniqueInstance;
         }

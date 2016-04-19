@@ -33,6 +33,12 @@ namespace PrintFPService
     partial void Inserttbl_ComInit(tbl_ComInit instance);
     partial void Updatetbl_ComInit(tbl_ComInit instance);
     partial void Deletetbl_ComInit(tbl_ComInit instance);
+    partial void Inserttbl_Log(tbl_Log instance);
+    partial void Updatetbl_Log(tbl_Log instance);
+    partial void Deletetbl_Log(tbl_Log instance);
+    partial void Inserttbl_SyncFP(tbl_SyncFP instance);
+    partial void Updatetbl_SyncFP(tbl_SyncFP instance);
+    partial void Deletetbl_SyncFP(tbl_SyncFP instance);
     #endregion
 		
 		public DataClassesFocusADataContext() : 
@@ -70,6 +76,22 @@ namespace PrintFPService
 			get
 			{
 				return this.GetTable<tbl_ComInit>();
+			}
+		}
+		
+		public System.Data.Linq.Table<tbl_Log> tbl_Logs
+		{
+			get
+			{
+				return this.GetTable<tbl_Log>();
+			}
+		}
+		
+		public System.Data.Linq.Table<tbl_SyncFP> tbl_SyncFPs
+		{
+			get
+			{
+				return this.GetTable<tbl_SyncFP>();
 			}
 		}
 	}
@@ -1023,6 +1045,442 @@ namespace PrintFPService
 					this._MoxaPort = value;
 					this.SendPropertyChanged("MoxaPort");
 					this.OnMoxaPortChanged();
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.tbl_Log")]
+	public partial class tbl_Log : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private long _id;
+		
+		private string _ServerName;
+		
+		private string _SQLserver;
+		
+		private string _FPNumber;
+		
+		private System.Nullable<System.DateTime> _Timestamp;
+		
+		private System.Nullable<long> _DateTimeStamp;
+		
+		private string _Loglevel;
+		
+		private string _Logger;
+		
+		private string _Callsite;
+		
+		private string _Message;
+		
+		private System.Nullable<int> _TimeSpan;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnidChanging(long value);
+    partial void OnidChanged();
+    partial void OnServerNameChanging(string value);
+    partial void OnServerNameChanged();
+    partial void OnSQLserverChanging(string value);
+    partial void OnSQLserverChanged();
+    partial void OnFPNumberChanging(string value);
+    partial void OnFPNumberChanged();
+    partial void OnTimestampChanging(System.Nullable<System.DateTime> value);
+    partial void OnTimestampChanged();
+    partial void OnDateTimeStampChanging(System.Nullable<long> value);
+    partial void OnDateTimeStampChanged();
+    partial void OnLoglevelChanging(string value);
+    partial void OnLoglevelChanged();
+    partial void OnLoggerChanging(string value);
+    partial void OnLoggerChanged();
+    partial void OnCallsiteChanging(string value);
+    partial void OnCallsiteChanged();
+    partial void OnMessageChanging(string value);
+    partial void OnMessageChanged();
+    partial void OnTimeSpanChanging(System.Nullable<int> value);
+    partial void OnTimeSpanChanged();
+    #endregion
+		
+		public tbl_Log()
+		{
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_id", AutoSync=AutoSync.OnInsert, DbType="BigInt NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public long id
+		{
+			get
+			{
+				return this._id;
+			}
+			set
+			{
+				if ((this._id != value))
+				{
+					this.OnidChanging(value);
+					this.SendPropertyChanging();
+					this._id = value;
+					this.SendPropertyChanged("id");
+					this.OnidChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_ServerName", DbType="NVarChar(MAX)")]
+		public string ServerName
+		{
+			get
+			{
+				return this._ServerName;
+			}
+			set
+			{
+				if ((this._ServerName != value))
+				{
+					this.OnServerNameChanging(value);
+					this.SendPropertyChanging();
+					this._ServerName = value;
+					this.SendPropertyChanged("ServerName");
+					this.OnServerNameChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_SQLserver", DbType="NVarChar(MAX)")]
+		public string SQLserver
+		{
+			get
+			{
+				return this._SQLserver;
+			}
+			set
+			{
+				if ((this._SQLserver != value))
+				{
+					this.OnSQLserverChanging(value);
+					this.SendPropertyChanging();
+					this._SQLserver = value;
+					this.SendPropertyChanged("SQLserver");
+					this.OnSQLserverChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="NVarChar(MAX)")]
+		public string FPNumber
+		{
+			get
+			{
+				return this._FPNumber;
+			}
+			set
+			{
+				if ((this._FPNumber != value))
+				{
+					this.OnFPNumberChanging(value);
+					this.SendPropertyChanging();
+					this._FPNumber = value;
+					this.SendPropertyChanged("FPNumber");
+					this.OnFPNumberChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Timestamp", DbType="DateTime")]
+		public System.Nullable<System.DateTime> Timestamp
+		{
+			get
+			{
+				return this._Timestamp;
+			}
+			set
+			{
+				if ((this._Timestamp != value))
+				{
+					this.OnTimestampChanging(value);
+					this.SendPropertyChanging();
+					this._Timestamp = value;
+					this.SendPropertyChanged("Timestamp");
+					this.OnTimestampChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DateTimeStamp", DbType="BigInt")]
+		public System.Nullable<long> DateTimeStamp
+		{
+			get
+			{
+				return this._DateTimeStamp;
+			}
+			set
+			{
+				if ((this._DateTimeStamp != value))
+				{
+					this.OnDateTimeStampChanging(value);
+					this.SendPropertyChanging();
+					this._DateTimeStamp = value;
+					this.SendPropertyChanged("DateTimeStamp");
+					this.OnDateTimeStampChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Loglevel", DbType="NVarChar(MAX)")]
+		public string Loglevel
+		{
+			get
+			{
+				return this._Loglevel;
+			}
+			set
+			{
+				if ((this._Loglevel != value))
+				{
+					this.OnLoglevelChanging(value);
+					this.SendPropertyChanging();
+					this._Loglevel = value;
+					this.SendPropertyChanged("Loglevel");
+					this.OnLoglevelChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Logger", DbType="NVarChar(MAX)")]
+		public string Logger
+		{
+			get
+			{
+				return this._Logger;
+			}
+			set
+			{
+				if ((this._Logger != value))
+				{
+					this.OnLoggerChanging(value);
+					this.SendPropertyChanging();
+					this._Logger = value;
+					this.SendPropertyChanged("Logger");
+					this.OnLoggerChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Callsite", DbType="NVarChar(MAX)")]
+		public string Callsite
+		{
+			get
+			{
+				return this._Callsite;
+			}
+			set
+			{
+				if ((this._Callsite != value))
+				{
+					this.OnCallsiteChanging(value);
+					this.SendPropertyChanging();
+					this._Callsite = value;
+					this.SendPropertyChanged("Callsite");
+					this.OnCallsiteChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Message", DbType="NVarChar(MAX)")]
+		public string Message
+		{
+			get
+			{
+				return this._Message;
+			}
+			set
+			{
+				if ((this._Message != value))
+				{
+					this.OnMessageChanging(value);
+					this.SendPropertyChanging();
+					this._Message = value;
+					this.SendPropertyChanged("Message");
+					this.OnMessageChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TimeSpan", DbType="Int")]
+		public System.Nullable<int> TimeSpan
+		{
+			get
+			{
+				return this._TimeSpan;
+			}
+			set
+			{
+				if ((this._TimeSpan != value))
+				{
+					this.OnTimeSpanChanging(value);
+					this.SendPropertyChanging();
+					this._TimeSpan = value;
+					this.SendPropertyChanged("TimeSpan");
+					this.OnTimeSpanChanged();
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.tbl_SyncFP")]
+	public partial class tbl_SyncFP : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private long _id;
+		
+		private int _FPNumber;
+		
+		private System.DateTime _DateTimeSync;
+		
+		private string _Status;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnidChanging(long value);
+    partial void OnidChanged();
+    partial void OnFPNumberChanging(int value);
+    partial void OnFPNumberChanged();
+    partial void OnDateTimeSyncChanging(System.DateTime value);
+    partial void OnDateTimeSyncChanged();
+    partial void OnStatusChanging(string value);
+    partial void OnStatusChanged();
+    #endregion
+		
+		public tbl_SyncFP()
+		{
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_id", AutoSync=AutoSync.OnInsert, DbType="BigInt NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public long id
+		{
+			get
+			{
+				return this._id;
+			}
+			set
+			{
+				if ((this._id != value))
+				{
+					this.OnidChanging(value);
+					this.SendPropertyChanging();
+					this._id = value;
+					this.SendPropertyChanged("id");
+					this.OnidChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="Int NOT NULL")]
+		public int FPNumber
+		{
+			get
+			{
+				return this._FPNumber;
+			}
+			set
+			{
+				if ((this._FPNumber != value))
+				{
+					this.OnFPNumberChanging(value);
+					this.SendPropertyChanging();
+					this._FPNumber = value;
+					this.SendPropertyChanged("FPNumber");
+					this.OnFPNumberChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DateTimeSync", DbType="DateTime NOT NULL")]
+		public System.DateTime DateTimeSync
+		{
+			get
+			{
+				return this._DateTimeSync;
+			}
+			set
+			{
+				if ((this._DateTimeSync != value))
+				{
+					this.OnDateTimeSyncChanging(value);
+					this.SendPropertyChanging();
+					this._DateTimeSync = value;
+					this.SendPropertyChanged("DateTimeSync");
+					this.OnDateTimeSyncChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Status", DbType="NVarChar(MAX)")]
+		public string Status
+		{
+			get
+			{
+				return this._Status;
+			}
+			set
+			{
+				if ((this._Status != value))
+				{
+					this.OnStatusChanging(value);
+					this.SendPropertyChanging();
+					this._Status = value;
+					this.SendPropertyChanged("Status");
+					this.OnStatusChanged();
 				}
 			}
 		}

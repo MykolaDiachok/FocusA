@@ -74,7 +74,7 @@ namespace PrintFP
             }
             NLog.GlobalDiagnosticsContext.Set("FPNumber", fpnumber);
             logger.Info("Set fp number:{0}", fpnumber);
-            eventLog1.WriteEntry("Timer start");
+            //eventLog1.WriteEntry("Timer start");
             //rStatus = infoPr.Good;
             //_timer = new System.Timers.Timer();
             //_timer.Interval = (Properties.Settings.Default.TimerIntervalSec * 1000);
@@ -114,6 +114,7 @@ namespace PrintFP
             Init init = new Init(fpnumber, server, automatic,run);
             init.Work();
             UpdateStatusFP.setStatusFP(FPnumber, "outwork");
+            logger.Info("Exit program, status={0}", rStatus);
             return (int)rStatus;
         }
 

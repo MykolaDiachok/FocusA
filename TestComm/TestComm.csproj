@@ -107,6 +107,10 @@
       <Project>{abac24c1-e800-4f1c-a77c-c5a4e17a1468}</Project>
       <Name>CentralLib</Name>
     </ProjectReference>
+    <ProjectReference Include="..\PrintFP\PrintFP.csproj">
+      <Project>{9c31e9be-ca41-4280-89d2-5720aa2fc12b}</Project>
+      <Name>PrintFP</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -12,20 +12,20 @@ namespace CentralLib.Protocols
 
         //UInt16 MaxStringLenght = 75;
 
-        public Protocol_EP06(int serialPort):base(serialPort)
+        public Protocol_EP06(int serialPort, int inFPNumber):base(serialPort, inFPNumber)
         {
             MaxStringLenght = 75;
             useCRC16 = false;
             //initial();
         }
 
-        public Protocol_EP06(CentralLib.Connections.DefaultPortCom dComPort):base(dComPort)
+        public Protocol_EP06(CentralLib.Connections.DefaultPortCom dComPort,int inFPNumber) :base(dComPort, inFPNumber)
         {
             MaxStringLenght = 75;
             useCRC16 = false;
         }
 
-        public Protocol_EP06(string IpAdress, int port):base(IpAdress,port)
+        public Protocol_EP06(string IpAdress, int port, int inFPNumber):base(IpAdress,port, inFPNumber)
         {
             MaxStringLenght = 75;
             useCRC16 = false;

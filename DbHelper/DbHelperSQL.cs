@@ -64,7 +64,7 @@ namespace DbHelperSQL
             {
                 row.DateTimeSyncDB = DateTimeSyncDB;
             }
-            focusA.SubmitChanges();
+            focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
         }
 
         public void ChangeTable(string TableName)

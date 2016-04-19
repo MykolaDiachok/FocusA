@@ -107,7 +107,7 @@ namespace CentralLib.Protocols
         /// Передаем класс для подключения. Рекомендую использовать сразу код порта
         /// </summary>
         /// <param name="connFP"></param>
-        public Protocol_EP11(CentralLib.Connections.DefaultPortCom dComPort):base(dComPort)
+        public Protocol_EP11(CentralLib.Connections.DefaultPortCom dComPort, int inFPNumber):base(dComPort, inFPNumber)
         {
             useCRC16 = true;
             connFP = new CentralLib.Connections.ConnectFP_EP11(dComPort);
@@ -123,7 +123,7 @@ namespace CentralLib.Protocols
         /// Класс инициализации приложения
         /// </summary>
         /// <param name="serialPort"></param>
-        public Protocol_EP11(int serialPort):base(serialPort)
+        public Protocol_EP11(int serialPort, int inFPNumber):base(serialPort, inFPNumber)
         {
             useCRC16 = true;
             MaxStringLenght = 75;
@@ -131,10 +131,10 @@ namespace CentralLib.Protocols
             
         }
 
-        public Protocol_EP11(string IpAdress,int port):base(IpAdress,port)
+        public Protocol_EP11(string IpAdress,int port, int inFPNumber) :base(IpAdress,port, inFPNumber)
         {
             useCRC16 = true;
-            connFP = new ConnectNetFP_EP11(IpAdress, port);
+            connFP = new ConnectNetFP_EP11(IpAdress, port, inFPNumber);
             MaxStringLenght = 75;
             initial();
 

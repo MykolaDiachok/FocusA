@@ -68,7 +68,7 @@ namespace DbHelperSQL
                 row.Status = status;
                 row.DateTimeSyncDB = dateTimeSyncDB;
             }
-            focusA.SubmitChanges();
+            focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
         }
 
         public void setStatus(string status)

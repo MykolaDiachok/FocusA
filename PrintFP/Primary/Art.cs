@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.Collections.Generic;
 using System.Data.Linq;
 using System.Linq;
@@ -20,9 +21,13 @@ namespace PrintFP.Primary
         public string NameForCheck { get;  }
         public int FPNumber { get;  }
         private DataClasses1DataContext _focusA;
+        private Logger logger = LogManager.GetCurrentClassLogger();
+
 
         public Art(int Code, string ARTNAME, ulong PackCode, ushort NalogGroup, int FPNumber, DataClasses1DataContext _focusA)
         {
+            NLog.GlobalDiagnosticsContext.Set("FPNumber", FPNumber);
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             this.Code = Code;
             this.ARTNAME = ARTNAME;
             this.PackCode = PackCode;
@@ -36,6 +41,7 @@ namespace PrintFP.Primary
 
         public void InsertToTableAndUpdateName()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             Table<tbl_ART> tbl_ART = _focusA.GetTable<tbl_ART>();
             var rowArt = (from tArt in tbl_ART
                           where (ulong)tArt.PackCode == PackCode
@@ -54,7 +60,7 @@ namespace PrintFP.Primary
                     FPNumber = FPNumber
                 };
                 _focusA.tbl_ARTs.InsertOnSubmit(newArt);
-                _focusA.SubmitChanges();
+                _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
             }
             else
             {

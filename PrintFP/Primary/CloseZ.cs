@@ -1,4 +1,5 @@
 ﻿using CentralLib.Protocols;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,11 +14,13 @@ namespace PrintFP.Primary
 
         public void onlyZReport(BaseProtocol pr)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             pr.FPDayClrReport();
         }
 
         public void StartJob(BaseProtocol pr)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             pr.FPDayReport();
         }
 

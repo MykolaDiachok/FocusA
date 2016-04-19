@@ -11,9 +11,11 @@
     <VerifyUploadedFiles>false</VerifyUploadedFiles>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <StartArguments>-r --fp=10014193</StartArguments>
+    <StartArguments>-r --fp=10013291</StartArguments>
+    <EnableUnmanagedDebugging>true</EnableUnmanagedDebugging>
+    <EnableSQLServerDebugging>false</EnableSQLServerDebugging>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <StartArguments>-fp="10010004"</StartArguments>
+    <StartArguments>-r -fp="10014193"</StartArguments>
   </PropertyGroup>
 </Project>

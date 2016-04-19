@@ -18,26 +18,28 @@ namespace PrintFP.Primary
         private Logger logger = LogManager.GetCurrentClassLogger();
         private string fpnumber, server;
         private int FPnumber;
-        private static MyEventLog eventLog1;
+        //private static MyEventLog eventLog1;
         private System.Object lockThis = new System.Object();
         private bool automatic, manual;
         private static ManualResetEvent shutdownEvent;
 
-        public Init(string fpnumber, string server, bool automatic = false, bool manual=false)
+        public Init(string fpnumber, string server, bool automatic = false, bool manual = false)
         {
             NLog.GlobalDiagnosticsContext.Set("FPNumber", fpnumber);
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             //logger.Trace("Init");
             this.fpnumber = fpnumber;
             this.FPnumber = int.Parse(fpnumber);
             this.server = server;
-            eventLog1 = new MyEventLog(automatic, fpnumber);
+            //eventLog1 = new MyEventLog(automatic, fpnumber);
             this.automatic = automatic;
             this.manual = manual;
             //logger.Trace("Init fp:{0}; server:{1}", fpnumber, server);
         }
 
-        private static void ReadDataFromConsole(object state)
+        private void ReadDataFromConsole(object state)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             Console.WriteLine("Enter \"x\" to exit.");
 
             while (Console.ReadKey().KeyChar != 'x')
@@ -52,8 +54,9 @@ namespace PrintFP.Primary
 
         public void Work()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             //TODO TRY CATCH
-
+            logger.Trace("manual={0}, automatic={1}", manual, automatic);
             if (manual && !automatic)
             {
                 Thread status = new Thread(ReadDataFromConsole);
@@ -66,6 +69,7 @@ namespace PrintFP.Primary
 
         private void ManualReset()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             UpdateStatusFP.setStatusFP(FPnumber, "waiting out");
             TimeSpan delay = new TimeSpan(0, 0, Properties.Settings.Default.TimerIntervalSec);
             shutdownEvent = new ManualResetEvent(false);
@@ -80,6 +84,7 @@ namespace PrintFP.Primary
                                        select tinit).FirstOrDefault();
                         if (!(bool)rowinit.auto)
                         {
+                            logger.Trace("set shutdownEvent");
                             shutdownEvent.Set();
                             return;
                         }
@@ -93,7 +98,11 @@ namespace PrintFP.Primary
                         Do();
                         UpdateStatusFP.setStatusFP(FPnumber, "waiting...");
                     }
-                    catch { UpdateStatusFP.setStatusFP(FPnumber, "Была ошибка, waiting..."); }
+                    catch(Exception ex)
+                    {
+                        logger.Error(ex);
+                        UpdateStatusFP.setStatusFP(FPnumber, "Была ошибка, waiting...");
+                    }
                 }
                 //logger.Trace("lockthis out {0}", DateTime.Now);
             }
@@ -103,6 +112,7 @@ namespace PrintFP.Primary
 
         public void Do()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             setStatusFP("in work");
             using (DataClasses1DataContext _focusA = new DataClasses1DataContext())
             //using (var trans = new TransactionScope(TransactionScopeOption.Required,new TransactionOptions{IsolationLevel = System.Transactions.IsolationLevel.ReadUncommitted,Timeout= new TimeSpan(0,0,25)}))
@@ -152,29 +162,30 @@ namespace PrintFP.Primary
                             setStatusFP("start get protocols....");
                             if ((initRow.MoxaIP.Trim().Length != 0) && ((int)initRow.MoxaPort > 0))
                             {
-                                searchProtocol = (BaseProtocol)SingletonProtocol.Instance(initRow.MoxaIP, (int)initRow.MoxaPort).GetProtocols();
+                                searchProtocol = (BaseProtocol)SingletonProtocol.Instance(initRow.MoxaIP, (int)initRow.MoxaPort, FPnumber).GetProtocols();
                             }
                             else
-                                searchProtocol = (BaseProtocol)SingletonProtocol.Instance(initRow.Port).GetProtocols();
+                                searchProtocol = (BaseProtocol)SingletonProtocol.Instance(initRow.Port, FPnumber).GetProtocols();
                         }
                         catch (Exception ex)
                         {
+                            logger.Error(ex);
                             setStatusFP(string.Format("Error in protocol:{0}", ex.Message));
 
                             initRow.Error = true;
                             initRow.ErrorInfo = "Error info:" + "Fatal crash app;" + ex.Message;
                             initRow.ErrorCode = 9999; // ошибка которая привела к большому падению
-                            _focusA.SubmitChanges();
+                            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
 
                             throw new ApplicationException(initRow.ErrorInfo);
                         }
-                        if (searchProtocol==null)
+                        if (searchProtocol == null)
                         {
                             initRow.Error = true;
-                            initRow.ErrorInfo = "Error info:" + "Fatal crash app; Протокол не определен" ;
+                            initRow.ErrorInfo = "Error info:" + "Fatal crash app; Протокол не определен";
                             setStatusFP(initRow.ErrorInfo);
                             initRow.ErrorCode = 9999; // ошибка которая привела к большому падению
-                            _focusA.SubmitChanges();
+                            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                             throw new ApplicationException(initRow.ErrorInfo);
                         }
 
@@ -465,7 +476,7 @@ namespace PrintFP.Primary
                                     if (rreport.statusOperation)
                                         operation.Closed = true;
                                     operation.InWork = true;
-                                    _focusA.SubmitChanges();
+                                    _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                                 }
                                 if (DateTime.Now.Day == 1)
                                 {
@@ -518,7 +529,7 @@ namespace PrintFP.Primary
 
                             setStatuses(operation, initRow, pr);
                             //initRow.DateTimeSyncFP = DateTime.Now;
-                            _focusA.SubmitChanges();
+                            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                             //    if (initRow.Error)
                             //    {
 
@@ -556,16 +567,18 @@ namespace PrintFP.Primary
 
         private void deleteArt()
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             using (DataClasses1DataContext focusA = new DataClasses1DataContext())
             {
                 Table<tbl_ART> tbl_ART = focusA.GetTable<tbl_ART>();
                 tbl_ART.DeleteAllOnSubmit(tbl_ART.AsEnumerable().Where(r => r.FPNumber == int.Parse(fpnumber)).ToList());
-                focusA.SubmitChanges();
+                focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
             }
         }
 
         private tbl_CashIO getCashIO(DataClasses1DataContext _focusA, tbl_Operation tOp)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             Table<tbl_CashIO> tableCashIO = _focusA.GetTable<tbl_CashIO>();
             var tReturn = (from table in tableCashIO
                            where table.FPNumber == tOp.FPNumber
@@ -585,6 +598,7 @@ namespace PrintFP.Primary
         /// <returns></returns>
         private tbl_Cashier getCashier(DataClasses1DataContext _focusA, tbl_Operation tOp)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             Table<tbl_Cashier> tableCashier = _focusA.GetTable<tbl_Cashier>();
             var tReturn = (from table in tableCashier
                            where table.FPNumber == tOp.FPNumber
@@ -604,6 +618,7 @@ namespace PrintFP.Primary
         /// <param name="pr"></param>
         private void setStatuses(tbl_Operation tOp, tbl_ComInit tInit, BaseProtocol pr)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             tInit.CurrentSystemDateTime = DateTime.Now;
             tInit.ByteStatus = pr.ByteStatus;
             tInit.ByteStatusInfo = pr.structStatus.ToString();
@@ -634,6 +649,7 @@ namespace PrintFP.Primary
         /// /// <param name="operation">текущая операция</param>
         private bool InitialSet(DataClasses1DataContext _focusA, tbl_ComInit initRow, BaseProtocol pr, tbl_Operation operation)
         {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             initRow.Error = false;
             initRow.ErrorInfo = "";
             initRow.ErrorCode = 0;
