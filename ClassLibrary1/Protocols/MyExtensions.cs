@@ -53,5 +53,43 @@ namespace CentralLib.Protocols
             System.Buffer.BlockCopy(b, 0, c, a.Length, b.Length);
             return c;
         }
+
+        public static bool GetBit(this byte val, int num)
+        {
+            if ((num > 7) || (num < 0))//Проверка входных данных
+            {
+                throw new ArgumentException();
+            }
+            return ((val >> num) & 1) > 0;//собственно все вычисления
+        }
+
+        public static byte SetBit(this byte val, int num, bool bit)
+        {
+            if ((num > 7) || (num < 0))//Проверка входных данных
+            {
+                throw new ArgumentException();
+            }
+            byte tmpval = 1;
+            tmpval = (byte)(tmpval << num);//устанавливаем необходимый бит в единицу
+            val = (byte)(val & (~tmpval));//сбрасываем в 0 необходимый бит
+
+            if (bit)// если бит требуется установить в 1
+            {
+                val = (byte)(val | (tmpval));//то устанавливаем необходимый бит в 1
+            }
+            return val;
+        }
+
+        public static UInt32 ClearBitUInt32(this UInt32 Value, byte bit)
+        {
+            if (bit >= 32)
+            {
+                throw new ArgumentException("bit must be between 0 and 31");
+            }
+
+            Value &= ~(UInt32)(1U << bit);
+            return Value;
+        }
+
     }
 }

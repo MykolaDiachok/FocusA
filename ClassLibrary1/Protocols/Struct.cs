@@ -98,7 +98,7 @@ namespace CentralLib.Protocols
     /// <summary>
     /// Значение битов байта Резерва
     /// </summary>
-    public struct strByteReserv
+    public class strByteReserv
     {
         public byte Reserv { get; }
         /// <summary>
@@ -134,7 +134,7 @@ namespace CentralLib.Protocols
         /// </summary>
         public bool? ECRIsNotPersonalized { get; }
 
-        public strByteReserv(byte inByte) : this()
+        public strByteReserv(byte inByte)
         {
             this.Reserv = inByte;
             this.ReceiptOfServiceReportIsOpened = (inByte & (1 << 0)) != 0;
@@ -246,10 +246,10 @@ namespace CentralLib.Protocols
         }
     }
 
-    public struct strByteResult
+    public class strByteResult
     {
         public byte ByteResult { get; }
-        public strByteResult(byte inByte) : this()
+        public strByteResult(byte inByte)
         {
             this.ByteResult = inByte;
         }
@@ -422,10 +422,165 @@ namespace CentralLib.Protocols
     /// </summary>
     public class DayReport
     {
-        public ReturnedStruct returnedStruct { get; set; }
+        public ReturnedStruct returnedStruct { get; private set; }
+        public strByteReserv infoReserv { get; private set; }
+        public strByteStatus infoStatus { get; private set; }
+        public strByteResult infoResult { get; private set; }
         //BitConverter.ToUInt32 = 4 байта
         //BitConverter.ToUInt16 = 2 байта
-        public DayReport(byte[] bytesReturn, byte[] bytesReturn0, byte[] bytesReturn1, byte[] bytesReturn2, byte[] bytesReturn3)
+        public DayReport(IProtocols protocol, ReturnedStruct returnedStruct)
+        {
+            this.returnedStruct = returnedStruct;
+            this.infoReserv = new strByteReserv(returnedStruct.ByteReserv);
+            this.infoStatus = new strByteStatus(returnedStruct.ByteStatus);
+            this.infoResult = new strByteResult(returnedStruct.ByteResult);
+        }
+
+        public DayReport(IProtocols protocol, ReturnedStruct returnedStruct, params byte[][] inbytes)
+        {
+            this.returnedStruct = returnedStruct;
+            this.infoReserv = new strByteReserv(returnedStruct.ByteReserv);
+            this.infoStatus = new strByteStatus(returnedStruct.ByteStatus);
+            this.infoResult = new strByteResult(returnedStruct.ByteResult);
+            if (protocol.GetType() == typeof(Protocol_EP11))
+            {
+                DayReportEP11(inbytes[0], inbytes[1], inbytes[2], inbytes[3], inbytes[4]);
+                return;
+            }
+            else if ((protocol.GetType() == typeof(Protocol_EP06)) && (inbytes.Length == 1))
+            {
+                DayReportEP06(inbytes[0]);
+                return;
+            }
+            else if (protocol.GetType() == typeof(Protocol_EP06))
+            {
+                DayReportEP06_fromMemory(inbytes);
+                return;
+            }
+            throw new ApplicationException("не удалось определить протокол");
+        }
+
+
+        public DayReport(IProtocols protocol, params byte[][] inbytes)
+        {
+            if (protocol.GetType() == typeof(Protocol_EP11))
+            {
+                DayReportEP11(inbytes[0], inbytes[1], inbytes[2], inbytes[3], inbytes[4]);
+                return;
+            }
+            else if ((protocol.GetType() == typeof(Protocol_EP06)) && (inbytes.Length == 1))
+            {
+                DayReportEP06(inbytes[0]);
+                return;
+            }
+            else if (protocol.GetType() == typeof(Protocol_EP06))
+            {
+                DayReportEP06_fromMemory(inbytes);
+                return;
+            }
+            throw new ApplicationException("не удалось определить протокол");
+        }
+
+        public void DayReportEP06_fromMemory(params byte[][] inArrayBytes)
+        {
+            this.CounterOfSaleReceipts = inArrayBytes[0].returnUint16FromBytes(0, 2);
+            this.CounterOfSalesByTaxGroupsAndTypesOfPayments = new SumTaxGroupsAndTypesOfPayments(inArrayBytes[1], 0, 5, true); //tst += 80;
+            this.DailyMarkupBySale = inArrayBytes[2].returnUint32FromBytes(0, 5);
+            this.DailyDiscountBySale = inArrayBytes[3].returnUint32FromBytes(0, 5);
+            this.DailySumOfServiceCashEntering = inArrayBytes[4].returnUint32FromBytes(0, 5);
+            this.CounterOfPayoutReceipts = inArrayBytes[5].returnUint16FromBytes(0, 2);
+            this.CountersOfPayoutByTaxGroupsAndTypesOfPayments = new SumTaxGroupsAndTypesOfPayments(inArrayBytes[6], 0, 5, true); //tst += 80;
+            this.DailyMarkupByPayouts = inArrayBytes[7].returnUint32FromBytes(0, 5);
+            this.DailyDiscountByPayouts = inArrayBytes[8].returnUint32FromBytes(0, 5);
+            this.DailySumOfServiceCashGivingOut = inArrayBytes[9].returnUint32FromBytes(0, 5);
+            this.CurrentNumberOfZReport = inArrayBytes[10].returnUint16FromBytes(0, 2);
+            this.CounterOfSalesReceipt = inArrayBytes[11].returnUint16FromBytes(0, 2); // BitConverter.ToUInt16(bytesReturn0, tst); tst += 2;
+            this.CounterOfPaymentReceipt = inArrayBytes[12].returnUint16FromBytes(0, 2);// BitConverter.ToUInt16(bytesReturn0, tst); tst += 2;
+            {
+                int tst = 0;
+                string hexday = inArrayBytes[13][tst].ToString("X"); tst++;
+                int tday = 0;
+                if (!int.TryParse(hexday, out tday))
+                    tday = 1;
+                else
+                    tday = Math.Min(Math.Max(tday, 1), 31);
+
+                string hexmonth = inArrayBytes[13][tst].ToString("X"); tst++;
+                int tmonth = 0;
+                if (!int.TryParse(hexmonth,out  tmonth))
+                    tmonth = 1;
+                else
+                    tmonth = Math.Min(Math.Max(tmonth, 1), 12);
+
+                string hexyear = inArrayBytes[13][tst].ToString("X"); tst++;
+                int tyear = 0;
+                if (!int.TryParse(hexyear, out tyear))
+                    tyear = 1;
+                else
+                    tyear = Math.Min(tyear, 99);
+
+
+                tst = 0;
+                string hexmin = inArrayBytes[14][tst].ToString("X"); tst++;
+                int tmin = 0;
+                if (!int.TryParse(hexmin, out tmin))
+                    tmin = 0;
+                else
+                    tmin = Math.Min(tmin, 59);
+                //int tmin = Convert.ToInt16(hexmin);
+
+                string hexhour = inArrayBytes[14][tst].ToString("X"); tst++;
+                int thour = 0;
+                if (!int.TryParse(hexhour, out thour))
+                    thour = 0;
+                else
+                    thour = Math.Min(thour, 23);
+                //Convert.ToInt16(hexhour);
+
+
+
+
+
+                this.DateTimeOfEndOfShift = new DateTime(2000 + tyear, tmonth, tday, thour, tmin, 0);
+                this.DateOfEndOfShift = this.DateTimeOfEndOfShift.ToString("dd.MM.yy");
+                this.TimeOfEndOfShift = this.DateTimeOfEndOfShift.ToString("HH:mm");
+            }
+            {
+                int tst = 0;
+                string hexday = inArrayBytes[15][tst].ToString("X"); tst++;
+                int tday = Math.Min(Math.Max((int)Convert.ToInt16(hexday), 1), 31);
+
+                string hexmonth = inArrayBytes[15][tst].ToString("X"); tst++;
+                int tmonth = Math.Min(Math.Max((int)Convert.ToInt16(hexmonth), 1), 12);
+
+                string hexyear = inArrayBytes[15][tst].ToString("X"); tst++;
+                int tyear = Convert.ToInt16(hexyear);
+                this.dtDateOfTheLastDailyReport = new DateTime(2000 + tyear, tmonth, tday);
+                this.DateOfTheLastDailyReport = this.dtDateOfTheLastDailyReport.ToString("dd.MM.yy");
+            }
+            this.CounterOfArticles = inArrayBytes[16].returnUint16FromBytes(0, 2); ;
+            this.SumOfTaxByTaxGroupsForOverlayVAT = new SumTaxByTaxGroups(inArrayBytes[1], inArrayBytes[17], 0, 5);
+
+            this.QuantityOfCancelSalesReceipt = inArrayBytes[18].returnUint16FromBytes(0, 2); //   2  bin
+            this.QuantityOfCancelPaymentReceipt = inArrayBytes[19].returnUint16FromBytes(0, 2); //  2  bin
+            this.SumOfCancelSalesReceipt = inArrayBytes[20].returnUint32FromBytes(0, 5);//   4  bin
+            this.SumOfCancelPaymentReceipt = inArrayBytes[21].returnUint32FromBytes(0, 5); //  4  bin
+            this.QuantityOfCancelSales = inArrayBytes[22].returnUint16FromBytes(0, 2); //   2  bin
+            this.QuantityOfCancelPayments = inArrayBytes[23].returnUint16FromBytes(0, 2);//   2  bin
+            this.SumOfCancelSales = inArrayBytes[24].returnUint32FromBytes(0, 5);  //4  bin        
+            this.SumOfCancelPayments = inArrayBytes[25].returnUint32FromBytes(0, 5);  //4  bin
+        }
+
+
+        /// <summary>
+        /// Заполняем класс исходя из данных для протокола ЕП11
+        /// </summary>
+        /// <param name="bytesReturn"></param>
+        /// <param name="bytesReturn0"></param>
+        /// <param name="bytesReturn1"></param>
+        /// <param name="bytesReturn2"></param>
+        /// <param name="bytesReturn3"></param>
+        public void DayReportEP11(byte[] bytesReturn, byte[] bytesReturn0, byte[] bytesReturn1, byte[] bytesReturn2, byte[] bytesReturn3)
         {
             #region bytesReturn
             int tst = 0;
@@ -456,10 +611,10 @@ namespace CentralLib.Protocols
                 int tyear = Convert.ToInt16(hexyear);
 
                 string hexhour = bytesReturn0[tst].ToString("X"); tst++;
-                int thour = Convert.ToInt16(hexyear);
+                int thour = Convert.ToInt16(hexhour);
 
                 string hexmin = bytesReturn0[tst].ToString("X"); tst++;
-                int tmin = Convert.ToInt16(hexyear);
+                int tmin = Convert.ToInt16(hexmin);
                 this.DateTimeOfEndOfShift = new DateTime(2000 + tyear, tmonth, tday, thour, tmin, 0);
                 this.DateOfEndOfShift = this.DateTimeOfEndOfShift.ToString("dd.MM.yy");
                 this.TimeOfEndOfShift = this.DateTimeOfEndOfShift.ToString("HH:mm");
@@ -500,16 +655,21 @@ namespace CentralLib.Protocols
 
         }
 
-        public DayReport(byte[] bytesReturn)
+        
+        /// <summary>
+        /// Если приход запрос на 42
+        /// </summary>
+        /// <param name="bytesReturn"></param>
+        public void DayReportEP06(byte[] bytesReturn)
         {
             int tst = 0;
-            this.CounterOfSaleReceipts = BitConverter.ToUInt16(bytesReturn, tst); tst += 2;
-            this.CounterOfSalesByTaxGroupsAndTypesOfPayments = new SumTaxGroupsAndTypesOfPayments(bytesReturn, ref tst, 5);
-            this.DailyMarkupBySale = bytesReturn.returnUint32FromBytes(tst,5); tst += 5;
+            this.CounterOfSaleReceipts = bytesReturn.returnUint16FromBytes(tst, 2); tst += 2;
+            this.CounterOfSalesByTaxGroupsAndTypesOfPayments = new SumTaxGroupsAndTypesOfPayments(bytesReturn, ref tst, 5); //tst += 80;
+            this.DailyMarkupBySale = bytesReturn.returnUint32FromBytes(tst, 5); tst += 5;
             this.DailyDiscountBySale = bytesReturn.returnUint32FromBytes(tst, 5); tst += 5;
             this.DailySumOfServiceCashEntering = bytesReturn.returnUint32FromBytes(tst, 5); tst += 5;
             this.CounterOfPayoutReceipts = BitConverter.ToUInt16(bytesReturn, tst); tst += 2;
-            this.CountersOfPayoutByTaxGroupsAndTypesOfPayments = new SumTaxGroupsAndTypesOfPayments(bytesReturn, ref tst, 5);
+            this.CountersOfPayoutByTaxGroupsAndTypesOfPayments = new SumTaxGroupsAndTypesOfPayments(bytesReturn, ref tst, 5); //tst += 80;
             this.DailyMarkupByPayouts = bytesReturn.returnUint32FromBytes(tst, 5); tst += 5;
             this.DailyDiscountByPayouts = bytesReturn.returnUint32FromBytes(tst, 5); tst += 5;
             this.DailySumOfServiceCashGivingOut = bytesReturn.returnUint32FromBytes(tst, 5); tst += 5;
@@ -554,111 +714,111 @@ namespace CentralLib.Protocols
         /// <summary>
         /// счетчик чеков продаж
         /// </summary>
-        public int CounterOfSaleReceipts { get; }
+        public int CounterOfSaleReceipts { get; private set; }
         /// <summary>
         /// счетчики продаж по налоговым группам и формам оплат
         /// </summary>
-        public SumTaxGroupsAndTypesOfPayments CounterOfSalesByTaxGroupsAndTypesOfPayments { get; }
+        public SumTaxGroupsAndTypesOfPayments CounterOfSalesByTaxGroupsAndTypesOfPayments { get; private set; }
         /// <summary>
         /// дневная наценка по продажам
         /// </summary>
-        public UInt32 DailyMarkupBySale { get; }
+        public UInt32 DailyMarkupBySale { get; private set; }
         /// <summary>
         /// дневная скидка по продажам
         /// </summary>
-        public UInt32 DailyDiscountBySale { get; }
+        public UInt32 DailyDiscountBySale { get; private set; }
         /// <summary>
         /// дневная сумма служебного вноса
         /// </summary>
-        public UInt32 DailySumOfServiceCashEntering { get; }
+        public UInt32 DailySumOfServiceCashEntering { get; private set; }
         /// <summary>
         /// счетчик чеков выплат
         /// </summary>
-        public int CounterOfPayoutReceipts { get; }
+        public int CounterOfPayoutReceipts { get; private set; }
         /// <summary>
         /// счетчики выплат по налоговым группам и формам оплат 
         /// </summary>
-        public SumTaxGroupsAndTypesOfPayments CountersOfPayoutByTaxGroupsAndTypesOfPayments { get; }
+        public SumTaxGroupsAndTypesOfPayments CountersOfPayoutByTaxGroupsAndTypesOfPayments { get; private set; }
         /// <summary>
         /// дневная наценка по выплатам
         /// </summary>
-        public UInt32 DailyMarkupByPayouts { get; }
+        public UInt32 DailyMarkupByPayouts { get; private set; }
         /// <summary>
         /// дневная скидка по выплатам 
         /// </summary>
-        public UInt32 DailyDiscountByPayouts { get; }
+        public UInt32 DailyDiscountByPayouts { get; private set; }
         /// <summary>
         /// дневная сумма служебной выдачи
         /// </summary>
-        public UInt32 DailySumOfServiceCashGivingOut { get; }
+        public UInt32 DailySumOfServiceCashGivingOut { get; private set; }
         /// <summary>
         /// текущий номер Z-отчета 
         /// </summary>
-        public int CurrentNumberOfZReport { get; }
+        public int CurrentNumberOfZReport { get; private set; }
         /// <summary>
         /// счетчик чеков продаж 
         /// </summary>
-        public int CounterOfSalesReceipt { get; }//  2  bin
+        public int CounterOfSalesReceipt { get; private set; }//  2  bin
         /// <summary>
         /// счетчик чеков выплат
         /// </summary>
-        public int CounterOfPaymentReceipt { get; }//   2  bin
+        public int CounterOfPaymentReceipt { get; private set; }//   2  bin
         /// <summary>
         /// дата конца смены в формате ДДММГГ
         /// </summary>
-        public string DateOfEndOfShift { get; }// in format DDMMYY   3  BCD
+        public string DateOfEndOfShift { get; private set; }// in format DDMMYY   3  BCD
         /// <summary>
         /// время конца смены в формате ЧЧММ 
         /// </summary>
-        public string TimeOfEndOfShift { get; } //in format NNMM   2  BCD
-        public DateTime DateTimeOfEndOfShift { get; }
+        public string TimeOfEndOfShift { get; private set; } //in format NNMM   2  BCD
+        public DateTime DateTimeOfEndOfShift { get; private set; }
         /// <summary>
         /// дата последнего дневного отчета в формате ДДММГГ 
         /// </summary>
-        public string DateOfTheLastDailyReport { get; }// in format DDMMYY   3  BCD
-        public DateTime dtDateOfTheLastDailyReport { get; }
+        public string DateOfTheLastDailyReport { get; private set; }// in format DDMMYY   3  BCD
+        public DateTime dtDateOfTheLastDailyReport { get; private set; }
         /// <summary>
         /// счетчик артикулов 
         /// </summary>
-        public int CounterOfArticles { get; }//  2  bin
+        public int CounterOfArticles { get; private set; }//  2  bin
 
         /// <summary>
         /// суммы налогов по налоговым группам для наложенного НДС
         /// </summary>
-        public SumTaxByTaxGroups SumOfTaxByTaxGroupsForOverlayVAT { get; } //   4*(6+6)  bin
+        public SumTaxByTaxGroups SumOfTaxByTaxGroupsForOverlayVAT { get; private set; } //   4*(6+6)  bin
 
         /// <summary>
         /// количество аннулированных чеков продаж
         /// </summary>
-        public int QuantityOfCancelSalesReceipt { get; } //   2  bin
+        public int QuantityOfCancelSalesReceipt { get; private set; } //   2  bin
         /// <summary>
         /// количество аннулированных чеков выплат
         /// </summary>
-        public int QuantityOfCancelPaymentReceipt { get; } //  2  bin
+        public int QuantityOfCancelPaymentReceipt { get; private set; } //  2  bin
         /// <summary>
         /// сумма аннулированных чеков продаж
         /// </summary>
-        public UInt32 SumOfCancelSalesReceipt { get; }//   4  bin
+        public UInt32 SumOfCancelSalesReceipt { get; private set; }//   4  bin
         /// <summary>
         /// сумма аннулированных чеков выплат
         /// </summary>
-        public UInt32 SumOfCancelPaymentReceipt { get; } //  4  bin
+        public UInt32 SumOfCancelPaymentReceipt { get; private set; } //  4  bin
         /// <summary>
         /// количество отказов продаж
         /// </summary>
-        public int QuantityOfCancelSales { get; } //   2  bin
+        public int QuantityOfCancelSales { get; private set; } //   2  bin
         /// <summary>
         /// количество отказов выплат
         /// </summary>
-        public int QuantityOfCancelPayments { get; }//   2  bin
+        public int QuantityOfCancelPayments { get; private set; }//   2  bin
         /// <summary>
         /// сумма отказов продаж
         /// </summary>
-        public UInt32 SumOfCancelSales { get; }  //4  bin
+        public UInt32 SumOfCancelSales { get; private set; }  //4  bin
         /// <summary>
         /// сумма отказов выплат
         /// </summary>
-        public UInt32 SumOfCancelPayments { get; }   //4  bin
+        public UInt32 SumOfCancelPayments { get; private set; }   //4  bin
 
 
     }
@@ -670,9 +830,9 @@ namespace CentralLib.Protocols
 
         public SumTaxGroupsAndTypesOfPayments(byte[] inBytes, ref int ccounter, int countstep = 5)
         {
-            
-            
-            TaxA = inBytes.returnUint32FromBytes(ccounter,countstep); ccounter += countstep;
+
+
+            TaxA = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
             TaxB = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
             TaxC = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
             TaxD = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
@@ -690,6 +850,36 @@ namespace CentralLib.Protocols
             OverPayment = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
             Payment = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
         }
+
+
+        public SumTaxGroupsAndTypesOfPayments(byte[] inBytes, int ccounter, int countstep = 5, bool controlSum=false)
+        {
+
+
+            TaxA = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            TaxB = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            TaxC = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            TaxD = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            TaxE = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            TaxF = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+
+            Card = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            Credit = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            Check = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            //TODO WARNING!!!! проверено на ОП-06 почемуто CASH не передается и происходит смещение
+            //Cash = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            Certificat = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            Voucher = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            ElectronicMoney = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            InsurancePayment = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            OverPayment = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            Payment = inBytes.returnUint32FromBytes(ccounter, countstep); ccounter += countstep;
+            if ((controlSum) &(sumTAX() - sumPayment()!=0)) // почему, я так и не понял, но аппарат не отдает сумму кеша
+            {                
+                Cash = sumTAX() - sumPayment();
+            }
+        }
+
 
 
         public SumTaxGroupsAndTypesOfPayments(byte[] inBytes, ref int ccounter)
@@ -712,7 +902,38 @@ namespace CentralLib.Protocols
             InsurancePayment = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
             OverPayment = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
             Payment = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            //if (sumTAX() - sumPayment() != 0) // почему, я так и не понял, но аппарат не отдает сумму кеша
+            //{
+            //    Cash = sumTAX() - sumPayment();
+            //}
         }
+
+
+        private UInt32 sumTAX()
+        {
+            return TaxA
+                + TaxB
+                + TaxC
+                + TaxD
+                + TaxE
+                + TaxF;
+        }
+
+
+        private UInt32 sumPayment()
+        {
+            return Card
+                + Cash
+                + Certificat
+                + Check
+                + Credit
+                + ElectronicMoney
+                + InsurancePayment
+                + OverPayment
+                + Payment
+                + Voucher;
+        }
+
         //TODO описать счетчики продаж по налоговым группам и формам оплат
         //4*(6+10) 
         /// <summary>
@@ -784,23 +1005,36 @@ namespace CentralLib.Protocols
     public class SumTaxByTaxGroups
     {
         public SumTaxByTaxGroups() { }
+        
+
+        public SumTaxByTaxGroups(byte[] inBytesTax, byte[] inBytesVat, int ccounter, int countstep = 5)
+        {
+            int index = 0;
+            VatA = inBytesVat.returnUint32FromBytes(index, countstep); index += countstep;
+            VatB = inBytesVat.returnUint32FromBytes(index, countstep); index += countstep;
+            VatC = inBytesVat.returnUint32FromBytes(index, countstep); index += countstep;
+            VatD = inBytesVat.returnUint32FromBytes(index, countstep); index += countstep;
+            VatE = inBytesVat.returnUint32FromBytes(index, countstep); index += countstep;
+            VatF = inBytesVat.returnUint32FromBytes(index, countstep); index += countstep;
+        }
+
         //TODO суммы налогов по налоговым группам для наложенного НДС
         //4*(6+6)
-        public SumTaxByTaxGroups(byte[] inBytes, ref int ccounter)
+        public SumTaxByTaxGroups(byte[] inBytes, ref int ccounter, int countstep = 4)
         {
-            TaxA = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            TaxB = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            TaxC = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            TaxD = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            TaxE = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            TaxF = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            TaxA = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            TaxB = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            TaxC = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            TaxD = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            TaxE = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            TaxF = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
 
-            VatA = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            VatB = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            VatC = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            VatD = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            VatE = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
-            VatF = BitConverter.ToUInt32(inBytes, ccounter); ccounter += 4;
+            VatA = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            VatB = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            VatC = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            VatD = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            VatE = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
+            VatF = BitConverter.ToUInt32(inBytes, ccounter); ccounter += countstep;
         }
 
         /// <summary>
@@ -898,16 +1132,24 @@ namespace CentralLib.Protocols
     /// </summary>
     public class ReceiptInfo
     {
-        public ReturnedStruct returnedStruct { get; set; }
+        public ReceiptInfo() { }
+
+        public ReceiptInfo(ReturnedStruct returnedStruct, Int32 CostOfGoodsOrService, Int32 SumAtReceipt)
+        {
+            this.returnedStruct = returnedStruct;
+            this.CostOfGoodsOrService = CostOfGoodsOrService;
+            this.SumAtReceipt = SumAtReceipt;
+        }
+        public ReturnedStruct returnedStruct { get; private set; }
         /// <summary>
         /// стоимость товара или услуги
         /// </summary>
-        public Int32 CostOfGoodsOrService;
+        public Int32 CostOfGoodsOrService { get; private set;  }
 
         /// <summary>
         /// сумма по чеку
         /// </summary>
-        public Int32 SumAtReceipt;
+        public Int32 SumAtReceipt { get; private set; }
     }
 
     /// <summary>
@@ -915,7 +1157,36 @@ namespace CentralLib.Protocols
     /// </summary>
     public class PaymentInfo
     {
-        public ReturnedStruct returnedStruct { get; set; }
+        public PaymentInfo(ReturnedStruct returnedStruct)
+        {
+            this.returnedStruct = returnedStruct;
+            if ((returnedStruct.statusOperation) && (returnedStruct.bytesReturn.Length > 3))
+            {
+
+                UInt32 tinfo = BitConverter.ToUInt32(returnedStruct.bytesReturn, 0);
+                if (returnedStruct.bytesReturn[3].GetBit(7))
+                {
+                    tinfo = tinfo.ClearBitUInt32(31);
+                    Renting = tinfo;
+                }
+                else
+                    Rest = tinfo;
+                if (returnedStruct.bytesReturn.Length >= 8)
+                    NumberOfReceiptPackageInCPEF = BitConverter.ToUInt32(returnedStruct.bytesReturn, 4);
+               
+            }
+        }
+
+        public PaymentInfo(ReturnedStruct returnedStruct, UInt32 Renting, UInt64 Rest, UInt32 NumberOfReceiptPackageInCPEF= 0)
+        {
+            this.returnedStruct = returnedStruct;
+            this.Renting = Renting;
+            this.Rest = Rest;
+            this.NumberOfReceiptPackageInCPEF = NumberOfReceiptPackageInCPEF;
+        }
+
+        public ReturnedStruct returnedStruct { get; private set; }
+
         public override string ToString()
         {
             return "Rest: " + Rest + " Renting:" + Renting + " NumberOfReceiptPackageInCPEF:" + NumberOfReceiptPackageInCPEF;
@@ -923,19 +1194,55 @@ namespace CentralLib.Protocols
         /// <summary>
         ///  сдача (бит 31 = 1 – сдача)
         /// </summary>
-        public UInt32 Renting;
+        public UInt32 Renting { get; private set; }
         /// <summary>
         /// остаток
         /// </summary>
-        public UInt64 Rest;
+        public UInt64 Rest { get; private set; }
         /// <summary>
         /// номер пакета чека в КЛЕФ
         /// </summary>
-        public UInt32 NumberOfReceiptPackageInCPEF;
+        public UInt32 NumberOfReceiptPackageInCPEF { get; private set; }
     }
 
+    public class DiscountInfo
+    {
+        public DiscountInfo() { }
 
-   
+        public DiscountInfo(ReturnedStruct returnedStruct)
+        {
+            this.returnedStruct = returnedStruct;
+            if (returnedStruct.bytesReturn.Length!=8)
+            {
+                throw new ApplicationException(String.Format("не правильный ответ сервера на строку чека, нужно 8 байт - ответ {0}!!!!", returnedStruct.bytesReturn.Length));
+            }
+            this.ValueOfDiscountMarkup = BitConverter.ToInt32(returnedStruct.bytesReturn, 0);
+            this.SumOfReceipt = BitConverter.ToInt32(returnedStruct.bytesReturn, 4);
+            var bit = new BitArray(returnedStruct.bytesReturn.Take(4).ToArray());
+            if (bit[31])
+            {
+                this.ValueOfDiscountMarkup = this.ValueOfDiscountMarkup ^ (1 << 31);
+            }
+        }
+
+        public DiscountInfo(ReturnedStruct returnedStruct, Int32 ValueOfDiscountMarkup, Int32 SumOfReceipt)
+        {
+            this.returnedStruct = returnedStruct;
+            this.ValueOfDiscountMarkup = ValueOfDiscountMarkup;
+            this.SumOfReceipt = SumOfReceipt;
+        }
+        public ReturnedStruct returnedStruct { get; private set; }
+        /// <summary>
+        /// стоимость товара или услуги
+        /// </summary>
+        public Int32 ValueOfDiscountMarkup { get; private set; }
+
+        /// <summary>
+        /// сумма по чеку
+        /// </summary>
+        public Int32 SumOfReceipt { get; private set; }
+    }
+
 
 
 }

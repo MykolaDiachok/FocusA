@@ -61,8 +61,27 @@ namespace CentralLib.Helper
         B=0x81,
         C=0x82,
         D=0x83,
-        E=0x84
-            
+        E=0x84            
+    }
+
+    public enum FPDiscount
+    {
+        /// <summary>
+        /// 0 - процентная скидка/наценка на последний товар;
+        /// </summary>
+        PercentageDiscountMarkupAtLastGoods,
+        /// <summary>
+        /// 1 – абсолютная скидка/наценка на последний товар;
+        /// </summary>
+        AbsoluteDiscountMarkupAtLastGoods,
+        /// <summary>
+        /// 2 - процентная скидка/наценка на промежуточную сумму;
+        /// </summary>
+        PercentageDiscountMarkupAtIntermediateSum,
+        /// <summary>
+        /// 3 – абсолютная скидка/наценка на промежуточную сумму
+        /// </summary>
+        AbsoluteDiscountMarkupAtIntermediateSum
     }
 
 }

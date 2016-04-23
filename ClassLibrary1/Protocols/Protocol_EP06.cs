@@ -7,7 +7,7 @@ using CentralLib.Helper;
 
 namespace CentralLib.Protocols
 {
-    class Protocol_EP06 : BaseProtocol, IProtocols
+    public class Protocol_EP06 : BaseProtocol, IProtocols
     {
 
         //UInt16 MaxStringLenght = 75;

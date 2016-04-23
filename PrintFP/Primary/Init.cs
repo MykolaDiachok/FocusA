@@ -98,10 +98,11 @@ namespace PrintFP.Primary
                         Do();
                         UpdateStatusFP.setStatusFP(FPnumber, "waiting...");
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         logger.Error(ex);
                         UpdateStatusFP.setStatusFP(FPnumber, "Была ошибка, waiting...");
+                        Thread.Sleep(Properties.Settings.Default.TimerIntervalSec*1000);
                     }
                 }
                 //logger.Trace("lockthis out {0}", DateTime.Now);
@@ -151,6 +152,7 @@ namespace PrintFP.Primary
                     //eventLog1.WriteEntry("Get operation");
                     if (operation != null)
                     {
+
                         operation.InWork = true;
 
                         //try
@@ -159,13 +161,27 @@ namespace PrintFP.Primary
                         BaseProtocol searchProtocol;
                         try
                         {
-                            setStatusFP("start get protocols....");
-                            if ((initRow.MoxaIP.Trim().Length != 0) && ((int)initRow.MoxaPort > 0))
+                            if (initRow.Version == "ЕП-06")
                             {
-                                searchProtocol = (BaseProtocol)SingletonProtocol.Instance(initRow.MoxaIP, (int)initRow.MoxaPort, FPnumber).GetProtocols();
+                                if ((initRow.MoxaIP.Trim().Length != 0) && ((int)initRow.MoxaPort > 0))
+                                {
+                                    searchProtocol = new Protocol_EP06(initRow.MoxaIP, (int)initRow.MoxaPort, FPnumber);
+                                }
+                                else
+                                {
+                                    searchProtocol = new Protocol_EP06(initRow.Port, FPnumber);
+                                }
                             }
                             else
-                                searchProtocol = (BaseProtocol)SingletonProtocol.Instance(initRow.Port, FPnumber).GetProtocols();
+                            {
+                                setStatusFP("start get protocols....");
+                                if ((initRow.MoxaIP.Trim().Length != 0) && ((int)initRow.MoxaPort > 0))
+                                {
+                                    searchProtocol = (BaseProtocol)SingletonProtocol.Instance(initRow.MoxaIP, (int)initRow.MoxaPort, FPnumber).GetProtocols();
+                                }
+                                else
+                                    searchProtocol = (BaseProtocol)SingletonProtocol.Instance(initRow.Port, FPnumber).GetProtocols();
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -191,6 +207,14 @@ namespace PrintFP.Primary
 
                         using (var pr = searchProtocol)
                         {
+                            try
+                            {
+                                setInfo(pr, operation.Operation, operation.DateTime);
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.Warn(ex);
+                            }
                             setStatusFP(searchProtocol.GetType().ToString() + operation.Operation.ToString());
 
                             if (!InitialSet(_focusA, initRow, pr, operation))
@@ -462,6 +486,7 @@ namespace PrintFP.Primary
                                     logger.Trace("out money:{0}", rest);
                                     pr.FPCashOut(rest);
                                 }
+                                setInfo(pr, operation.Operation, operation.DateTime);
                                 Thread.Sleep(30 * 1000);
                                 //var status = pr.get
                                 logger.Trace("print Z");
@@ -560,6 +585,75 @@ namespace PrintFP.Primary
             setStatusFP("out work, waiting...");
         }
 
+
+        private void setInfo(BaseProtocol pr, int Operation, long datetime)
+        {
+            var dayReport = pr.dayReport;
+            using (DataClasses1DataContext focus = new DataClasses1DataContext())
+            {
+                var rowinfo = (from row in focus.GetTable<tbl_Info>()
+                               where row.FPNumber == FPnumber
+                               && row.NumZReport == dayReport.CurrentNumberOfZReport
+                               && row.LastDateZReport == dayReport.dtDateOfTheLastDailyReport
+                               select row).FirstOrDefault();
+                if (rowinfo == null)
+                {
+                    rowinfo = new tbl_Info() { FPNumber = FPnumber };
+                    focus.tbl_Infos.InsertOnSubmit(rowinfo);
+                }
+                rowinfo.Operation = Operation;
+                rowinfo.DateTime = datetime; //long.Parse(DateTime.Now.ToString("yyyyMMddHHmmss"));
+                rowinfo.NumZReport = dayReport.CurrentNumberOfZReport;
+                rowinfo.SaleCheckNumber = dayReport.CounterOfSaleReceipts;
+                rowinfo.PayCheckNumber = dayReport.CounterOfPayoutReceipts;
+                rowinfo.LastDateZReport = dayReport.dtDateOfTheLastDailyReport;
+                rowinfo.DateTimeOfEndOfShift = dayReport.DateTimeOfEndOfShift;
+                uint MoneyInBox = 0;
+                try
+                {
+                    MoneyInBox = pr.GetMoneyInBox();
+                    rowinfo.MoneyInBox = MoneyInBox;
+                }
+                catch (Exception ex)
+                {
+                    logger.Warn(ex);
+                }
+
+                rowinfo.DiscountSale = dayReport.DailyDiscountBySale;
+                rowinfo.ExtraChargeSale = dayReport.DailyMarkupBySale;
+                rowinfo.DiscountPay = dayReport.DailyDiscountByPayouts;
+                rowinfo.ExtraChargePay = dayReport.DailyMarkupByPayouts;
+                rowinfo.AvansSum = dayReport.DailySumOfServiceCashEntering;
+                rowinfo.PaymentSum = dayReport.DailySumOfServiceCashGivingOut;
+
+                rowinfo.TurnSaleTax_A = dayReport.CounterOfSalesByTaxGroupsAndTypesOfPayments.TaxA;
+                rowinfo.TurnSaleTax_B = dayReport.CounterOfSalesByTaxGroupsAndTypesOfPayments.TaxB;
+                rowinfo.TurnSaleTax_C = dayReport.CounterOfSalesByTaxGroupsAndTypesOfPayments.TaxC;
+                rowinfo.TurnSaleTax_D = dayReport.CounterOfSalesByTaxGroupsAndTypesOfPayments.TaxD;
+                rowinfo.TurnSaleTax_E = dayReport.CounterOfSalesByTaxGroupsAndTypesOfPayments.TaxE;
+                rowinfo.TurnSaleTax_F = dayReport.CounterOfSalesByTaxGroupsAndTypesOfPayments.TaxF;
+                rowinfo.TurnSaleCard = dayReport.CounterOfSalesByTaxGroupsAndTypesOfPayments.Card;
+                rowinfo.TurnSaleCash = dayReport.CounterOfSalesByTaxGroupsAndTypesOfPayments.Cash;
+                rowinfo.TurnSaleCredit = dayReport.CounterOfSalesByTaxGroupsAndTypesOfPayments.Credit;
+                rowinfo.TurnSaleCheck = dayReport.CounterOfSalesByTaxGroupsAndTypesOfPayments.Check;
+
+                rowinfo.TurnPayTax_A = dayReport.CountersOfPayoutByTaxGroupsAndTypesOfPayments.TaxA;
+                rowinfo.TurnPayTax_B = dayReport.CountersOfPayoutByTaxGroupsAndTypesOfPayments.TaxB;
+                rowinfo.TurnPayTax_C = dayReport.CountersOfPayoutByTaxGroupsAndTypesOfPayments.TaxC;
+                rowinfo.TurnPayTax_D = dayReport.CountersOfPayoutByTaxGroupsAndTypesOfPayments.TaxD;
+                rowinfo.TurnPayTax_E = dayReport.CountersOfPayoutByTaxGroupsAndTypesOfPayments.TaxE;
+                rowinfo.TurnPayTax_F = dayReport.CountersOfPayoutByTaxGroupsAndTypesOfPayments.TaxF;
+                rowinfo.TurnPayCard = dayReport.CountersOfPayoutByTaxGroupsAndTypesOfPayments.Card;
+                rowinfo.TurnPayCash = dayReport.CountersOfPayoutByTaxGroupsAndTypesOfPayments.Cash;
+                rowinfo.TurnPayCheck = dayReport.CountersOfPayoutByTaxGroupsAndTypesOfPayments.Check;
+                rowinfo.TurnPayCredit = dayReport.CountersOfPayoutByTaxGroupsAndTypesOfPayments.Credit;
+                rowinfo.DateTimeUpdate = DateTime.Now;
+
+                focus.SubmitChanges(ConflictMode.ContinueOnConflict);
+            }
+        }
+
+
         private void setStatusFP(string infoStatus)
         {
             PrintFP.UpdateStatusFP.setStatusFP(FPnumber, infoStatus);
@@ -656,9 +750,10 @@ namespace PrintFP.Primary
             var status = pr.status;
             pr.setFPCplCutter(false);
             //var dayReport = pr.dayReport;
-            var papstatus = pr.papStat;
-            initRow.PapStat = papstatus.ToString();
-            if ((papstatus.ControlPaperIsAlmostEnded != null) && ((bool)papstatus.ControlPaperIsAlmostEnded))
+            PapStat papstatus = pr.papStat;
+            if (papstatus != null)
+                initRow.PapStat = papstatus.ToString();
+            if ((papstatus != null) && (papstatus.ControlPaperIsAlmostEnded != null) && ((bool)papstatus.ControlPaperIsAlmostEnded))
             {
                 initRow.Error = true;
                 initRow.ErrorInfo = papstatus.ToString();
@@ -675,7 +770,7 @@ namespace PrintFP.Primary
 
                 return false;
             }
-            if ((papstatus.ReceiptPaperIsAlmostEnded != null) && ((bool)papstatus.ReceiptPaperIsAlmostEnded))
+            if ((papstatus != null) && (papstatus.ReceiptPaperIsAlmostEnded != null) && ((bool)papstatus.ReceiptPaperIsAlmostEnded))
             {
                 initRow.Error = true;
                 initRow.ErrorInfo = papstatus.ToString();
@@ -691,7 +786,7 @@ namespace PrintFP.Primary
                 return false;
             }
 
-            var sStatus = pr.structStatus;
+            strByteStatus sStatus = pr.structStatus;
             //#if (!DEBUG)
             //                            initRow.FPNumber = Int32.Parse(status.fiscalNumber);
             //#endif
@@ -744,7 +839,8 @@ namespace PrintFP.Primary
                 }
                 initRow.CurrentDate = pr.fpDateTime.ToString("dd.MM.yy");
                 initRow.CurrentTime = pr.fpDateTime.ToString("HH:mm:ss");
-                initRow.PapStat = papstatus.ToString();
+                if (papstatus != null)
+                    initRow.PapStat = papstatus.ToString();
             }
             catch (Exception ex)
             {

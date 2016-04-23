@@ -435,6 +435,7 @@ namespace CentralLib.Connections
                 rRs.statusOperation = false;
                 rRs.errorInfo += errorInfo + "; ";
                 //return rRs;
+                //Thread.Sleep(3000);// Если что то ждем 3 секунды
                 throw new ApplicationException("Ошибка подключения к серверу");
             }
             byte[] unsigned = null;
@@ -455,9 +456,9 @@ namespace CentralLib.Connections
                     networkStream.ReadTimeout = 5000;
                 Begin:
                     logger.Trace("begin:{0}", taskTry);
-                    if (taskTry > 5)
+                    if (taskTry > 3)
                     {
-                        string sf = String.Format("Выполнено {0} циклов, ответа нет {1}:{2}", this.IpAdress, port.ToString());
+                        string sf = String.Format("Выполнено {0} циклов, ответа нет {1}:{2}", taskTry, this.IpAdress, port.ToString());
                         setError(sf);
                         logger.Trace(sf);
                         rRs.ByteStatus = ByteStatus;
@@ -491,7 +492,7 @@ namespace CentralLib.Connections
 
                     byte[] result = new byte[] { };
 
-                    for (int x = 1; x < 5; x++)
+                    for (int x = 1; x < 3; x++)
                     {
                         logger.Trace("FOR {0} in 5", x);
                         int coef = x;

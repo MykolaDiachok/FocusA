@@ -42,6 +42,9 @@ namespace TestComm
     partial void Inserttbl_ART(tbl_ART instance);
     partial void Updatetbl_ART(tbl_ART instance);
     partial void Deletetbl_ART(tbl_ART instance);
+    partial void Inserttbl_Info(tbl_Info instance);
+    partial void Updatetbl_Info(tbl_Info instance);
+    partial void Deletetbl_Info(tbl_Info instance);
     #endregion
 		
 		public DataClassesFocusADataContext() : 
@@ -103,6 +106,14 @@ namespace TestComm
 			get
 			{
 				return this.GetTable<tbl_ART>();
+			}
+		}
+		
+		public System.Data.Linq.Table<tbl_Info> tbl_Infos
+		{
+			get
+			{
+				return this.GetTable<tbl_Info>();
 			}
 		}
 	}
@@ -3135,6 +3146,908 @@ namespace TestComm
 					this._FPNumber = value;
 					this.SendPropertyChanged("FPNumber");
 					this.OnFPNumberChanged();
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.tbl_Info")]
+	public partial class tbl_Info : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private long _id;
+		
+		private long _DateTime;
+		
+		private int _FPNumber;
+		
+		private System.Nullable<System.DateTime> _DateTimeOfEndOfShift;
+		
+		private int _Operation;
+		
+		private System.Nullable<long> _MoneyInBox;
+		
+		private System.Nullable<long> _SaleCheckNumber;
+		
+		private System.Nullable<long> _PayCheckNumber;
+		
+		private System.Nullable<long> _NumZReport;
+		
+		private System.Nullable<System.DateTime> _LastDateZReport;
+		
+		private System.Nullable<long> _TurnSaleTax_A;
+		
+		private System.Nullable<long> _TurnSaleTax_B;
+		
+		private System.Nullable<long> _TurnSaleTax_C;
+		
+		private System.Nullable<long> _TurnSaleTax_D;
+		
+		private System.Nullable<long> _TurnSaleTax_E;
+		
+		private System.Nullable<long> _TurnSaleTax_F;
+		
+		private System.Nullable<long> _TurnSaleCard;
+		
+		private System.Nullable<long> _TurnSaleCredit;
+		
+		private System.Nullable<long> _TurnSaleCheck;
+		
+		private System.Nullable<long> _TurnSaleCash;
+		
+		private System.Nullable<long> _TurnPayTax_A;
+		
+		private System.Nullable<long> _TurnPayTax_B;
+		
+		private System.Nullable<long> _TurnPayTax_C;
+		
+		private System.Nullable<long> _TurnPayTax_D;
+		
+		private System.Nullable<long> _TurnPayTax_E;
+		
+		private System.Nullable<long> _TurnPayTax_F;
+		
+		private System.Nullable<long> _TurnPayCard;
+		
+		private System.Nullable<long> _TurnPayCredit;
+		
+		private System.Nullable<long> _TurnPayCheck;
+		
+		private System.Nullable<long> _TurnPayCash;
+		
+		private System.Nullable<long> _DiscountSale;
+		
+		private System.Nullable<long> _ExtraChargeSale;
+		
+		private System.Nullable<long> _DiscountPay;
+		
+		private System.Nullable<long> _ExtraChargePay;
+		
+		private System.Nullable<long> _AvansSum;
+		
+		private System.Nullable<long> _PaymentSum;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnidChanging(long value);
+    partial void OnidChanged();
+    partial void OnDateTimeChanging(long value);
+    partial void OnDateTimeChanged();
+    partial void OnFPNumberChanging(int value);
+    partial void OnFPNumberChanged();
+    partial void OnDateTimeOfEndOfShiftChanging(System.Nullable<System.DateTime> value);
+    partial void OnDateTimeOfEndOfShiftChanged();
+    partial void OnOperationChanging(int value);
+    partial void OnOperationChanged();
+    partial void OnMoneyInBoxChanging(System.Nullable<long> value);
+    partial void OnMoneyInBoxChanged();
+    partial void OnSaleCheckNumberChanging(System.Nullable<long> value);
+    partial void OnSaleCheckNumberChanged();
+    partial void OnPayCheckNumberChanging(System.Nullable<long> value);
+    partial void OnPayCheckNumberChanged();
+    partial void OnNumZReportChanging(System.Nullable<long> value);
+    partial void OnNumZReportChanged();
+    partial void OnLastDateZReportChanging(System.Nullable<System.DateTime> value);
+    partial void OnLastDateZReportChanged();
+    partial void OnTurnSaleTax_AChanging(System.Nullable<long> value);
+    partial void OnTurnSaleTax_AChanged();
+    partial void OnTurnSaleTax_BChanging(System.Nullable<long> value);
+    partial void OnTurnSaleTax_BChanged();
+    partial void OnTurnSaleTax_CChanging(System.Nullable<long> value);
+    partial void OnTurnSaleTax_CChanged();
+    partial void OnTurnSaleTax_DChanging(System.Nullable<long> value);
+    partial void OnTurnSaleTax_DChanged();
+    partial void OnTurnSaleTax_EChanging(System.Nullable<long> value);
+    partial void OnTurnSaleTax_EChanged();
+    partial void OnTurnSaleTax_FChanging(System.Nullable<long> value);
+    partial void OnTurnSaleTax_FChanged();
+    partial void OnTurnSaleCardChanging(System.Nullable<long> value);
+    partial void OnTurnSaleCardChanged();
+    partial void OnTurnSaleCreditChanging(System.Nullable<long> value);
+    partial void OnTurnSaleCreditChanged();
+    partial void OnTurnSaleCheckChanging(System.Nullable<long> value);
+    partial void OnTurnSaleCheckChanged();
+    partial void OnTurnSaleCashChanging(System.Nullable<long> value);
+    partial void OnTurnSaleCashChanged();
+    partial void OnTurnPayTax_AChanging(System.Nullable<long> value);
+    partial void OnTurnPayTax_AChanged();
+    partial void OnTurnPayTax_BChanging(System.Nullable<long> value);
+    partial void OnTurnPayTax_BChanged();
+    partial void OnTurnPayTax_CChanging(System.Nullable<long> value);
+    partial void OnTurnPayTax_CChanged();
+    partial void OnTurnPayTax_DChanging(System.Nullable<long> value);
+    partial void OnTurnPayTax_DChanged();
+    partial void OnTurnPayTax_EChanging(System.Nullable<long> value);
+    partial void OnTurnPayTax_EChanged();
+    partial void OnTurnPayTax_FChanging(System.Nullable<long> value);
+    partial void OnTurnPayTax_FChanged();
+    partial void OnTurnPayCardChanging(System.Nullable<long> value);
+    partial void OnTurnPayCardChanged();
+    partial void OnTurnPayCreditChanging(System.Nullable<long> value);
+    partial void OnTurnPayCreditChanged();
+    partial void OnTurnPayCheckChanging(System.Nullable<long> value);
+    partial void OnTurnPayCheckChanged();
+    partial void OnTurnPayCashChanging(System.Nullable<long> value);
+    partial void OnTurnPayCashChanged();
+    partial void OnDiscountSaleChanging(System.Nullable<long> value);
+    partial void OnDiscountSaleChanged();
+    partial void OnExtraChargeSaleChanging(System.Nullable<long> value);
+    partial void OnExtraChargeSaleChanged();
+    partial void OnDiscountPayChanging(System.Nullable<long> value);
+    partial void OnDiscountPayChanged();
+    partial void OnExtraChargePayChanging(System.Nullable<long> value);
+    partial void OnExtraChargePayChanged();
+    partial void OnAvansSumChanging(System.Nullable<long> value);
+    partial void OnAvansSumChanged();
+    partial void OnPaymentSumChanging(System.Nullable<long> value);
+    partial void OnPaymentSumChanged();
+    #endregion
+		
+		public tbl_Info()
+		{
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_id", AutoSync=AutoSync.OnInsert, DbType="BigInt NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public long id
+		{
+			get
+			{
+				return this._id;
+			}
+			set
+			{
+				if ((this._id != value))
+				{
+					this.OnidChanging(value);
+					this.SendPropertyChanging();
+					this._id = value;
+					this.SendPropertyChanged("id");
+					this.OnidChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DateTime", DbType="BigInt NOT NULL")]
+		public long DateTime
+		{
+			get
+			{
+				return this._DateTime;
+			}
+			set
+			{
+				if ((this._DateTime != value))
+				{
+					this.OnDateTimeChanging(value);
+					this.SendPropertyChanging();
+					this._DateTime = value;
+					this.SendPropertyChanged("DateTime");
+					this.OnDateTimeChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="Int NOT NULL")]
+		public int FPNumber
+		{
+			get
+			{
+				return this._FPNumber;
+			}
+			set
+			{
+				if ((this._FPNumber != value))
+				{
+					this.OnFPNumberChanging(value);
+					this.SendPropertyChanging();
+					this._FPNumber = value;
+					this.SendPropertyChanged("FPNumber");
+					this.OnFPNumberChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DateTimeOfEndOfShift", DbType="DateTime")]
+		public System.Nullable<System.DateTime> DateTimeOfEndOfShift
+		{
+			get
+			{
+				return this._DateTimeOfEndOfShift;
+			}
+			set
+			{
+				if ((this._DateTimeOfEndOfShift != value))
+				{
+					this.OnDateTimeOfEndOfShiftChanging(value);
+					this.SendPropertyChanging();
+					this._DateTimeOfEndOfShift = value;
+					this.SendPropertyChanged("DateTimeOfEndOfShift");
+					this.OnDateTimeOfEndOfShiftChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Operation", DbType="Int NOT NULL")]
+		public int Operation
+		{
+			get
+			{
+				return this._Operation;
+			}
+			set
+			{
+				if ((this._Operation != value))
+				{
+					this.OnOperationChanging(value);
+					this.SendPropertyChanging();
+					this._Operation = value;
+					this.SendPropertyChanged("Operation");
+					this.OnOperationChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_MoneyInBox", DbType="BigInt")]
+		public System.Nullable<long> MoneyInBox
+		{
+			get
+			{
+				return this._MoneyInBox;
+			}
+			set
+			{
+				if ((this._MoneyInBox != value))
+				{
+					this.OnMoneyInBoxChanging(value);
+					this.SendPropertyChanging();
+					this._MoneyInBox = value;
+					this.SendPropertyChanged("MoneyInBox");
+					this.OnMoneyInBoxChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_SaleCheckNumber", DbType="BigInt")]
+		public System.Nullable<long> SaleCheckNumber
+		{
+			get
+			{
+				return this._SaleCheckNumber;
+			}
+			set
+			{
+				if ((this._SaleCheckNumber != value))
+				{
+					this.OnSaleCheckNumberChanging(value);
+					this.SendPropertyChanging();
+					this._SaleCheckNumber = value;
+					this.SendPropertyChanged("SaleCheckNumber");
+					this.OnSaleCheckNumberChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_PayCheckNumber", DbType="BigInt")]
+		public System.Nullable<long> PayCheckNumber
+		{
+			get
+			{
+				return this._PayCheckNumber;
+			}
+			set
+			{
+				if ((this._PayCheckNumber != value))
+				{
+					this.OnPayCheckNumberChanging(value);
+					this.SendPropertyChanging();
+					this._PayCheckNumber = value;
+					this.SendPropertyChanged("PayCheckNumber");
+					this.OnPayCheckNumberChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_NumZReport", DbType="BigInt")]
+		public System.Nullable<long> NumZReport
+		{
+			get
+			{
+				return this._NumZReport;
+			}
+			set
+			{
+				if ((this._NumZReport != value))
+				{
+					this.OnNumZReportChanging(value);
+					this.SendPropertyChanging();
+					this._NumZReport = value;
+					this.SendPropertyChanged("NumZReport");
+					this.OnNumZReportChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_LastDateZReport", DbType="DateTime")]
+		public System.Nullable<System.DateTime> LastDateZReport
+		{
+			get
+			{
+				return this._LastDateZReport;
+			}
+			set
+			{
+				if ((this._LastDateZReport != value))
+				{
+					this.OnLastDateZReportChanging(value);
+					this.SendPropertyChanging();
+					this._LastDateZReport = value;
+					this.SendPropertyChanged("LastDateZReport");
+					this.OnLastDateZReportChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TurnSaleTax_A", DbType="BigInt")]
+		public System.Nullable<long> TurnSaleTax_A
+		{
+			get
+			{
+				return this._TurnSaleTax_A;
+			}
+			set
+			{
+				if ((this._TurnSaleTax_A != value))
+				{
+					this.OnTurnSaleTax_AChanging(value);
+					this.SendPropertyChanging();
+					this._TurnSaleTax_A = value;
+					this.SendPropertyChanged("TurnSaleTax_A");
+					this.OnTurnSaleTax_AChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TurnSaleTax_B", DbType="BigInt")]
+		public System.Nullable<long> TurnSaleTax_B
+		{
+			get
+			{
+				return this._TurnSaleTax_B;
+			}
+			set
+			{
+				if ((this._TurnSaleTax_B != value))
+				{
+					this.OnTurnSaleTax_BChanging(value);
+					this.SendPropertyChanging();
+					this._TurnSaleTax_B = value;
+					this.SendPropertyChanged("TurnSaleTax_B");
+					this.OnTurnSaleTax_BChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TurnSaleTax_C", DbType="BigInt")]
+		public System.Nullable<long> TurnSaleTax_C
+		{
+			get
+			{
+				return this._TurnSaleTax_C;
+			}
+			set
+			{
+				if ((this._TurnSaleTax_C != value))
+				{
+					this.OnTurnSaleTax_CChanging(value);
+					this.SendPropertyChanging();
+					this._TurnSaleTax_C = value;
+					this.SendPropertyChanged("TurnSaleTax_C");
+					this.OnTurnSaleTax_CChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TurnSaleTax_D", DbType="BigInt")]
+		public System.Nullable<long> TurnSaleTax_D
+		{
+			get
+			{
+				return this._TurnSaleTax_D;
+			}
+			set
+			{
+				if ((this._TurnSaleTax_D != value))
+				{
+					this.OnTurnSaleTax_DChanging(value);
+					this.SendPropertyChanging();
+					this._TurnSaleTax_D = value;
+					this.SendPropertyChanged("TurnSaleTax_D");
+					this.OnTurnSaleTax_DChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TurnSaleTax_E", DbType="BigInt")]
+		public System.Nullable<long> TurnSaleTax_E
+		{
+			get
+			{
+				return this._TurnSaleTax_E;
+			}
+			set
+			{
+				if ((this._TurnSaleTax_E != value))
+				{
+					this.OnTurnSaleTax_EChanging(value);
+					this.SendPropertyChanging();
+					this._TurnSaleTax_E = value;
+					this.SendPropertyChanged("TurnSaleTax_E");
+					this.OnTurnSaleTax_EChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TurnSaleTax_F", DbType="BigInt")]
+		public System.Nullable<long> TurnSaleTax_F
+		{
+			get
+			{
+				return this._TurnSaleTax_F;
+			}
+			set
+			{
+				if ((this._TurnSaleTax_F != value))
+				{
+					this.OnTurnSaleTax_FChanging(value);
+					this.SendPropertyChanging();
+					this._TurnSaleTax_F = value;
+					this.SendPropertyChanged("TurnSaleTax_F");
+					this.OnTurnSaleTax_FChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TurnSaleCard", DbType="BigInt")]
+		public System.Nullable<long> TurnSaleCard
+		{
+			get
+			{
+				return this._TurnSaleCard;
+			}
+			set
+			{
+				if ((this._TurnSaleCard != value))
+				{
+					this.OnTurnSaleCardChanging(value);
+					this.SendPropertyChanging();
+					this._TurnSaleCard = value;
+					this.SendPropertyChanged("TurnSaleCard");
+					this.OnTurnSaleCardChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TurnSaleCredit", DbType="BigInt")]
+		public System.Nullable<long> TurnSaleCredit
+		{
+			get
+			{
+				return this._TurnSaleCredit;
+			}
+			set
+			{
+				if ((this._TurnSaleCredit != value))
+				{
+					this.OnTurnSaleCreditChanging(value);
+					this.SendPropertyChanging();
+					this._TurnSaleCredit = value;
+					this.SendPropertyChanged("TurnSaleCredit");
+					this.OnTurnSaleCreditChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TurnSaleCheck", DbType="BigInt")]
+		public System.Nullable<long> TurnSaleCheck
+		{
+			get
+			{
+				return this._TurnSaleCheck;
+			}
+			set
+			{
+				if ((this._TurnSaleCheck != value))
+				{
+					this.OnTurnSaleCheckChanging(value);
+					this.SendPropertyChanging();
+					this._TurnSaleCheck = value;
+					this.SendPropertyChanged("TurnSaleCheck");
+					this.OnTurnSaleCheckChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TurnSaleCash", DbType="BigInt")]
+		public System.Nullable<long> TurnSaleCash
+		{
+			get
+			{
+				return this._TurnSaleCash;
+			}
+			set
+			{
+				if ((this._TurnSaleCash != value))
+				{
+					this.OnTurnSaleCashChanging(value);
+					this.SendPropertyChanging();
+					this._TurnSaleCash = value;
+					this.SendPropertyChanged("TurnSaleCash");
+					this.OnTurnSaleCashChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TurnPayTax_A", DbType="BigInt")]
+		public System.Nullable<long> TurnPayTax_A
+		{
+			get
+			{
+				return this._TurnPayTax_A;
+			}
+			set
+			{
+				if ((this._TurnPayTax_A != value))
+				{
+					this.OnTurnPayTax_AChanging(value);
+					this.SendPropertyChanging();
+					this._TurnPayTax_A = value;
+					this.SendPropertyChanged("TurnPayTax_A");
+					this.OnTurnPayTax_AChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TurnPayTax_B", DbType="BigInt")]
+		public System.Nullable<long> TurnPayTax_B
+		{
+			get
+			{
+				return this._TurnPayTax_B;
+			}
+			set
+			{
+				if ((this._TurnPayTax_B != value))
+				{
+					this.OnTurnPayTax_BChanging(value);
+					this.SendPropertyChanging();
+					this._TurnPayTax_B = value;
+					this.SendPropertyChanged("TurnPayTax_B");
+					this.OnTurnPayTax_BChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TurnPayTax_C", DbType="BigInt")]
+		public System.Nullable<long> TurnPayTax_C
+		{
+			get
+			{
+				return this._TurnPayTax_C;
+			}
+			set
+			{
+				if ((this._TurnPayTax_C != value))
+				{
+					this.OnTurnPayTax_CChanging(value);
+					this.SendPropertyChanging();
+					this._TurnPayTax_C = value;
+					this.SendPropertyChanged("TurnPayTax_C");
+					this.OnTurnPayTax_CChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TurnPayTax_D", DbType="BigInt")]
+		public System.Nullable<long> TurnPayTax_D
+		{
+			get
+			{
+				return this._TurnPayTax_D;
+			}
+			set
+			{
+				if ((this._TurnPayTax_D != value))
+				{
+					this.OnTurnPayTax_DChanging(value);
+					this.SendPropertyChanging();
+					this._TurnPayTax_D = value;
+					this.SendPropertyChanged("TurnPayTax_D");
+					this.OnTurnPayTax_DChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TurnPayTax_E", DbType="BigInt")]
+		public System.Nullable<long> TurnPayTax_E
+		{
+			get
+			{
+				return this._TurnPayTax_E;
+			}
+			set
+			{
+				if ((this._TurnPayTax_E != value))
+				{
+					this.OnTurnPayTax_EChanging(value);
+					this.SendPropertyChanging();
+					this._TurnPayTax_E = value;
+					this.SendPropertyChanged("TurnPayTax_E");
+					this.OnTurnPayTax_EChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TurnPayTax_F", DbType="BigInt")]
+		public System.Nullable<long> TurnPayTax_F
+		{
+			get
+			{
+				return this._TurnPayTax_F;
+			}
+			set
+			{
+				if ((this._TurnPayTax_F != value))
+				{
+					this.OnTurnPayTax_FChanging(value);
+					this.SendPropertyChanging();
+					this._TurnPayTax_F = value;
+					this.SendPropertyChanged("TurnPayTax_F");
+					this.OnTurnPayTax_FChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TurnPayCard", DbType="BigInt")]
+		public System.Nullable<long> TurnPayCard
+		{
+			get
+			{
+				return this._TurnPayCard;
+			}
+			set
+			{
+				if ((this._TurnPayCard != value))
+				{
+					this.OnTurnPayCardChanging(value);
+					this.SendPropertyChanging();
+					this._TurnPayCard = value;
+					this.SendPropertyChanged("TurnPayCard");
+					this.OnTurnPayCardChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TurnPayCredit", DbType="BigInt")]
+		public System.Nullable<long> TurnPayCredit
+		{
+			get
+			{
+				return this._TurnPayCredit;
+			}
+			set
+			{
+				if ((this._TurnPayCredit != value))
+				{
+					this.OnTurnPayCreditChanging(value);
+					this.SendPropertyChanging();
+					this._TurnPayCredit = value;
+					this.SendPropertyChanged("TurnPayCredit");
+					this.OnTurnPayCreditChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TurnPayCheck", DbType="BigInt")]
+		public System.Nullable<long> TurnPayCheck
+		{
+			get
+			{
+				return this._TurnPayCheck;
+			}
+			set
+			{
+				if ((this._TurnPayCheck != value))
+				{
+					this.OnTurnPayCheckChanging(value);
+					this.SendPropertyChanging();
+					this._TurnPayCheck = value;
+					this.SendPropertyChanged("TurnPayCheck");
+					this.OnTurnPayCheckChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_TurnPayCash", DbType="BigInt")]
+		public System.Nullable<long> TurnPayCash
+		{
+			get
+			{
+				return this._TurnPayCash;
+			}
+			set
+			{
+				if ((this._TurnPayCash != value))
+				{
+					this.OnTurnPayCashChanging(value);
+					this.SendPropertyChanging();
+					this._TurnPayCash = value;
+					this.SendPropertyChanged("TurnPayCash");
+					this.OnTurnPayCashChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DiscountSale", DbType="BigInt")]
+		public System.Nullable<long> DiscountSale
+		{
+			get
+			{
+				return this._DiscountSale;
+			}
+			set
+			{
+				if ((this._DiscountSale != value))
+				{
+					this.OnDiscountSaleChanging(value);
+					this.SendPropertyChanging();
+					this._DiscountSale = value;
+					this.SendPropertyChanged("DiscountSale");
+					this.OnDiscountSaleChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_ExtraChargeSale", DbType="BigInt")]
+		public System.Nullable<long> ExtraChargeSale
+		{
+			get
+			{
+				return this._ExtraChargeSale;
+			}
+			set
+			{
+				if ((this._ExtraChargeSale != value))
+				{
+					this.OnExtraChargeSaleChanging(value);
+					this.SendPropertyChanging();
+					this._ExtraChargeSale = value;
+					this.SendPropertyChanged("ExtraChargeSale");
+					this.OnExtraChargeSaleChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DiscountPay", DbType="BigInt")]
+		public System.Nullable<long> DiscountPay
+		{
+			get
+			{
+				return this._DiscountPay;
+			}
+			set
+			{
+				if ((this._DiscountPay != value))
+				{
+					this.OnDiscountPayChanging(value);
+					this.SendPropertyChanging();
+					this._DiscountPay = value;
+					this.SendPropertyChanged("DiscountPay");
+					this.OnDiscountPayChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_ExtraChargePay", DbType="BigInt")]
+		public System.Nullable<long> ExtraChargePay
+		{
+			get
+			{
+				return this._ExtraChargePay;
+			}
+			set
+			{
+				if ((this._ExtraChargePay != value))
+				{
+					this.OnExtraChargePayChanging(value);
+					this.SendPropertyChanging();
+					this._ExtraChargePay = value;
+					this.SendPropertyChanged("ExtraChargePay");
+					this.OnExtraChargePayChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_AvansSum", DbType="BigInt")]
+		public System.Nullable<long> AvansSum
+		{
+			get
+			{
+				return this._AvansSum;
+			}
+			set
+			{
+				if ((this._AvansSum != value))
+				{
+					this.OnAvansSumChanging(value);
+					this.SendPropertyChanging();
+					this._AvansSum = value;
+					this.SendPropertyChanged("AvansSum");
+					this.OnAvansSumChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_PaymentSum", DbType="BigInt")]
+		public System.Nullable<long> PaymentSum
+		{
+			get
+			{
+				return this._PaymentSum;
+			}
+			set
+			{
+				if ((this._PaymentSum != value))
+				{
+					this.OnPaymentSumChanging(value);
+					this.SendPropertyChanging();
+					this._PaymentSum = value;
+					this.SendPropertyChanged("PaymentSum");
+					this.OnPaymentSumChanged();
 				}
 			}
 		}

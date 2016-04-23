@@ -350,25 +350,13 @@ namespace CentralLib.Protocols
         private DayReport getDayReport()
         {
             byte[] bytesReturn, bytesReturn0, bytesReturn1, bytesReturn2, bytesReturn3;
-            {
-                byte[] forsending = new byte[] { 42 };
-                byte[] answer = ExchangeWithFP(forsending).bytesReturn;
-                if ((connFP.statusOperation) && (answer.Length > 0))
-                {
-                    bytesReturn = answer;
-                }
-                else
-                {
-                    this.statusOperation = false;
-                    return new DayReport();
-                }
-            }
+            
             {
                 byte[] forsending = new byte[] { 42, 0 };
-                byte[] answer = ExchangeWithFP(forsending).bytesReturn;
-                if ((connFP.statusOperation) && (answer.Length > 0))
+                var answer = ExchangeWithFP(forsending);
+                if ((answer.statusOperation) && (answer.bytesReturn.Length > 0))
                 {
-                    bytesReturn0 = answer;
+                    bytesReturn0 = answer.bytesReturn;
                 }
                 else
                 {
@@ -378,10 +366,10 @@ namespace CentralLib.Protocols
             }
             {
                 byte[] forsending = new byte[] { 42, 1 };
-                byte[] answer = ExchangeWithFP(forsending).bytesReturn;
-                if ((connFP.statusOperation) && (answer.Length > 0))
+                var answer = ExchangeWithFP(forsending);
+                if ((answer.statusOperation) && (answer.bytesReturn.Length > 0))
                 {
-                    bytesReturn1 = answer;
+                    bytesReturn1 = answer.bytesReturn;
                 }
                 else
                 {
@@ -391,10 +379,10 @@ namespace CentralLib.Protocols
             }
             {
                 byte[] forsending = new byte[] { 42, 2 };
-                byte[] answer = ExchangeWithFP(forsending).bytesReturn;
-                if ((connFP.statusOperation) && (answer.Length > 0))
+                var answer = ExchangeWithFP(forsending);
+                if ((answer.statusOperation) && (answer.bytesReturn.Length > 0))
                 {
-                    bytesReturn2 = answer;
+                    bytesReturn2 = answer.bytesReturn;
                 }
                 else
                 {
@@ -404,10 +392,10 @@ namespace CentralLib.Protocols
             }
             {
                 byte[] forsending = new byte[] { 42, 3 };
-                byte[] answer = ExchangeWithFP(forsending).bytesReturn;
-                if ((connFP.statusOperation) && (answer.Length > 0))
+                var answer = ExchangeWithFP(forsending);
+                if ((answer.statusOperation) && (answer.bytesReturn.Length > 0))
                 {
-                    bytesReturn3 = answer;
+                    bytesReturn3 = answer.bytesReturn;
                 }
                 else
                 {
@@ -416,7 +404,22 @@ namespace CentralLib.Protocols
                 }
             }
 
-            return new DayReport(bytesReturn, bytesReturn0, bytesReturn1, bytesReturn2, bytesReturn3);
+            ReturnedStruct answer42;
+            {
+                byte[] forsending = new byte[] { 42 };
+                answer42 = ExchangeWithFP(forsending);
+                if ((answer42.statusOperation) && (answer42.bytesReturn.Length > 0))
+                {
+                    bytesReturn = answer42.bytesReturn;
+                }
+                else
+                {
+                    this.statusOperation = false;
+                    return new DayReport();
+                }
+            }
+
+            return new DayReport(this, answer42, bytesReturn, bytesReturn0, bytesReturn1, bytesReturn2, bytesReturn3);
         }
 
        
@@ -557,13 +560,13 @@ namespace CentralLib.Protocols
                 forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(GoodName, MaxStringLenght));
             }
             forsending = byteHelper.Combine(forsending, byteHelper.ConvertUint64ToArrayByte6(StrCode));
-            ReceiptInfo _checkinfo = new ReceiptInfo();
-            _checkinfo.returnedStruct = ExchangeWithFP(forsending);
-            byte[] answer = _checkinfo.returnedStruct.bytesReturn;
+            var tanswer = ExchangeWithFP(forsending);
+            
+            
+            byte[] answer = tanswer.bytesReturn;
             if ((statusOperation) && (answer.Length == 8))
-            {                
-                _checkinfo.CostOfGoodsOrService = BitConverter.ToInt32(answer, 0);
-                _checkinfo.SumAtReceipt = BitConverter.ToInt32(answer, 4);
+            {
+                ReceiptInfo _checkinfo = new ReceiptInfo(tanswer, BitConverter.ToInt32(answer, 0), BitConverter.ToInt32(answer, 4));
                 return _checkinfo;
             }
             return new ReceiptInfo();
@@ -627,13 +630,12 @@ namespace CentralLib.Protocols
                 forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(GoodName, MaxStringLenght));
             }
             forsending = byteHelper.Combine(forsending, byteHelper.ConvertUint64ToArrayByte6(StrCode));
-            ReceiptInfo _checkinfo = new ReceiptInfo();
-            _checkinfo.returnedStruct = ExchangeWithFP(forsending);
-            byte[] answer = _checkinfo.returnedStruct.bytesReturn;
+            
+            var tanswer = ExchangeWithFP(forsending);
+            byte[] answer = tanswer.bytesReturn;
             if ((statusOperation) && (answer.Length == 8))
-            {                
-                _checkinfo.CostOfGoodsOrService = BitConverter.ToInt32(answer, 0);
-                _checkinfo.SumAtReceipt = BitConverter.ToInt32(answer, 4);
+            {
+                ReceiptInfo _checkinfo = new ReceiptInfo(tanswer, BitConverter.ToInt32(answer, 0), BitConverter.ToInt32(answer, 4));
                 return _checkinfo;
             }
             return new ReceiptInfo();
@@ -677,25 +679,28 @@ namespace CentralLib.Protocols
             if (AuthorizationCode.Length!=0)
                 forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(AuthorizationCode, 50));
 
-            PaymentInfo _paymentInfo = new PaymentInfo();
-            _paymentInfo.returnedStruct = ExchangeWithFP(forsending);
-            byte[] answer = _paymentInfo.returnedStruct.bytesReturn;
-            if ((statusOperation) && (answer.Length  > 3))
-            {
+            
+            var sanswer = ExchangeWithFP(forsending);
+
+            //PaymentInfo _paymentInfo = 
+                return new PaymentInfo(sanswer);
+            //byte[] answer = _paymentInfo.returnedStruct.bytesReturn;
+            //if ((statusOperation) && (answer.Length  > 3))
+            //{
                 
-                UInt32 tinfo = BitConverter.ToUInt32(answer, 0);
-                if (byteHelper.GetBit(answer[3],7))
-                {
-                    tinfo = byteHelper.ClearBitUInt32(tinfo, 31);
-                    _paymentInfo.Renting = tinfo;
-                }
-                else
-                    _paymentInfo.Rest = tinfo;
-                if (answer.Length>=8)
-                    _paymentInfo.NumberOfReceiptPackageInCPEF = BitConverter.ToUInt32(answer, 4);
-                return _paymentInfo;
-            }
-            return new PaymentInfo();
+            //    UInt32 tinfo = BitConverter.ToUInt32(answer, 0);
+            //    if (byteHelper.GetBit(answer[3],7))
+            //    {
+            //        tinfo = byteHelper.ClearBitUInt32(tinfo, 31);
+            //        _paymentInfo.Renting = tinfo;
+            //    }
+            //    else
+            //        _paymentInfo.Rest = tinfo;
+            //    if (answer.Length>=8)
+            //        _paymentInfo.NumberOfReceiptPackageInCPEF = BitConverter.ToUInt32(answer, 4);
+            //    return _paymentInfo;
+            //}
+            //return new PaymentInfo();
         }
 
 
@@ -746,7 +751,7 @@ namespace CentralLib.Protocols
                     //    forsending = new byte[] { 0x2D, 0x90 };
                     //    break;
             }
-            byte[] answer = GetMemmory(forsending, 16, 16);
+            byte[] answer = GetMemmory(forsending, 16, 16).bytesReturn;
 
             if (answer.Length != 16)
             {

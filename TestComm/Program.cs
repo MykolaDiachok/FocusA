@@ -34,49 +34,72 @@ namespace TestComm
         static void Main(string[] args)
         {
 
-
-
-
-            //logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
-            ProcessStartInfo processInfo = new ProcessStartInfo
-            {
-                UseShellExecute = false, // change value to false
-                FileName = AppDomain.CurrentDomain.BaseDirectory + @"PrintFp.exe",
-                Arguments = string.Format("-a --fp={0}", 10014193, appGuid),
-                //RedirectStandardError = true,
-                //RedirectStandardInput = true,
-                //RedirectStandardOutput = true,
-                CreateNoWindow = true,
-                ErrorDialog = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
-                Verb = "runas"
-            };
-            Process process = new Process();
-            process.StartInfo = processInfo;
-            //bool active = process.Start();
-
-            ThreadStart ths = new ThreadStart(() => process.Start());
-            Thread th = new Thread(ths);
-            th.Start();
-
+            //4008 = 10013268
+            //4003 = 10010014
+            //4004 = 10011738
 
             //byteHelper = new ByteHelper();
             //ConsecutiveNumber = 1;
+            int fpnumber = 0;
+            BaseProtocol pr = SingletonProtocol.Instance("192.168.255.132", 4016, fpnumber).GetProtocols();
 
-            //BaseProtocol pr = SingletonProtocol.Instance("192.168.255.132", 4016).GetProtocols();            
-            //pr.setFPCplCutter(false);
-            //pr.FPNullCheck();
-            //pr.FPDayClrReport();
-            //pr.Dispose();
+            //var dayReport = pr.dayReport;
+            using (DataClassesFocusADataContext focus = new DataClassesFocusADataContext())
+            {
+                var t = pr.FPDayClrReport();
+                var tmp = pr.GetMemmory(0x3000, 16, 1);
+                var st = pr.status;
+                var dayReport = pr.dayReport;
+               
+                //pr.FPResetOrder();
+                //var A = pr.FPSaleEx(1, 0, false, 2000, 0, false, "tA", 450);
 
-            Console.WriteLine("Enter....");
+                //var discount = pr.Discount(FPDiscount.AbsoluteDiscountMarkupAtIntermediateSum, 100, "Bonus");
+                ////var E = pr.FPSaleEx(1, 0, false, 50000, 5, false, "tE", 464);
+                ////var F = pr.FPSaleEx(1, 0, false, 60000, 6, false, "tF", 465);
+
+                //var p3 = pr.FPPayment(3, 5000, true, true);
+
+                //var _A = pr.FPPayMoneyEx(1, 0, false, 100, 0, false, "tA", 450);
+                //var _B = pr.FPPayMoneyEx(1, 0, false, 100, 1, false, "tB", 451);
+                //var _C = pr.FPPayMoneyEx(1, 0, false, 100, 2, false, "tC", 452);
+                //var _D = pr.FPPayMoneyEx(1, 0, false, 100, 3, false, "tD", 453);
+                ////var E = pr.FPSaleEx(1, 0, false, 50000, 5, false, "tE", 464);
+                ////var F = pr.FPSaleEx(1, 0, false, 60000, 6, false, "tF", 465);
+                //var _p0 = pr.FPPayment(0, 1, false, true);
+                //var _p1 = pr.FPPayment(1, 2, false, true);
+                //var _p2 = pr.FPPayment(2, 3, false, true);
+                //var _p4 = pr.FPPayment(4, 4, false, true);
+                //var _p5 = pr.FPPayment(5, 5, false, true);
+                //var _p6 = pr.FPPayment(6, 6, false, true);
+                //var _p7 = pr.FPPayment(7, 7, false, true);
+                //var _p8 = pr.FPPayment(8, 8, false, true);
+                //var _p9 = pr.FPPayment(9, 9, false, true);
+                //var _p3 = pr.FPPayment(3, 500, true, true);
+
+
+                ////pr.FPDayClrReport();
+                //var tmp  = pr.GetMemmory(0x301D, 16, 80);
+                //var tmp1 = pr.GetMemmory(0x3079, 16, 80);
+                //var tmp2 = pr.GetMemmory(0x2A, 0, 2);
+
+                ////var tmp = pr.GetMemmory()
+                //var tstatus = pr.dayReport;
+                //var ts = pr.getDayReport(false);
+                //pr.setFPCplCutter(false);
+                //pr.FPNullCheck();
+                //pr.FPDayClrReport();
+                pr.Dispose();
+
+                Console.WriteLine("Enter....");
                 Console.ReadKey();
 
 
 
-        }
+            }
 
-       
+
+        }
     }
 
     public static class MyT

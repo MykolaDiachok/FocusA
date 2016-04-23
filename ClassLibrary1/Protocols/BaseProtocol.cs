@@ -160,26 +160,61 @@ namespace CentralLib.Protocols
             }
         }
 
-        private DayReport getDayReport()
+
+
+
+        public DayReport getDayReport(bool frommemory=true)
         {
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
-            byte[] bytesReturn;
+            if (frommemory)
             {
+                List<byte[]> sbor = new List<byte[]>();
+                sbor.Add(GetMemmory(0x301B, 16, 2).bytesReturn); //0- 301Bh 2 счетчик чеков продаж
+                sbor.Add(GetMemmory(0x301D, 16, 80).bytesReturn); //1- 301Dh 5*(6+10) счетчики сумм продаж по налоговым группам и формам оплат
+                sbor.Add(GetMemmory(0x3068, 16, 5).bytesReturn); //2- 3068h 5 сменная наценка по продажам
+                sbor.Add(GetMemmory(0x306D, 16, 5).bytesReturn); //3- 306Dh 5 сменная скидка по продажам
+                sbor.Add(GetMemmory(0x3072, 16, 5).bytesReturn); //4- 3072h 5 сменная сумма аванса
+                sbor.Add(GetMemmory(0x3077, 16, 2).bytesReturn); //5- 3077h 2 счетчик чеков выплат
+                sbor.Add(GetMemmory(0x3079, 16, 80).bytesReturn); //6- 3079h 5*(6+10) счетчики сумм выплат по налоговым группам и формам оплат
+                sbor.Add(GetMemmory(0x30C4, 16, 5).bytesReturn);  //7-30C4h 5 сменная наценка по выплатам
+                sbor.Add(GetMemmory(0x30C9, 16, 5).bytesReturn);//8-  30C9h 5 сменная скидка по выплатам
+                sbor.Add(GetMemmory(0x30CE, 16, 5).bytesReturn);//9-30CEh 5 сменная сумма выдано
+                sbor.Add(GetMemmory(0x0037, 16, 2).bytesReturn); //10- 0037h 2 текущий номер Z-отчета
+                sbor.Add(GetMemmory(0x301B, 16, 2).bytesReturn); //11- 301Bh 2 счетчик чеков продаж ??? не понятно по повторяем 11 протокол для совместимости
+                sbor.Add(GetMemmory(0x3077, 16, 2).bytesReturn); //12- 3077h 2 счетчик чеков выплат ??? не понятно по повторяем 11 протокол для совместимости
+                sbor.Add(GetMemmory(0x0078, 16, 3).bytesReturn); //13- 0078h 3 дата начала смены
+                sbor.Add(GetMemmory(0x007B, 16, 2).bytesReturn); //14- 007Bh 2 время начала смены
+                sbor.Add(GetMemmory(0x0169, 16, 3).bytesReturn); //15- h 3 дата последнего дневного отчета
+                sbor.Add(GetMemmory(0x0065, 16, 2).bytesReturn);//16 - 0065h 2 счетчик артикулов
+                sbor.Add(GetMemmory(0x2F00, 16, 30).bytesReturn);// 17 - 2F00h 5*6 sum of taxes by tax groups for add-on VAT, суммы налогов по налоговым группам для наложенного НДС
+                sbor.Add(GetMemmory(0x2F74, 16, 2).bytesReturn); // 18 - 2F74 2 количество аннулированных чеков продаж
+                sbor.Add(GetMemmory(0x2F7B, 16, 2).bytesReturn); // 19 - 2F7B 2 количество аннулированных чеков выплат
+                sbor.Add(GetMemmory(0x2F76, 16, 5).bytesReturn); // 20 - 2F76 5 сумма аннулированных чеков продаж
+                sbor.Add(GetMemmory(0x2F7D, 16, 5).bytesReturn); // 21 - 2F7D 5 сумма аннулированных чеков выплат
+                sbor.Add(GetMemmory(0x2F82, 16, 2).bytesReturn); // 22 - 2F82 2 количество отказов продаж
+                sbor.Add(GetMemmory(0x2F89, 16, 2).bytesReturn); // 23 - 2F89 2 количество отказов выплат
+                sbor.Add(GetMemmory(0x2F84, 16, 5).bytesReturn); // 24 - 2F84 5 сумма отказов продаж
+                sbor.Add(GetMemmory(0x2F8B, 16, 5).bytesReturn); // 25 - 2F8B 5 сумма отказов выплат
+
+                return new DayReport(this, sbor.ToArray());
+            }
+
+            else {
                 byte[] forsending = new byte[] { 42 };
-                byte[] answer = ExchangeWithFP(forsending).bytesReturn;
-                if ((connFP.statusOperation) && (answer.Length > 0))
+                var answer42 = ExchangeWithFP(forsending);
+                if ((answer42.statusOperation) && (answer42.bytesReturn.Length > 0))
                 {
-                    bytesReturn = answer;
+                    return new DayReport(this, answer42, answer42.bytesReturn);
                 }
                 else
                 {
                     this.statusOperation = false;
-                    return new DayReport();
+                    return new DayReport(this, answer42);
                 }
             }
 
 
-            return new DayReport(bytesReturn);
+            //return new DayReport();
         }
 
         #region DateTime
@@ -187,7 +222,7 @@ namespace CentralLib.Protocols
         {
             get
             {
-                logger.Trace("get "+this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
+                logger.Trace("get " + this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
                 byte[] answer = ExchangeWithFP(new byte[] { 1 }).bytesReturn;
 
                 if (connFP.statusOperation)
@@ -222,7 +257,7 @@ namespace CentralLib.Protocols
             }
             set
             {
-                logger.Trace("set "+this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
+                logger.Trace("set " + this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
                 byte hh = Convert.ToByte(Convert.ToInt32(value.ToString("HH"), 16));
                 byte mm = Convert.ToByte(Convert.ToInt32(value.ToString("mm"), 16));
                 byte ss = Convert.ToByte(Convert.ToInt32(value.ToString("ss"), 16));
@@ -472,16 +507,34 @@ namespace CentralLib.Protocols
 
 
         #region GetMemmory
-        public byte[] GetMemmory(byte[] AddressOfBlock, byte NumberOfPage, byte SizeOfBlock) //прочитать блок памяти регистратора
+        /// <summary>
+        /// GetMemory прочитать блок памяти регистратора
+        /// Код: 28.
+        /// </summary>
+        /// <param name="AddressOfBlock">адрес блока</param>
+        /// <param name="NumberOfPage">номер страницы</param>
+        /// <param name="SizeOfBlock">размер блока</param>
+        /// <returns></returns>
+        public ReturnedStruct GetMemmory(byte[] AddressOfBlock, byte NumberOfPage, byte SizeOfBlock) //прочитать блок памяти регистратора
         {
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
-            byte[] forsending = new byte[] { 28 };
-            forsending = byteHelper.Combine(forsending, new byte[] { AddressOfBlock[1], AddressOfBlock[0] });
-            forsending = byteHelper.Combine(forsending, new byte[] { NumberOfPage, SizeOfBlock });
-            byte[] answer = ExchangeWithFP(forsending).bytesReturn;
-            return answer;
+            //byte[] forsending = new byte[] { 28 };
+            byte[] forsending = new byte[] { 28, AddressOfBlock[0], AddressOfBlock[1], NumberOfPage, SizeOfBlock };
+            //forsending = byteHelper.Combine(forsending, new byte[] { NumberOfPage, SizeOfBlock });
+            //byte[] answer = ExchangeWithFP(forsending).bytesReturn;
+            return ExchangeWithFP(forsending);
         }
 
+        public ReturnedStruct GetMemmory(int AddressOfBlock, byte NumberOfPage, byte SizeOfBlock) //прочитать блок памяти регистратора
+        {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
+            //byte[] forsending = new byte[] { 28 };
+            byte[] tmp = BitConverter.GetBytes(AddressOfBlock);
+            byte[] forsending = new byte[] { 28, tmp[0], tmp[1], NumberOfPage, SizeOfBlock };
+            //forsending = byteHelper.Combine(forsending, new byte[] { NumberOfPage, SizeOfBlock });
+            //byte[] answer = ExchangeWithFP(forsending).bytesReturn;
+            return ExchangeWithFP(forsending);
+        }
 
         #endregion
 
@@ -489,14 +542,14 @@ namespace CentralLib.Protocols
         private string getstringProtocol()
         {
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
-            byte[] forsending = new byte[] { 28, 00, 30 };
-            byte[] answer = ExchangeWithFP(forsending).bytesReturn;
-            forsending = new byte[] { 0 };
-            answer = ExchangeWithFP(forsending).bytesReturn;
+            //byte[] forsending = new byte[] { 28, 00, 30 };
+            //byte[] answer = ExchangeWithFP(forsending).bytesReturn;
+            
+            var answer = ExchangeWithFP(new byte[] { 0 });
             string tCurProtocol = "";
-            if ((connFP.statusOperation) && (answer.Length > 21))
+            if ((answer.statusOperation) && (answer.bytesReturn.Length > 21))
             {
-                tCurProtocol = byteHelper.EncodingBytes(answer, answer.Length - 5, 5);
+                tCurProtocol = byteHelper.EncodingBytes(answer.bytesReturn, answer.bytesReturn.Length - 5, 5);
             }
             return tCurProtocol;
         }
@@ -718,25 +771,27 @@ namespace CentralLib.Protocols
             forsending = byteHelper.Combine(forsending, new byte[] { 0 });
             //if (AuthorizationCode.Length != 0)
             //    forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(AuthorizationCode, 50));
-            PaymentInfo _paymentInfo = new PaymentInfo();
-            _paymentInfo.returnedStruct = ExchangeWithFP(forsending);
-            byte[] answer = _paymentInfo.returnedStruct.bytesReturn;
-            if ((statusOperation) && (answer.Length > 3))
-            {
+            
+            var sanswer = ExchangeWithFP(forsending);
+            byte[] answer = sanswer.bytesReturn;
+            PaymentInfo _paymentInfo = new PaymentInfo(sanswer);
+            return _paymentInfo;
+            //if ((statusOperation) && (answer.Length > 3))
+            //{
 
-                UInt32 tinfo = BitConverter.ToUInt32(answer, 0);
-                if (byteHelper.GetBit(answer[3], 7))
-                {
-                    tinfo = byteHelper.ClearBitUInt32(tinfo, 31);
-                    _paymentInfo.Renting = tinfo;
-                }
-                else
-                    _paymentInfo.Rest = tinfo;
-                //if (answer.Length >= 8)
-                //    _paymentInfo.NumberOfReceiptPackageInCPEF = BitConverter.ToUInt32(answer, 4);
-                return _paymentInfo;
-            }
-            return new PaymentInfo();
+            //    UInt32 tinfo = BitConverter.ToUInt32(answer, 0);
+            //    if (byteHelper.GetBit(answer[3], 7))
+            //    {
+            //        tinfo = byteHelper.ClearBitUInt32(tinfo, 31);
+            //        _paymentInfo.Renting = tinfo;
+            //    }
+            //    else
+            //        _paymentInfo.Rest = tinfo;
+            //    //if (answer.Length >= 8)
+            //    //    _paymentInfo.NumberOfReceiptPackageInCPEF = BitConverter.ToUInt32(answer, 4);
+            //    return _paymentInfo;
+            //}
+            //return new PaymentInfo();
         }
 
 
@@ -800,12 +855,10 @@ namespace CentralLib.Protocols
                 forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(GoodName, MaxStringLenght));
             }
             forsending = byteHelper.Combine(forsending, byteHelper.ConvertUint64ToArrayByte6(StrCode));
-            byte[] answer = ExchangeWithFP(forsending).bytesReturn;
-            if ((statusOperation) && (answer.Length == 8))
+            var answer = ExchangeWithFP(forsending);
+            if ((answer.statusOperation) && (answer.bytesReturn.Length == 8))
             {
-                ReceiptInfo _checkinfo = new ReceiptInfo();
-                _checkinfo.CostOfGoodsOrService = BitConverter.ToInt32(answer, 0);
-                _checkinfo.SumAtReceipt = BitConverter.ToInt32(answer, 4);
+                ReceiptInfo _checkinfo = new ReceiptInfo(answer, BitConverter.ToInt32(answer.bytesReturn, 0), BitConverter.ToInt32(answer.bytesReturn, 4));                
                 return _checkinfo;
             }
             return new ReceiptInfo();
@@ -990,16 +1043,15 @@ namespace CentralLib.Protocols
                 forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(GoodName, MaxStringLenght));
             }
             forsending = byteHelper.Combine(forsending, byteHelper.ConvertUint64ToArrayByte6(StrCode));
-            byte[] answer = ExchangeWithFP(forsending).bytesReturn;
+            var tanswer = ExchangeWithFP(forsending);
+            byte[] answer = tanswer.bytesReturn;
             if (answer.Length != 8)
             {
                 throw new ApplicationException(String.Format("не правильный ответ сервера на строку чека, нужно 8 байт - ответ {0}!!!!", answer.Length));
             }
-            else if ((statusOperation) && (answer.Length == 8))
+            else if ((tanswer.statusOperation) && (answer.Length == 8))
             {
-                ReceiptInfo _checkinfo = new ReceiptInfo();
-                _checkinfo.CostOfGoodsOrService = BitConverter.ToInt32(answer, 0);
-                _checkinfo.SumAtReceipt = BitConverter.ToInt32(answer, 4);
+                ReceiptInfo _checkinfo = new ReceiptInfo(tanswer, BitConverter.ToInt32(answer, 0), BitConverter.ToInt32(answer, 4));               
                 return _checkinfo;
             }
             return new ReceiptInfo();
@@ -1091,6 +1143,51 @@ namespace CentralLib.Protocols
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             FPPrintZeroReceipt();
 
+        }
+
+        /// <summary>
+        ///  Discount                   регистрация скидки или наценки  
+        ///  Код: 35.  
+        /// </summary>
+        /// <param name="typeDiscount"> 0 -  процентная скидка/наценка на последний товар;   
+        ///           1 – абсолютная скидка/наценка на последний товар;   
+        ///           2 - процентная скидка/наценка на промежуточную сумму;  
+        ///            3 – абсолютная скидка/наценка на промежуточную сумму</param>
+        /// <param name="value">% или сумма скидки/наценки, если процент то 9999(где 99.99% является макс значением)</param>
+        /// <param name="comment">пояснительная строка</param>
+        /// <returns></returns>
+        public virtual DiscountInfo Discount(FPDiscount typeDiscount,Int16 value, string comment)
+        {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
+            //TODO test discount
+            //проблему решить с комментариями!!!!!
+            
+            
+            uint newval = 0;
+            byte[] byteval;
+            if (value > 0) // тогда скидка, если -"наценка"
+            {
+                newval = (uint)(value ^ (1 << 31));
+            }
+           else
+            {
+                newval = (uint) -value;
+            }
+            if ((typeDiscount==FPDiscount.PercentageDiscountMarkupAtIntermediateSum)||(typeDiscount == FPDiscount.PercentageDiscountMarkupAtLastGoods))
+            {
+                UInt16 tval = (UInt16)newval;
+                byteval = BitConverter.GetBytes(tval);
+                byteval = byteHelper.Combine(byteval, new byte[] {0, 2+2 }); // 0 так как unint16 = 2 байтам, а надо 3.
+            }
+            else
+            {
+                byteval = BitConverter.GetBytes(newval);
+            }
+            byte[] forsending = new byte[] { 35, (byte)typeDiscount };
+            forsending = byteHelper.Combine(forsending, byteval);
+            forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(comment, 25));            
+            return new DiscountInfo(ExchangeWithFP(forsending));
+            
         }
     }
 }

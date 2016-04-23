@@ -136,4 +136,44 @@
       <Column Name="FPNumber" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
     </Type>
   </Table>
+  <Table Name="dbo.tbl_Info" Member="tbl_Infos">
+    <Type Name="tbl_Info">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="DateTime" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="FPNumber" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="DateTimeOfEndOfShift" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="Operation" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="MoneyInBox" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="SaleCheckNumber" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="PayCheckNumber" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="NumZReport" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="LastDateZReport" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="TurnSaleTax_A" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnSaleTax_B" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnSaleTax_C" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnSaleTax_D" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnSaleTax_E" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnSaleTax_F" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnSaleCard" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnSaleCredit" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnSaleCheck" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnSaleCash" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnPayTax_A" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnPayTax_B" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnPayTax_C" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnPayTax_D" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnPayTax_E" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnPayTax_F" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnPayCard" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnPayCredit" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnPayCheck" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnPayCash" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="DiscountSale" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="ExtraChargeSale" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="DiscountPay" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="ExtraChargePay" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="AvansSum" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="PaymentSum" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+    </Type>
+  </Table>
 </Database>

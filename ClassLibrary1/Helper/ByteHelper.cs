@@ -1,4 +1,5 @@
 ﻿using CentralLib.Helper;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,7 @@ namespace CentralLib.Helper
 {
     public class ByteHelper : BitHelper,IByteHelper
     {
+        private Logger logger = LogManager.GetCurrentClassLogger();
         public UInt32 Max3ArrayBytes = BitConverter.ToUInt32(new byte[] { 255, 255, 255, 0 }, 0);
         public UInt64 Max6ArrayBytes = BitConverter.ToUInt64(new byte[] { 255, 255, 255, 255, 255, 255, 0, 0 }, 0);
         public byte[] bytesBegin = { (byte)WorkByte.DLE, (byte)WorkByte.STX };
@@ -39,10 +41,11 @@ namespace CentralLib.Helper
             int found = -1;
             bool matched = false;
             //only look at this if we have a populated search array and search bytes with a sensible start 
-            if (searchIn.Length > 0 && searchBytes.Length > 0 && start <= (searchIn.Length - searchBytes.Length) && searchIn.Length >= searchBytes.Length)
+            if (searchIn.Length > 0 && searchBytes.Length > 0 && start>=0  && start <= (searchIn.Length - searchBytes.Length) && searchIn.Length >= searchBytes.Length)
             {
+                logger.Trace("start:{0}, searchIn.Length{1}, searchBytes.Length{2}", start, searchIn.Length, searchBytes.Length);
                 //iterate through the array to be searched 
-                for (int i = start; i <= searchIn.Length - searchBytes.Length; i++)
+                for (int i = start; i <= (searchIn.Length - searchBytes.Length); i++)
                 {
                     //if the start bytes match we will start comparing all other bytes 
                     if (searchIn[i] == searchBytes[0])
@@ -269,11 +272,17 @@ namespace CentralLib.Helper
         public byte[] prepareForSend(int ConsecutiveNumber, byte[] BytesForSend, bool useCRC16 = false, bool repeatError = false) // тут передают только код и параметры, получают готовую строку для отправки
         {
             //this.glbytesPrepare = BytesForSend;
-
+            ConsecutiveNumber++;
             byte[] prBytes = Combine(new byte[] { (byte)WorkByte.DLE, (byte)WorkByte.STX, (byte)ConsecutiveNumber }, BytesForSend);
             prBytes = Combine(prBytes, new byte[] { 0x00, (byte)WorkByte.DLE, (byte)WorkByte.ETX });
-            prBytes[prBytes.Length - 3] = getchecksum(prBytes);
-
+            byte chByte = getchecksum(prBytes);
+            
+            //while (chByte == 0)
+            //{
+            //    prBytes[2]++;
+            //    chByte = getchecksum(prBytes);
+            //}
+            prBytes[prBytes.Length - 3] = chByte;
             for (int pos = 2; pos < prBytes.Length - 2; pos++)
             //for (int pos = 2; pos <= _out.Count - 3; pos++)
             {

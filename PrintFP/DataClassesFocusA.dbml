@@ -166,6 +166,14 @@
       <Association Name="tbl_Payment_tbl_SALE" Member="tbl_Payment" ThisKey="NumPayment" OtherKey="id" Type="tbl_Payment" IsForeignKey="true" />
     </Type>
   </Table>
+  <Table Name="dbo.tbl_SyncFP" Member="tbl_SyncFPs">
+    <Type Name="tbl_SyncFP">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="FPNumber" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="DateTimeSync" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="Status" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+    </Type>
+  </Table>
   <Table Name="dbo.tbl_ComInit" Member="tbl_ComInits">
     <Type Name="tbl_ComInit">
       <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
@@ -209,12 +217,46 @@
       <Column Name="MoxaPort" Type="System.Int32" DbType="Int" CanBeNull="true" />
     </Type>
   </Table>
-  <Table Name="dbo.tbl_SyncFP" Member="tbl_SyncFPs">
-    <Type Name="tbl_SyncFP">
+  <Table Name="dbo.tbl_Info" Member="tbl_Infos">
+    <Type Name="tbl_Info">
       <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="DateTime" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
       <Column Name="FPNumber" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="DateTimeSync" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
-      <Column Name="Status" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+      <Column Name="DateTimeOfEndOfShift" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="Operation" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="MoneyInBox" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="SaleCheckNumber" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="PayCheckNumber" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="NumZReport" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="LastDateZReport" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="TurnSaleTax_A" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnSaleTax_B" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnSaleTax_C" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnSaleTax_D" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnSaleTax_E" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnSaleTax_F" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnSaleCard" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnSaleCredit" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnSaleCheck" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnSaleCash" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnPayTax_A" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnPayTax_B" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnPayTax_C" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnPayTax_D" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnPayTax_E" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnPayTax_F" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnPayCard" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnPayCredit" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnPayCheck" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="TurnPayCash" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="DiscountSale" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="ExtraChargeSale" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="DiscountPay" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="ExtraChargePay" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="AvansSum" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="PaymentSum" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="DateTimeCreate" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="DateTimeUpdate" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
     </Type>
   </Table>
 </Database>
