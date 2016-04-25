@@ -296,6 +296,16 @@ namespace PrintFP.Primary
                                 Dictionary<ulong, int> listgoods = new Dictionary<ulong, int>();
                                 if (tableCheck.Count() != 0)
                                 {
+                                    if (headCheck.CommentUp.Length != 0)
+                                    {
+                                        string str = headCheck.CommentUp;
+                                        string[] strs = str.Split('\n');
+                                        foreach (var com in strs)
+                                        {
+                                            if (com.Trim().Length > 0)
+                                                pr.FPCommentLine(com);
+                                        }
+                                    }
                                     UInt16 index = 0;
                                     foreach (var rowCheck in tableCheck)
                                     {
@@ -304,10 +314,10 @@ namespace PrintFP.Primary
                                         //if ((listgoods.ContainsKey((ulong)rowCheck.packname))&&(listgoods[(ulong)rowCheck.packname]!= rowCheck.Price))
                                         ulong packcode = (ulong)rowCheck.packname.GetValueOrDefault();
                                         var tlistg = (from listg in listgoods
-                                                 where listg.Key == (ulong)rowCheck.packname
-                                                 && listg.Value == rowCheck.Price
-                                                 select listg);
-                                        if (tlistg.Count()==0)
+                                                      where listg.Key == (ulong)rowCheck.packname
+                                                      && listg.Value == rowCheck.Price
+                                                      select listg);
+                                        if (tlistg.Count() == 0)
                                         {
                                             if ((listgoods.ContainsKey((ulong)rowCheck.packname)))
                                             {
@@ -331,8 +341,8 @@ namespace PrintFP.Primary
                                         rowCheck.Error = !pr.statusOperation;
                                         rowCheck.FPSum = rowSum.CostOfGoodsOrService;
                                         headCheck.FPSumm = rowSum.SumAtReceipt;
-                                        var razn =(rowCheck.RowSum.GetValueOrDefault() + rowCheck.discount.GetValueOrDefault()) - rowSum.CostOfGoodsOrService;
-                                        if ( Math.Abs(razn)>5 )
+                                        var razn = (rowCheck.RowSum.GetValueOrDefault() + rowCheck.discount.GetValueOrDefault()) - rowSum.CostOfGoodsOrService;
+                                        if (Math.Abs(razn) > 5)
                                         {
                                             string errorinfo = String.Format("Отличается сумма по строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
                                             setStatusFP(string.Format("{2}!!!! Operation={0},id={1}", operation.Operation, operation.id, errorinfo));
@@ -359,12 +369,13 @@ namespace PrintFP.Primary
                                         string[] strs = str.Split('\n');
                                         foreach (var com in strs)
                                         {
-                                            pr.FPCommentLine(com);
+                                            if (com.Trim().Length > 0)
+                                                pr.FPCommentLine(com);
                                         }
                                     }
 
                                     int checkRazn = headCheck.FPSumm.GetValueOrDefault() - headCheck.CheckSum.GetValueOrDefault();
-                                    if (Math.Abs(checkRazn)>5)
+                                    if (Math.Abs(checkRazn) > 5)
                                     {
                                         string errorinfo = String.Format("Отличается сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id);
                                         setStatusFP(string.Format("{2}!!!! Operation={0},id={1}", operation.Operation, operation.id, errorinfo));
@@ -389,7 +400,7 @@ namespace PrintFP.Primary
                                     }
                                     if (headCheck.Payment3 > 0)
                                     {
-                                        pr.FPPayment(3, (uint)headCheck.Payment3+(uint)checkRazn, false, true);
+                                        pr.FPPayment(3, (uint)headCheck.Payment3 + (uint)checkRazn, false, true);
                                         setStatusFP(string.Format("Check #{0} Payment3:{1}", headCheck.id, (uint)headCheck.Payment3));
                                     }
                                     headCheck.ByteReserv = pr.ByteReserv;
@@ -435,6 +446,16 @@ namespace PrintFP.Primary
                                 Dictionary<ulong, int> listgoods = new Dictionary<ulong, int>();
                                 if (tableCheck.Count() != 0)
                                 {
+                                    if (headCheck.CommentUp.Length != 0)
+                                    {
+                                        string str = headCheck.CommentUp;
+                                        string[] strs = str.Split('\n');
+                                        foreach (var com in strs)
+                                        {
+                                            if (com.Trim().Length > 0)
+                                                pr.FPCommentLine(com);
+                                        }
+                                    }
                                     UInt16 index = 0;
                                     foreach (var rowCheck in tableCheck)
                                     {
@@ -472,7 +493,7 @@ namespace PrintFP.Primary
                                         headCheck.FPSumm = rowSum.SumAtReceipt;
                                         int razn = (rowCheck.RowSum.GetValueOrDefault() + rowCheck.discount.GetValueOrDefault()) - rowSum.CostOfGoodsOrService;
                                         if (Math.Abs(razn) > 5)
-                                        { 
+                                        {
                                             string errorinfo = String.Format("Отличается сумма по строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
                                             setStatusFP(string.Format("{2}!!!! Operation={0},id={1}", operation.Operation, operation.id, errorinfo));
                                             initRow.ErrorInfo = errorinfo;
@@ -498,7 +519,8 @@ namespace PrintFP.Primary
                                         string[] strs = str.Split('\n');
                                         foreach (var com in strs)
                                         {
-                                            pr.FPCommentLine(com);
+                                            if (com.Trim().Length > 0)
+                                                pr.FPCommentLine(com);
                                         }
                                     }
 
@@ -528,7 +550,7 @@ namespace PrintFP.Primary
                                     }
                                     if (headCheck.Payment3 > 0)
                                     {
-                                        pr.FPPayment(3, (uint)headCheck.Payment3+(uint)checkRazn, false, true);
+                                        pr.FPPayment(3, (uint)headCheck.Payment3 + (uint)checkRazn, false, true);
                                         setStatusFP(string.Format("Check #{0} Payment3:{1}", headCheck.id, (uint)headCheck.Payment3));
                                     }
                                     headCheck.ByteReserv = pr.ByteReserv;

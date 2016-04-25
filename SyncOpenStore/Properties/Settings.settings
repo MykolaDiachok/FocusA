@@ -13,10 +13,10 @@
     <Setting Name="CashDesk_OSConnectionString" Type="(Connection string)" Scope="Application">
       <DesignTimeValue Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
 &lt;SerializableConnectionString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
-  &lt;ConnectionString&gt;Data Source=shar_kassa2;Initial Catalog=CashDesk_os;User ID=sa;Password=123456;Encrypt=False;TrustServerCertificate=True&lt;/ConnectionString&gt;
+  &lt;ConnectionString&gt;Data Source=shar2;Initial Catalog=CashDesk;User ID=sa;Password=123456;Encrypt=False;TrustServerCertificate=True&lt;/ConnectionString&gt;
   &lt;ProviderName&gt;System.Data.SqlClient&lt;/ProviderName&gt;
 &lt;/SerializableConnectionString&gt;</DesignTimeValue>
-      <Value Profile="(Default)">Data Source=shar_kassa2;Initial Catalog=CashDesk_os;User ID=sa;Password=123456;Encrypt=False;TrustServerCertificate=True</Value>
+      <Value Profile="(Default)">Data Source=shar2;Initial Catalog=CashDesk;User ID=sa;Password=123456;Encrypt=False;TrustServerCertificate=True</Value>
     </Setting>
     <Setting Name="ProcessingServerConnectionString" Type="(Connection string)" Scope="Application">
       <DesignTimeValue Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
@@ -27,7 +27,7 @@
       <Value Profile="(Default)">Data Source=OS_ROOT;Initial Catalog=ProcessingServer;User ID=sa;Password=1CGhtlghbznbt82</Value>
     </Setting>
     <Setting Name="TimerIntervalSec" Type="System.Int32" Scope="Application">
-      <Value Profile="(Default)">15</Value>
+      <Value Profile="(Default)">30</Value>
     </Setting>
   </Settings>
 </SettingsFile>

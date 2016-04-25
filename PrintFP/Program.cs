@@ -24,13 +24,14 @@ namespace PrintFP
         private static infoPr rStatus;
         private static bool run, automatic;
         private static System.Object lockThis = new System.Object();
-        private static MyEventLog eventLog1;
+        //private static MyEventLog eventLog1;
         
 
         static int Main(params string[] args)
         {
 
             startJob = DateTime.Now;
+            rStatus = infoPr.Good;
             logger.Info("Time start:{0}", startJob);
 #if (!DEBUG)
             //logger.Info("Enable NBug");

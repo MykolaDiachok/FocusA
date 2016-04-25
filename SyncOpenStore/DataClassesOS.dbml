@@ -1,5 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?><Database Name="CashDesk_OS" Class="DataClassesOSDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
-  <Connection Mode="AppSettings" ConnectionString="Data Source=shar_kassa2;Initial Catalog=CashDesk_OS;User ID=sa;Encrypt=False;TrustServerCertificate=True" SettingsObjectName="SyncOpenStore.Properties.Settings" SettingsPropertyName="CashDesk_OSConnectionString1" Provider="System.Data.SqlClient" />
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="CashDesk_os" Class="DataClassesOSDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="AppSettings" ConnectionString="Data Source=shar_kassa2;Initial Catalog=CashDesk_os;User ID=sa;Encrypt=False;TrustServerCertificate=True" SettingsObjectName="SyncOpenStore.Properties.Settings" SettingsPropertyName="CashDesk_OSConnectionString" Provider="System.Data.SqlClient" />
   <Table Name="dbo.SESS" Member="SESSes">
     <Type Name="SESS">
       <Column Name="SESSID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
@@ -162,6 +162,7 @@
       <Column Name="ARTCODE" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="DELFLAG" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
       <Column Name="UPDATENUM" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Association Name="OFFER_ART" Member="OFFER" ThisKey="OFFERID" OtherKey="OFFERID" Type="OFFER" IsForeignKey="true" />
     </Type>
   </Table>
   <Table Name="dbo.CLNT" Member="CLNTs">
@@ -188,6 +189,42 @@
       <Column Name="DELFLAG" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
       <Column Name="DISCOFFERMANUALINP" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
       <Column Name="UPDATENUM" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Association Name="DISCOFFER_OFFER" Member="OFFERs" ThisKey="DISCOFFERID" OtherKey="DISCOFFERID" Type="OFFER" />
+    </Type>
+  </Table>
+  <Table Name="dbo.SYSLOG" Member="SYSLOGs">
+    <Type Name="SYSLOG">
+      <Column Name="SYSTEMID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="SEQ" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="SAREAID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="CASHIERID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="EVENTTIME" Type="System.String" DbType="VarChar(14)" CanBeNull="true" />
+      <Column Name="EVENTCODE" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="EVENTDATA" Type="System.String" DbType="NVarChar(2048)" CanBeNull="true" />
+      <Column Name="SESSID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="DELFLAG" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="SRECNUM" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="UPDATENUM" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="UPDATENUM2" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+    </Type>
+  </Table>
+  <Table Name="dbo.OFFER" Member="OFFERs">
+    <Type Name="OFFER">
+      <Column Name="OFFERID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="DISCOFFERID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="BONUSOFFERID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="OFFERNAME" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="SALEOFFERID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="OFFERCODE" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="OFFERAUTOASSIGN" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="OFFERMANUAL" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="DELFLAG" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="UPDATENUM" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="OFFERORDERKEY" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="OFFERBEGIN" Type="System.String" DbType="VarChar(14)" CanBeNull="true" />
+      <Column Name="OFFEREND" Type="System.String" DbType="VarChar(14)" CanBeNull="true" />
+      <Association Name="OFFER_ART" Member="ARTs" ThisKey="OFFERID" OtherKey="OFFERID" Type="ART" />
+      <Association Name="DISCOFFER_OFFER" Member="DISCOFFER" ThisKey="DISCOFFERID" OtherKey="DISCOFFERID" Type="DISCOFFER" IsForeignKey="true" />
     </Type>
   </Table>
 </Database>

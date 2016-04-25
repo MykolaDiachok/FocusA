@@ -56,7 +56,7 @@
         <elementListCompartment Id="d61b6706-a4be-409b-9c5b-5f24ce7c4679" absoluteBounds="3.2649999999999997, 1.835, 1.9700000000000002, 8.1337483723958321" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <associationConnector edgePoints="[(3.25 : 4.73631917317708); (2.75 : 4.73631917317708)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+    <associationConnector edgePoints="[(3.25 : 4.73631917317708); (2.75 : 4.73631917317708)]" fixedFrom="NotFixed" fixedTo="NotFixed">
       <AssociationMoniker Name="/DataClassesFocusADataContext/tbl_Payment/tbl_Payment_tbl_SALE" />
       <nodes>
         <classShapeMoniker Id="83ab1358-9329-4eeb-a664-2e18e9f90ef0" />

@@ -36,8 +36,8 @@ namespace SyncOpenStore.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=shar_kassa2;Initial Catalog=CashDesk_os;User ID=sa;Password=123456;En" +
-            "crypt=False;TrustServerCertificate=True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=shar2;Initial Catalog=CashDesk;User ID=sa;Password=123456;Encrypt=Fal" +
+            "se;TrustServerCertificate=True")]
         public string CashDesk_OSConnectionString {
             get {
                 return ((string)(this["CashDesk_OSConnectionString"]));
@@ -57,7 +57,7 @@ namespace SyncOpenStore.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("15")]
+        [global::System.Configuration.DefaultSettingValueAttribute("30")]
         public int TimerIntervalSec {
             get {
                 return ((int)(this["TimerIntervalSec"]));

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CentralLib", "ClassLibrary1\CentralLib.csproj", "{ABAC24C1-E800-4F1C-A77C-C5A4E17A1468}"
 EndProject
@@ -51,6 +51,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbHelperSQL", "DbHelper\DbHelperSQL.csproj", "{F44F0508-5090-4DED-908B-0FCC6005D8C4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrintFPService", "PrintFPService\PrintFPService.csproj", "{F854D50D-E8D2-450A-BD97-7D23E7FBBAE1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyncOpenStoreService", "SyncOpenStoreService\SyncOpenStoreService.csproj", "{8DD2DBD3-A979-472C-9055-5D8CCADC1C2C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -102,6 +104,10 @@ Global
 		{F854D50D-E8D2-450A-BD97-7D23E7FBBAE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F854D50D-E8D2-450A-BD97-7D23E7FBBAE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F854D50D-E8D2-450A-BD97-7D23E7FBBAE1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DD2DBD3-A979-472C-9055-5D8CCADC1C2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DD2DBD3-A979-472C-9055-5D8CCADC1C2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DD2DBD3-A979-472C-9055-5D8CCADC1C2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DD2DBD3-A979-472C-9055-5D8CCADC1C2C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

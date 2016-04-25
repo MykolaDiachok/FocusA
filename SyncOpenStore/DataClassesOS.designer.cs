@@ -22,7 +22,7 @@ namespace SyncOpenStore
 	using System;
 	
 	
-	[global::System.Data.Linq.Mapping.DatabaseAttribute(Name="CashDesk_OS")]
+	[global::System.Data.Linq.Mapping.DatabaseAttribute(Name="CashDesk_os")]
 	public partial class DataClassesOSDataContext : System.Data.Linq.DataContext
 	{
 		
@@ -60,6 +60,12 @@ namespace SyncOpenStore
     partial void InsertDISCOFFER(DISCOFFER instance);
     partial void UpdateDISCOFFER(DISCOFFER instance);
     partial void DeleteDISCOFFER(DISCOFFER instance);
+    partial void InsertSYSLOG(SYSLOG instance);
+    partial void UpdateSYSLOG(SYSLOG instance);
+    partial void DeleteSYSLOG(SYSLOG instance);
+    partial void InsertOFFER(OFFER instance);
+    partial void UpdateOFFER(OFFER instance);
+    partial void DeleteOFFER(OFFER instance);
     #endregion
 		
 		public DataClassesOSDataContext() : 
@@ -169,6 +175,22 @@ namespace SyncOpenStore
 			get
 			{
 				return this.GetTable<DISCOFFER>();
+			}
+		}
+		
+		public System.Data.Linq.Table<SYSLOG> SYSLOGs
+		{
+			get
+			{
+				return this.GetTable<SYSLOG>();
+			}
+		}
+		
+		public System.Data.Linq.Table<OFFER> OFFERs
+		{
+			get
+			{
+				return this.GetTable<OFFER>();
 			}
 		}
 	}
@@ -3465,6 +3487,8 @@ namespace SyncOpenStore
 		
 		private int _UPDATENUM;
 		
+		private EntityRef<OFFER> _OFFER;
+		
     #region Extensibility Method Definitions
     partial void OnLoaded();
     partial void OnValidate(System.Data.Linq.ChangeAction action);
@@ -3497,6 +3521,7 @@ namespace SyncOpenStore
 		
 		public ART()
 		{
+			this._OFFER = default(EntityRef<OFFER>);
 			OnCreated();
 		}
 		
@@ -3551,6 +3576,10 @@ namespace SyncOpenStore
 			{
 				if ((this._OFFERID != value))
 				{
+					if (this._OFFER.HasLoadedOrAssignedValue)
+					{
+						throw new System.Data.Linq.ForeignKeyReferenceAlreadyHasValueException();
+					}
 					this.OnOFFERIDChanging(value);
 					this.SendPropertyChanging();
 					this._OFFERID = value;
@@ -3736,6 +3765,40 @@ namespace SyncOpenStore
 					this._UPDATENUM = value;
 					this.SendPropertyChanged("UPDATENUM");
 					this.OnUPDATENUMChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="OFFER_ART", Storage="_OFFER", ThisKey="OFFERID", OtherKey="OFFERID", IsForeignKey=true)]
+		public OFFER OFFER
+		{
+			get
+			{
+				return this._OFFER.Entity;
+			}
+			set
+			{
+				OFFER previousValue = this._OFFER.Entity;
+				if (((previousValue != value) 
+							|| (this._OFFER.HasLoadedOrAssignedValue == false)))
+				{
+					this.SendPropertyChanging();
+					if ((previousValue != null))
+					{
+						this._OFFER.Entity = null;
+						previousValue.ARTs.Remove(this);
+					}
+					this._OFFER.Entity = value;
+					if ((value != null))
+					{
+						value.ARTs.Add(this);
+						this._OFFERID = value.OFFERID;
+					}
+					else
+					{
+						this._OFFERID = default(Nullable<int>);
+					}
+					this.SendPropertyChanged("OFFER");
 				}
 			}
 		}
@@ -4043,6 +4106,8 @@ namespace SyncOpenStore
 		
 		private int _UPDATENUM;
 		
+		private EntitySet<OFFER> _OFFERs;
+		
     #region Extensibility Method Definitions
     partial void OnLoaded();
     partial void OnValidate(System.Data.Linq.ChangeAction action);
@@ -4069,6 +4134,7 @@ namespace SyncOpenStore
 		
 		public DISCOFFER()
 		{
+			this._OFFERs = new EntitySet<OFFER>(new Action<OFFER>(this.attach_OFFERs), new Action<OFFER>(this.detach_OFFERs));
 			OnCreated();
 		}
 		
@@ -4252,6 +4318,19 @@ namespace SyncOpenStore
 			}
 		}
 		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="DISCOFFER_OFFER", Storage="_OFFERs", ThisKey="DISCOFFERID", OtherKey="DISCOFFERID")]
+		public EntitySet<OFFER> OFFERs
+		{
+			get
+			{
+				return this._OFFERs;
+			}
+			set
+			{
+				this._OFFERs.Assign(value);
+			}
+		}
+		
 		public event PropertyChangingEventHandler PropertyChanging;
 		
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -4270,6 +4349,763 @@ namespace SyncOpenStore
 			{
 				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
 			}
+		}
+		
+		private void attach_OFFERs(OFFER entity)
+		{
+			this.SendPropertyChanging();
+			entity.DISCOFFER = this;
+		}
+		
+		private void detach_OFFERs(OFFER entity)
+		{
+			this.SendPropertyChanging();
+			entity.DISCOFFER = null;
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.SYSLOG")]
+	public partial class SYSLOG : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private int _SYSTEMID;
+		
+		private int _SEQ;
+		
+		private int _SAREAID;
+		
+		private System.Nullable<int> _CASHIERID;
+		
+		private string _EVENTTIME;
+		
+		private System.Nullable<int> _EVENTCODE;
+		
+		private string _EVENTDATA;
+		
+		private System.Nullable<int> _SESSID;
+		
+		private short _DELFLAG;
+		
+		private System.Nullable<int> _SRECNUM;
+		
+		private int _UPDATENUM;
+		
+		private int _UPDATENUM2;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnSYSTEMIDChanging(int value);
+    partial void OnSYSTEMIDChanged();
+    partial void OnSEQChanging(int value);
+    partial void OnSEQChanged();
+    partial void OnSAREAIDChanging(int value);
+    partial void OnSAREAIDChanged();
+    partial void OnCASHIERIDChanging(System.Nullable<int> value);
+    partial void OnCASHIERIDChanged();
+    partial void OnEVENTTIMEChanging(string value);
+    partial void OnEVENTTIMEChanged();
+    partial void OnEVENTCODEChanging(System.Nullable<int> value);
+    partial void OnEVENTCODEChanged();
+    partial void OnEVENTDATAChanging(string value);
+    partial void OnEVENTDATAChanged();
+    partial void OnSESSIDChanging(System.Nullable<int> value);
+    partial void OnSESSIDChanged();
+    partial void OnDELFLAGChanging(short value);
+    partial void OnDELFLAGChanged();
+    partial void OnSRECNUMChanging(System.Nullable<int> value);
+    partial void OnSRECNUMChanged();
+    partial void OnUPDATENUMChanging(int value);
+    partial void OnUPDATENUMChanged();
+    partial void OnUPDATENUM2Changing(int value);
+    partial void OnUPDATENUM2Changed();
+    #endregion
+		
+		public SYSLOG()
+		{
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_SYSTEMID", DbType="Int NOT NULL", IsPrimaryKey=true)]
+		public int SYSTEMID
+		{
+			get
+			{
+				return this._SYSTEMID;
+			}
+			set
+			{
+				if ((this._SYSTEMID != value))
+				{
+					this.OnSYSTEMIDChanging(value);
+					this.SendPropertyChanging();
+					this._SYSTEMID = value;
+					this.SendPropertyChanged("SYSTEMID");
+					this.OnSYSTEMIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_SEQ", DbType="Int NOT NULL", IsPrimaryKey=true)]
+		public int SEQ
+		{
+			get
+			{
+				return this._SEQ;
+			}
+			set
+			{
+				if ((this._SEQ != value))
+				{
+					this.OnSEQChanging(value);
+					this.SendPropertyChanging();
+					this._SEQ = value;
+					this.SendPropertyChanged("SEQ");
+					this.OnSEQChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_SAREAID", DbType="Int NOT NULL", IsPrimaryKey=true)]
+		public int SAREAID
+		{
+			get
+			{
+				return this._SAREAID;
+			}
+			set
+			{
+				if ((this._SAREAID != value))
+				{
+					this.OnSAREAIDChanging(value);
+					this.SendPropertyChanging();
+					this._SAREAID = value;
+					this.SendPropertyChanged("SAREAID");
+					this.OnSAREAIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CASHIERID", DbType="Int")]
+		public System.Nullable<int> CASHIERID
+		{
+			get
+			{
+				return this._CASHIERID;
+			}
+			set
+			{
+				if ((this._CASHIERID != value))
+				{
+					this.OnCASHIERIDChanging(value);
+					this.SendPropertyChanging();
+					this._CASHIERID = value;
+					this.SendPropertyChanged("CASHIERID");
+					this.OnCASHIERIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_EVENTTIME", DbType="VarChar(14)")]
+		public string EVENTTIME
+		{
+			get
+			{
+				return this._EVENTTIME;
+			}
+			set
+			{
+				if ((this._EVENTTIME != value))
+				{
+					this.OnEVENTTIMEChanging(value);
+					this.SendPropertyChanging();
+					this._EVENTTIME = value;
+					this.SendPropertyChanged("EVENTTIME");
+					this.OnEVENTTIMEChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_EVENTCODE", DbType="Int")]
+		public System.Nullable<int> EVENTCODE
+		{
+			get
+			{
+				return this._EVENTCODE;
+			}
+			set
+			{
+				if ((this._EVENTCODE != value))
+				{
+					this.OnEVENTCODEChanging(value);
+					this.SendPropertyChanging();
+					this._EVENTCODE = value;
+					this.SendPropertyChanged("EVENTCODE");
+					this.OnEVENTCODEChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_EVENTDATA", DbType="NVarChar(2048)")]
+		public string EVENTDATA
+		{
+			get
+			{
+				return this._EVENTDATA;
+			}
+			set
+			{
+				if ((this._EVENTDATA != value))
+				{
+					this.OnEVENTDATAChanging(value);
+					this.SendPropertyChanging();
+					this._EVENTDATA = value;
+					this.SendPropertyChanged("EVENTDATA");
+					this.OnEVENTDATAChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_SESSID", DbType="Int")]
+		public System.Nullable<int> SESSID
+		{
+			get
+			{
+				return this._SESSID;
+			}
+			set
+			{
+				if ((this._SESSID != value))
+				{
+					this.OnSESSIDChanging(value);
+					this.SendPropertyChanging();
+					this._SESSID = value;
+					this.SendPropertyChanged("SESSID");
+					this.OnSESSIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DELFLAG", DbType="SmallInt NOT NULL")]
+		public short DELFLAG
+		{
+			get
+			{
+				return this._DELFLAG;
+			}
+			set
+			{
+				if ((this._DELFLAG != value))
+				{
+					this.OnDELFLAGChanging(value);
+					this.SendPropertyChanging();
+					this._DELFLAG = value;
+					this.SendPropertyChanged("DELFLAG");
+					this.OnDELFLAGChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_SRECNUM", DbType="Int")]
+		public System.Nullable<int> SRECNUM
+		{
+			get
+			{
+				return this._SRECNUM;
+			}
+			set
+			{
+				if ((this._SRECNUM != value))
+				{
+					this.OnSRECNUMChanging(value);
+					this.SendPropertyChanging();
+					this._SRECNUM = value;
+					this.SendPropertyChanged("SRECNUM");
+					this.OnSRECNUMChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_UPDATENUM", DbType="Int NOT NULL")]
+		public int UPDATENUM
+		{
+			get
+			{
+				return this._UPDATENUM;
+			}
+			set
+			{
+				if ((this._UPDATENUM != value))
+				{
+					this.OnUPDATENUMChanging(value);
+					this.SendPropertyChanging();
+					this._UPDATENUM = value;
+					this.SendPropertyChanged("UPDATENUM");
+					this.OnUPDATENUMChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_UPDATENUM2", DbType="Int NOT NULL")]
+		public int UPDATENUM2
+		{
+			get
+			{
+				return this._UPDATENUM2;
+			}
+			set
+			{
+				if ((this._UPDATENUM2 != value))
+				{
+					this.OnUPDATENUM2Changing(value);
+					this.SendPropertyChanging();
+					this._UPDATENUM2 = value;
+					this.SendPropertyChanged("UPDATENUM2");
+					this.OnUPDATENUM2Changed();
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.OFFER")]
+	public partial class OFFER : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private int _OFFERID;
+		
+		private System.Nullable<int> _DISCOFFERID;
+		
+		private System.Nullable<int> _BONUSOFFERID;
+		
+		private string _OFFERNAME;
+		
+		private System.Nullable<int> _SALEOFFERID;
+		
+		private string _OFFERCODE;
+		
+		private short _OFFERAUTOASSIGN;
+		
+		private short _OFFERMANUAL;
+		
+		private short _DELFLAG;
+		
+		private int _UPDATENUM;
+		
+		private System.Nullable<int> _OFFERORDERKEY;
+		
+		private string _OFFERBEGIN;
+		
+		private string _OFFEREND;
+		
+		private EntitySet<ART> _ARTs;
+		
+		private EntityRef<DISCOFFER> _DISCOFFER;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnOFFERIDChanging(int value);
+    partial void OnOFFERIDChanged();
+    partial void OnDISCOFFERIDChanging(System.Nullable<int> value);
+    partial void OnDISCOFFERIDChanged();
+    partial void OnBONUSOFFERIDChanging(System.Nullable<int> value);
+    partial void OnBONUSOFFERIDChanged();
+    partial void OnOFFERNAMEChanging(string value);
+    partial void OnOFFERNAMEChanged();
+    partial void OnSALEOFFERIDChanging(System.Nullable<int> value);
+    partial void OnSALEOFFERIDChanged();
+    partial void OnOFFERCODEChanging(string value);
+    partial void OnOFFERCODEChanged();
+    partial void OnOFFERAUTOASSIGNChanging(short value);
+    partial void OnOFFERAUTOASSIGNChanged();
+    partial void OnOFFERMANUALChanging(short value);
+    partial void OnOFFERMANUALChanged();
+    partial void OnDELFLAGChanging(short value);
+    partial void OnDELFLAGChanged();
+    partial void OnUPDATENUMChanging(int value);
+    partial void OnUPDATENUMChanged();
+    partial void OnOFFERORDERKEYChanging(System.Nullable<int> value);
+    partial void OnOFFERORDERKEYChanged();
+    partial void OnOFFERBEGINChanging(string value);
+    partial void OnOFFERBEGINChanged();
+    partial void OnOFFERENDChanging(string value);
+    partial void OnOFFERENDChanged();
+    #endregion
+		
+		public OFFER()
+		{
+			this._ARTs = new EntitySet<ART>(new Action<ART>(this.attach_ARTs), new Action<ART>(this.detach_ARTs));
+			this._DISCOFFER = default(EntityRef<DISCOFFER>);
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_OFFERID", DbType="Int NOT NULL", IsPrimaryKey=true)]
+		public int OFFERID
+		{
+			get
+			{
+				return this._OFFERID;
+			}
+			set
+			{
+				if ((this._OFFERID != value))
+				{
+					this.OnOFFERIDChanging(value);
+					this.SendPropertyChanging();
+					this._OFFERID = value;
+					this.SendPropertyChanged("OFFERID");
+					this.OnOFFERIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DISCOFFERID", DbType="Int")]
+		public System.Nullable<int> DISCOFFERID
+		{
+			get
+			{
+				return this._DISCOFFERID;
+			}
+			set
+			{
+				if ((this._DISCOFFERID != value))
+				{
+					if (this._DISCOFFER.HasLoadedOrAssignedValue)
+					{
+						throw new System.Data.Linq.ForeignKeyReferenceAlreadyHasValueException();
+					}
+					this.OnDISCOFFERIDChanging(value);
+					this.SendPropertyChanging();
+					this._DISCOFFERID = value;
+					this.SendPropertyChanged("DISCOFFERID");
+					this.OnDISCOFFERIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_BONUSOFFERID", DbType="Int")]
+		public System.Nullable<int> BONUSOFFERID
+		{
+			get
+			{
+				return this._BONUSOFFERID;
+			}
+			set
+			{
+				if ((this._BONUSOFFERID != value))
+				{
+					this.OnBONUSOFFERIDChanging(value);
+					this.SendPropertyChanging();
+					this._BONUSOFFERID = value;
+					this.SendPropertyChanged("BONUSOFFERID");
+					this.OnBONUSOFFERIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_OFFERNAME", DbType="NVarChar(50) NOT NULL", CanBeNull=false)]
+		public string OFFERNAME
+		{
+			get
+			{
+				return this._OFFERNAME;
+			}
+			set
+			{
+				if ((this._OFFERNAME != value))
+				{
+					this.OnOFFERNAMEChanging(value);
+					this.SendPropertyChanging();
+					this._OFFERNAME = value;
+					this.SendPropertyChanged("OFFERNAME");
+					this.OnOFFERNAMEChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_SALEOFFERID", DbType="Int")]
+		public System.Nullable<int> SALEOFFERID
+		{
+			get
+			{
+				return this._SALEOFFERID;
+			}
+			set
+			{
+				if ((this._SALEOFFERID != value))
+				{
+					this.OnSALEOFFERIDChanging(value);
+					this.SendPropertyChanging();
+					this._SALEOFFERID = value;
+					this.SendPropertyChanged("SALEOFFERID");
+					this.OnSALEOFFERIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_OFFERCODE", DbType="NVarChar(50)")]
+		public string OFFERCODE
+		{
+			get
+			{
+				return this._OFFERCODE;
+			}
+			set
+			{
+				if ((this._OFFERCODE != value))
+				{
+					this.OnOFFERCODEChanging(value);
+					this.SendPropertyChanging();
+					this._OFFERCODE = value;
+					this.SendPropertyChanged("OFFERCODE");
+					this.OnOFFERCODEChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_OFFERAUTOASSIGN", DbType="SmallInt NOT NULL")]
+		public short OFFERAUTOASSIGN
+		{
+			get
+			{
+				return this._OFFERAUTOASSIGN;
+			}
+			set
+			{
+				if ((this._OFFERAUTOASSIGN != value))
+				{
+					this.OnOFFERAUTOASSIGNChanging(value);
+					this.SendPropertyChanging();
+					this._OFFERAUTOASSIGN = value;
+					this.SendPropertyChanged("OFFERAUTOASSIGN");
+					this.OnOFFERAUTOASSIGNChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_OFFERMANUAL", DbType="SmallInt NOT NULL")]
+		public short OFFERMANUAL
+		{
+			get
+			{
+				return this._OFFERMANUAL;
+			}
+			set
+			{
+				if ((this._OFFERMANUAL != value))
+				{
+					this.OnOFFERMANUALChanging(value);
+					this.SendPropertyChanging();
+					this._OFFERMANUAL = value;
+					this.SendPropertyChanged("OFFERMANUAL");
+					this.OnOFFERMANUALChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DELFLAG", DbType="SmallInt NOT NULL")]
+		public short DELFLAG
+		{
+			get
+			{
+				return this._DELFLAG;
+			}
+			set
+			{
+				if ((this._DELFLAG != value))
+				{
+					this.OnDELFLAGChanging(value);
+					this.SendPropertyChanging();
+					this._DELFLAG = value;
+					this.SendPropertyChanged("DELFLAG");
+					this.OnDELFLAGChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_UPDATENUM", DbType="Int NOT NULL")]
+		public int UPDATENUM
+		{
+			get
+			{
+				return this._UPDATENUM;
+			}
+			set
+			{
+				if ((this._UPDATENUM != value))
+				{
+					this.OnUPDATENUMChanging(value);
+					this.SendPropertyChanging();
+					this._UPDATENUM = value;
+					this.SendPropertyChanged("UPDATENUM");
+					this.OnUPDATENUMChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_OFFERORDERKEY", DbType="Int")]
+		public System.Nullable<int> OFFERORDERKEY
+		{
+			get
+			{
+				return this._OFFERORDERKEY;
+			}
+			set
+			{
+				if ((this._OFFERORDERKEY != value))
+				{
+					this.OnOFFERORDERKEYChanging(value);
+					this.SendPropertyChanging();
+					this._OFFERORDERKEY = value;
+					this.SendPropertyChanged("OFFERORDERKEY");
+					this.OnOFFERORDERKEYChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_OFFERBEGIN", DbType="VarChar(14)")]
+		public string OFFERBEGIN
+		{
+			get
+			{
+				return this._OFFERBEGIN;
+			}
+			set
+			{
+				if ((this._OFFERBEGIN != value))
+				{
+					this.OnOFFERBEGINChanging(value);
+					this.SendPropertyChanging();
+					this._OFFERBEGIN = value;
+					this.SendPropertyChanged("OFFERBEGIN");
+					this.OnOFFERBEGINChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_OFFEREND", DbType="VarChar(14)")]
+		public string OFFEREND
+		{
+			get
+			{
+				return this._OFFEREND;
+			}
+			set
+			{
+				if ((this._OFFEREND != value))
+				{
+					this.OnOFFERENDChanging(value);
+					this.SendPropertyChanging();
+					this._OFFEREND = value;
+					this.SendPropertyChanged("OFFEREND");
+					this.OnOFFERENDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="OFFER_ART", Storage="_ARTs", ThisKey="OFFERID", OtherKey="OFFERID")]
+		public EntitySet<ART> ARTs
+		{
+			get
+			{
+				return this._ARTs;
+			}
+			set
+			{
+				this._ARTs.Assign(value);
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="DISCOFFER_OFFER", Storage="_DISCOFFER", ThisKey="DISCOFFERID", OtherKey="DISCOFFERID", IsForeignKey=true)]
+		public DISCOFFER DISCOFFER
+		{
+			get
+			{
+				return this._DISCOFFER.Entity;
+			}
+			set
+			{
+				DISCOFFER previousValue = this._DISCOFFER.Entity;
+				if (((previousValue != value) 
+							|| (this._DISCOFFER.HasLoadedOrAssignedValue == false)))
+				{
+					this.SendPropertyChanging();
+					if ((previousValue != null))
+					{
+						this._DISCOFFER.Entity = null;
+						previousValue.OFFERs.Remove(this);
+					}
+					this._DISCOFFER.Entity = value;
+					if ((value != null))
+					{
+						value.OFFERs.Add(this);
+						this._DISCOFFERID = value.DISCOFFERID;
+					}
+					else
+					{
+						this._DISCOFFERID = default(Nullable<int>);
+					}
+					this.SendPropertyChanged("DISCOFFER");
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+		
+		private void attach_ARTs(ART entity)
+		{
+			this.SendPropertyChanging();
+			entity.OFFER = this;
+		}
+		
+		private void detach_ARTs(ART entity)
+		{
+			this.SendPropertyChanging();
+			entity.OFFER = null;
 		}
 	}
 }
