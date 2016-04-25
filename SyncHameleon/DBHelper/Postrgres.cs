@@ -189,23 +189,23 @@ namespace SyncHameleon
                     //initRow.TypeEvery
                     setDisableHeadChecks(_focusA, initRow, tablePayment);
 
-                    var allOp = (from tOperation in tableOperation
+                    var allOp = (from tOperation in _focusA.GetTable<tbl_Operation>()
                                  where tOperation.FPNumber == (int)initRow.FPNumber
                                                   // && tOperation.DateTime >= initRow.DateTimeBegin && tOperation.DateTime < initRow.DateTimeStop
-                                                  && tOperation.DateTime >= tBegin.getintDateTime() && tOperation.DateTime < tEnd.getintDateTime()
+                                                  && tOperation.DateTime >= tBegin.getintDateTime() && tOperation.DateTime <= tEnd.getintDateTime()
                                  select tOperation);
 
-                    var allPayment = (from list1 in tablePayment
+                    var allPayment = (from list1 in _focusA.GetTable<tbl_Payment>()
                                       where list1.FPNumber == (int)initRow.FPNumber
                                           //&& list1.DATETIME >= initRow.DateTimeBegin && list1.DATETIME < initRow.DateTimeStop
-                                          && list1.DATETIME >= tBegin.getintDateTime() && list1.DATETIME < tEnd.getintDateTime()
+                                          && list1.DATETIME >= tBegin.getintDateTime() && list1.DATETIME <= tEnd.getintDateTime()
                                           && !((bool)list1.Disable)
                                       select list1);
 
-                    var preOp = (from list1 in tablePayment
+                    var preOp = (from list1 in _focusA.GetTable<tbl_Payment>()
                                  where list1.FPNumber == (int)initRow.FPNumber
                                      //&& list1.DATETIME >= initRow.DateTimeBegin && list1.DATETIME < initRow.DateTimeStop
-                                     && list1.DATETIME >= tBegin.getintDateTime() && list1.DATETIME < tEnd.getintDateTime()
+                                     && list1.DATETIME >= tBegin.getintDateTime() && list1.DATETIME <= tEnd.getintDateTime()
                                      && !((bool)list1.Disable)
                                  select list1).Except(
                                     from tPayment in allPayment
@@ -245,7 +245,7 @@ namespace SyncHameleon
             var preparePayment = (from list in tablePayment
                                   where list.FPNumber == (int)initRow.FPNumber
                                    && list.DATETIME >= initRow.DateTimeBegin && list.DATETIME < initRow.DateTimeStop
-                                   && ((list.Payment - list.Payment3 == 0) || (list.Type != 0))
+                                   && (((list.Payment - list.Payment3) == 0) || (list.Type != 0))
                                   select list).OrderBy(x => x.DATETIME);
             int index = 0;
             int PrintEvery = (int)initRow.PrintEvery;

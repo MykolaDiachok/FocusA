@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SyncOpenStore.DBHelper;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,18 +9,21 @@ namespace SyncOpenStore
 {
     public class SyncDB
     {
-        private static string fpnumber;
-        private static string sqlserver;
+        //private static string fpnumber;
+        //private static string sqlserver;
         private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         static void Main(string[] args)
         {
 
 
-            DBHelper.DBLoaderSQLtoSQL dbsync = new DBHelper.DBLoaderSQLtoSQL("10014193");
-            dbsync.StartSync();
+            //DBHelper.DBLoaderSQLtoSQL dbsync = new DBHelper.DBLoaderSQLtoSQL("10013972");
+            //dbsync.StartSync();
+            //Console.ReadKey();
+            //dbsync.StopSync();
+            ForeachFPNumber mysync = new ForeachFPNumber("10014193");
+            mysync.MakeForeach();
             Console.ReadKey();
-            dbsync.StopSync();
 
         }
     }

@@ -41,6 +41,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Transactions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -51,6 +52,7 @@
   <ItemGroup>
     <Compile Include="DBHelper\DBLoader.cs" />
     <Compile Include="DBHelper\DBLoaderSQLtoSQL.cs" />
+    <Compile Include="DBHelper\ForeachFPNumber.cs" />
     <Compile Include="DBHelper\ILoadDataOS.cs" />
     <Compile Include="DBHelper\ISync.cs" />
     <Compile Include="StopwatchHelper.cs" />
@@ -129,7 +131,12 @@
       <DependentUpon>DataClassesOS_ROOT.dbml</DependentUpon>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\DbHelper\DbHelperSQL.csproj">
+      <Project>{f44f0508-5090-4ded-908b-0fcc6005d8c4}</Project>
+      <Name>DbHelperSQL</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

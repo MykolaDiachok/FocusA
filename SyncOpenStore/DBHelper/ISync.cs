@@ -9,12 +9,13 @@ namespace SyncOpenStore.DBHelper
     interface ISync
     {
        
-        string FPNumber { get;  }
+        string sFPNumber { get;  }
+        string sRealNumber { get;  }
         DateTime startJob { get;  }
         DateTime stopJob { get;  }
 
         void StartSync();
-        void StartSync(string sqlserver, string fpnumber);
+        void StartSync(string sqlserver, string fpnumber, string RealNumber, Int64 DateTimeBegin, Int64 DateTimeStop);
 
         void StopSync();
 

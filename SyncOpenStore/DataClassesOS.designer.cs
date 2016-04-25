@@ -51,6 +51,15 @@ namespace SyncOpenStore
     partial void InsertDCARD(DCARD instance);
     partial void UpdateDCARD(DCARD instance);
     partial void DeleteDCARD(DCARD instance);
+    partial void InsertART(ART instance);
+    partial void UpdateART(ART instance);
+    partial void DeleteART(ART instance);
+    partial void InsertCLNT(CLNT instance);
+    partial void UpdateCLNT(CLNT instance);
+    partial void DeleteCLNT(CLNT instance);
+    partial void InsertDISCOFFER(DISCOFFER instance);
+    partial void UpdateDISCOFFER(DISCOFFER instance);
+    partial void DeleteDISCOFFER(DISCOFFER instance);
     #endregion
 		
 		public DataClassesOSDataContext() : 
@@ -136,6 +145,30 @@ namespace SyncOpenStore
 			get
 			{
 				return this.GetTable<DCARD>();
+			}
+		}
+		
+		public System.Data.Linq.Table<ART> ARTs
+		{
+			get
+			{
+				return this.GetTable<ART>();
+			}
+		}
+		
+		public System.Data.Linq.Table<CLNT> CLNTs
+		{
+			get
+			{
+				return this.GetTable<CLNT>();
+			}
+		}
+		
+		public System.Data.Linq.Table<DISCOFFER> DISCOFFERs
+		{
+			get
+			{
+				return this.GetTable<DISCOFFER>();
 			}
 		}
 	}
@@ -3131,6 +3164,8 @@ namespace SyncOpenStore
 		
 		private short _LOCKED;
 		
+		private EntityRef<CLNT> _CLNT;
+		
     #region Extensibility Method Definitions
     partial void OnLoaded();
     partial void OnValidate(System.Data.Linq.ChangeAction action);
@@ -3157,6 +3192,7 @@ namespace SyncOpenStore
 		
 		public DCARD()
 		{
+			this._CLNT = default(EntityRef<CLNT>);
 			OnCreated();
 		}
 		
@@ -3191,6 +3227,10 @@ namespace SyncOpenStore
 			{
 				if ((this._CLNTID != value))
 				{
+					if (this._CLNT.HasLoadedOrAssignedValue)
+					{
+						throw new System.Data.Linq.ForeignKeyReferenceAlreadyHasValueException();
+					}
 					this.OnCLNTIDChanging(value);
 					this.SendPropertyChanging();
 					this._CLNTID = value;
@@ -3336,6 +3376,878 @@ namespace SyncOpenStore
 					this._LOCKED = value;
 					this.SendPropertyChanged("LOCKED");
 					this.OnLOCKEDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="CLNT_DCARD", Storage="_CLNT", ThisKey="CLNTID", OtherKey="CLNTID", IsForeignKey=true)]
+		public CLNT CLNT
+		{
+			get
+			{
+				return this._CLNT.Entity;
+			}
+			set
+			{
+				CLNT previousValue = this._CLNT.Entity;
+				if (((previousValue != value) 
+							|| (this._CLNT.HasLoadedOrAssignedValue == false)))
+				{
+					this.SendPropertyChanging();
+					if ((previousValue != null))
+					{
+						this._CLNT.Entity = null;
+						previousValue.DCARDs.Remove(this);
+					}
+					this._CLNT.Entity = value;
+					if ((value != null))
+					{
+						value.DCARDs.Add(this);
+						this._CLNTID = value.CLNTID;
+					}
+					else
+					{
+						this._CLNTID = default(int);
+					}
+					this.SendPropertyChanged("CLNT");
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.ART")]
+	public partial class ART : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private int _ARTID;
+		
+		private int _GRPID;
+		
+		private System.Nullable<int> _OFFERID;
+		
+		private System.Nullable<int> _DEFAULTUNITID;
+		
+		private string _ARTNAME;
+		
+		private System.Nullable<int> _COMPOSCARDID;
+		
+		private string _UKEZEDCODE;
+		
+		private int _ARTTYPE;
+		
+		private string _ARTSNAME;
+		
+		private int _ARTCODE;
+		
+		private short _DELFLAG;
+		
+		private int _UPDATENUM;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnARTIDChanging(int value);
+    partial void OnARTIDChanged();
+    partial void OnGRPIDChanging(int value);
+    partial void OnGRPIDChanged();
+    partial void OnOFFERIDChanging(System.Nullable<int> value);
+    partial void OnOFFERIDChanged();
+    partial void OnDEFAULTUNITIDChanging(System.Nullable<int> value);
+    partial void OnDEFAULTUNITIDChanged();
+    partial void OnARTNAMEChanging(string value);
+    partial void OnARTNAMEChanged();
+    partial void OnCOMPOSCARDIDChanging(System.Nullable<int> value);
+    partial void OnCOMPOSCARDIDChanged();
+    partial void OnUKEZEDCODEChanging(string value);
+    partial void OnUKEZEDCODEChanged();
+    partial void OnARTTYPEChanging(int value);
+    partial void OnARTTYPEChanged();
+    partial void OnARTSNAMEChanging(string value);
+    partial void OnARTSNAMEChanged();
+    partial void OnARTCODEChanging(int value);
+    partial void OnARTCODEChanged();
+    partial void OnDELFLAGChanging(short value);
+    partial void OnDELFLAGChanged();
+    partial void OnUPDATENUMChanging(int value);
+    partial void OnUPDATENUMChanged();
+    #endregion
+		
+		public ART()
+		{
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_ARTID", DbType="Int NOT NULL", IsPrimaryKey=true)]
+		public int ARTID
+		{
+			get
+			{
+				return this._ARTID;
+			}
+			set
+			{
+				if ((this._ARTID != value))
+				{
+					this.OnARTIDChanging(value);
+					this.SendPropertyChanging();
+					this._ARTID = value;
+					this.SendPropertyChanged("ARTID");
+					this.OnARTIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_GRPID", DbType="Int NOT NULL")]
+		public int GRPID
+		{
+			get
+			{
+				return this._GRPID;
+			}
+			set
+			{
+				if ((this._GRPID != value))
+				{
+					this.OnGRPIDChanging(value);
+					this.SendPropertyChanging();
+					this._GRPID = value;
+					this.SendPropertyChanged("GRPID");
+					this.OnGRPIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_OFFERID", DbType="Int")]
+		public System.Nullable<int> OFFERID
+		{
+			get
+			{
+				return this._OFFERID;
+			}
+			set
+			{
+				if ((this._OFFERID != value))
+				{
+					this.OnOFFERIDChanging(value);
+					this.SendPropertyChanging();
+					this._OFFERID = value;
+					this.SendPropertyChanged("OFFERID");
+					this.OnOFFERIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DEFAULTUNITID", DbType="Int")]
+		public System.Nullable<int> DEFAULTUNITID
+		{
+			get
+			{
+				return this._DEFAULTUNITID;
+			}
+			set
+			{
+				if ((this._DEFAULTUNITID != value))
+				{
+					this.OnDEFAULTUNITIDChanging(value);
+					this.SendPropertyChanging();
+					this._DEFAULTUNITID = value;
+					this.SendPropertyChanged("DEFAULTUNITID");
+					this.OnDEFAULTUNITIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_ARTNAME", DbType="NVarChar(50) NOT NULL", CanBeNull=false)]
+		public string ARTNAME
+		{
+			get
+			{
+				return this._ARTNAME;
+			}
+			set
+			{
+				if ((this._ARTNAME != value))
+				{
+					this.OnARTNAMEChanging(value);
+					this.SendPropertyChanging();
+					this._ARTNAME = value;
+					this.SendPropertyChanged("ARTNAME");
+					this.OnARTNAMEChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_COMPOSCARDID", DbType="Int")]
+		public System.Nullable<int> COMPOSCARDID
+		{
+			get
+			{
+				return this._COMPOSCARDID;
+			}
+			set
+			{
+				if ((this._COMPOSCARDID != value))
+				{
+					this.OnCOMPOSCARDIDChanging(value);
+					this.SendPropertyChanging();
+					this._COMPOSCARDID = value;
+					this.SendPropertyChanged("COMPOSCARDID");
+					this.OnCOMPOSCARDIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_UKEZEDCODE", DbType="NVarChar(50)")]
+		public string UKEZEDCODE
+		{
+			get
+			{
+				return this._UKEZEDCODE;
+			}
+			set
+			{
+				if ((this._UKEZEDCODE != value))
+				{
+					this.OnUKEZEDCODEChanging(value);
+					this.SendPropertyChanging();
+					this._UKEZEDCODE = value;
+					this.SendPropertyChanged("UKEZEDCODE");
+					this.OnUKEZEDCODEChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_ARTTYPE", DbType="Int NOT NULL")]
+		public int ARTTYPE
+		{
+			get
+			{
+				return this._ARTTYPE;
+			}
+			set
+			{
+				if ((this._ARTTYPE != value))
+				{
+					this.OnARTTYPEChanging(value);
+					this.SendPropertyChanging();
+					this._ARTTYPE = value;
+					this.SendPropertyChanged("ARTTYPE");
+					this.OnARTTYPEChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_ARTSNAME", DbType="NVarChar(50)")]
+		public string ARTSNAME
+		{
+			get
+			{
+				return this._ARTSNAME;
+			}
+			set
+			{
+				if ((this._ARTSNAME != value))
+				{
+					this.OnARTSNAMEChanging(value);
+					this.SendPropertyChanging();
+					this._ARTSNAME = value;
+					this.SendPropertyChanged("ARTSNAME");
+					this.OnARTSNAMEChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_ARTCODE", DbType="Int NOT NULL")]
+		public int ARTCODE
+		{
+			get
+			{
+				return this._ARTCODE;
+			}
+			set
+			{
+				if ((this._ARTCODE != value))
+				{
+					this.OnARTCODEChanging(value);
+					this.SendPropertyChanging();
+					this._ARTCODE = value;
+					this.SendPropertyChanged("ARTCODE");
+					this.OnARTCODEChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DELFLAG", DbType="SmallInt NOT NULL")]
+		public short DELFLAG
+		{
+			get
+			{
+				return this._DELFLAG;
+			}
+			set
+			{
+				if ((this._DELFLAG != value))
+				{
+					this.OnDELFLAGChanging(value);
+					this.SendPropertyChanging();
+					this._DELFLAG = value;
+					this.SendPropertyChanged("DELFLAG");
+					this.OnDELFLAGChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_UPDATENUM", DbType="Int NOT NULL")]
+		public int UPDATENUM
+		{
+			get
+			{
+				return this._UPDATENUM;
+			}
+			set
+			{
+				if ((this._UPDATENUM != value))
+				{
+					this.OnUPDATENUMChanging(value);
+					this.SendPropertyChanging();
+					this._UPDATENUM = value;
+					this.SendPropertyChanged("UPDATENUM");
+					this.OnUPDATENUMChanged();
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.CLNT")]
+	public partial class CLNT : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private int _CLNTID;
+		
+		private int _CLNTGRPID;
+		
+		private System.Nullable<int> _COMPANYID;
+		
+		private string _CLNTNAME;
+		
+		private string _CLNTBIRTHDAY;
+		
+		private short _LOCKED;
+		
+		private short _DELFLAG;
+		
+		private int _UPDATENUM;
+		
+		private EntitySet<DCARD> _DCARDs;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnCLNTIDChanging(int value);
+    partial void OnCLNTIDChanged();
+    partial void OnCLNTGRPIDChanging(int value);
+    partial void OnCLNTGRPIDChanged();
+    partial void OnCOMPANYIDChanging(System.Nullable<int> value);
+    partial void OnCOMPANYIDChanged();
+    partial void OnCLNTNAMEChanging(string value);
+    partial void OnCLNTNAMEChanged();
+    partial void OnCLNTBIRTHDAYChanging(string value);
+    partial void OnCLNTBIRTHDAYChanged();
+    partial void OnLOCKEDChanging(short value);
+    partial void OnLOCKEDChanged();
+    partial void OnDELFLAGChanging(short value);
+    partial void OnDELFLAGChanged();
+    partial void OnUPDATENUMChanging(int value);
+    partial void OnUPDATENUMChanged();
+    #endregion
+		
+		public CLNT()
+		{
+			this._DCARDs = new EntitySet<DCARD>(new Action<DCARD>(this.attach_DCARDs), new Action<DCARD>(this.detach_DCARDs));
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CLNTID", DbType="Int NOT NULL", IsPrimaryKey=true)]
+		public int CLNTID
+		{
+			get
+			{
+				return this._CLNTID;
+			}
+			set
+			{
+				if ((this._CLNTID != value))
+				{
+					this.OnCLNTIDChanging(value);
+					this.SendPropertyChanging();
+					this._CLNTID = value;
+					this.SendPropertyChanged("CLNTID");
+					this.OnCLNTIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CLNTGRPID", DbType="Int NOT NULL")]
+		public int CLNTGRPID
+		{
+			get
+			{
+				return this._CLNTGRPID;
+			}
+			set
+			{
+				if ((this._CLNTGRPID != value))
+				{
+					this.OnCLNTGRPIDChanging(value);
+					this.SendPropertyChanging();
+					this._CLNTGRPID = value;
+					this.SendPropertyChanged("CLNTGRPID");
+					this.OnCLNTGRPIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_COMPANYID", DbType="Int")]
+		public System.Nullable<int> COMPANYID
+		{
+			get
+			{
+				return this._COMPANYID;
+			}
+			set
+			{
+				if ((this._COMPANYID != value))
+				{
+					this.OnCOMPANYIDChanging(value);
+					this.SendPropertyChanging();
+					this._COMPANYID = value;
+					this.SendPropertyChanged("COMPANYID");
+					this.OnCOMPANYIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CLNTNAME", DbType="NVarChar(50) NOT NULL", CanBeNull=false)]
+		public string CLNTNAME
+		{
+			get
+			{
+				return this._CLNTNAME;
+			}
+			set
+			{
+				if ((this._CLNTNAME != value))
+				{
+					this.OnCLNTNAMEChanging(value);
+					this.SendPropertyChanging();
+					this._CLNTNAME = value;
+					this.SendPropertyChanged("CLNTNAME");
+					this.OnCLNTNAMEChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CLNTBIRTHDAY", DbType="VarChar(14)")]
+		public string CLNTBIRTHDAY
+		{
+			get
+			{
+				return this._CLNTBIRTHDAY;
+			}
+			set
+			{
+				if ((this._CLNTBIRTHDAY != value))
+				{
+					this.OnCLNTBIRTHDAYChanging(value);
+					this.SendPropertyChanging();
+					this._CLNTBIRTHDAY = value;
+					this.SendPropertyChanged("CLNTBIRTHDAY");
+					this.OnCLNTBIRTHDAYChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_LOCKED", DbType="SmallInt NOT NULL")]
+		public short LOCKED
+		{
+			get
+			{
+				return this._LOCKED;
+			}
+			set
+			{
+				if ((this._LOCKED != value))
+				{
+					this.OnLOCKEDChanging(value);
+					this.SendPropertyChanging();
+					this._LOCKED = value;
+					this.SendPropertyChanged("LOCKED");
+					this.OnLOCKEDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DELFLAG", DbType="SmallInt NOT NULL")]
+		public short DELFLAG
+		{
+			get
+			{
+				return this._DELFLAG;
+			}
+			set
+			{
+				if ((this._DELFLAG != value))
+				{
+					this.OnDELFLAGChanging(value);
+					this.SendPropertyChanging();
+					this._DELFLAG = value;
+					this.SendPropertyChanged("DELFLAG");
+					this.OnDELFLAGChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_UPDATENUM", DbType="Int NOT NULL")]
+		public int UPDATENUM
+		{
+			get
+			{
+				return this._UPDATENUM;
+			}
+			set
+			{
+				if ((this._UPDATENUM != value))
+				{
+					this.OnUPDATENUMChanging(value);
+					this.SendPropertyChanging();
+					this._UPDATENUM = value;
+					this.SendPropertyChanged("UPDATENUM");
+					this.OnUPDATENUMChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="CLNT_DCARD", Storage="_DCARDs", ThisKey="CLNTID", OtherKey="CLNTID")]
+		public EntitySet<DCARD> DCARDs
+		{
+			get
+			{
+				return this._DCARDs;
+			}
+			set
+			{
+				this._DCARDs.Assign(value);
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+		
+		private void attach_DCARDs(DCARD entity)
+		{
+			this.SendPropertyChanging();
+			entity.CLNT = this;
+		}
+		
+		private void detach_DCARDs(DCARD entity)
+		{
+			this.SendPropertyChanging();
+			entity.CLNT = null;
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.DISCOFFER")]
+	public partial class DISCOFFER : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private int _DISCOFFERID;
+		
+		private string _DISCOFFERNAME;
+		
+		private string _DISCOFFERVAL;
+		
+		private string _DISCOFFERCOND;
+		
+		private string _DISCOFFERTIME;
+		
+		private string _DISCOFFERDATE;
+		
+		private short _DELFLAG;
+		
+		private short _DISCOFFERMANUALINP;
+		
+		private int _UPDATENUM;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnDISCOFFERIDChanging(int value);
+    partial void OnDISCOFFERIDChanged();
+    partial void OnDISCOFFERNAMEChanging(string value);
+    partial void OnDISCOFFERNAMEChanged();
+    partial void OnDISCOFFERVALChanging(string value);
+    partial void OnDISCOFFERVALChanged();
+    partial void OnDISCOFFERCONDChanging(string value);
+    partial void OnDISCOFFERCONDChanged();
+    partial void OnDISCOFFERTIMEChanging(string value);
+    partial void OnDISCOFFERTIMEChanged();
+    partial void OnDISCOFFERDATEChanging(string value);
+    partial void OnDISCOFFERDATEChanged();
+    partial void OnDELFLAGChanging(short value);
+    partial void OnDELFLAGChanged();
+    partial void OnDISCOFFERMANUALINPChanging(short value);
+    partial void OnDISCOFFERMANUALINPChanged();
+    partial void OnUPDATENUMChanging(int value);
+    partial void OnUPDATENUMChanged();
+    #endregion
+		
+		public DISCOFFER()
+		{
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DISCOFFERID", DbType="Int NOT NULL", IsPrimaryKey=true)]
+		public int DISCOFFERID
+		{
+			get
+			{
+				return this._DISCOFFERID;
+			}
+			set
+			{
+				if ((this._DISCOFFERID != value))
+				{
+					this.OnDISCOFFERIDChanging(value);
+					this.SendPropertyChanging();
+					this._DISCOFFERID = value;
+					this.SendPropertyChanged("DISCOFFERID");
+					this.OnDISCOFFERIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DISCOFFERNAME", DbType="NVarChar(50) NOT NULL", CanBeNull=false)]
+		public string DISCOFFERNAME
+		{
+			get
+			{
+				return this._DISCOFFERNAME;
+			}
+			set
+			{
+				if ((this._DISCOFFERNAME != value))
+				{
+					this.OnDISCOFFERNAMEChanging(value);
+					this.SendPropertyChanging();
+					this._DISCOFFERNAME = value;
+					this.SendPropertyChanged("DISCOFFERNAME");
+					this.OnDISCOFFERNAMEChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DISCOFFERVAL", DbType="NVarChar(1024) NOT NULL", CanBeNull=false)]
+		public string DISCOFFERVAL
+		{
+			get
+			{
+				return this._DISCOFFERVAL;
+			}
+			set
+			{
+				if ((this._DISCOFFERVAL != value))
+				{
+					this.OnDISCOFFERVALChanging(value);
+					this.SendPropertyChanging();
+					this._DISCOFFERVAL = value;
+					this.SendPropertyChanged("DISCOFFERVAL");
+					this.OnDISCOFFERVALChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DISCOFFERCOND", DbType="NVarChar(1024)")]
+		public string DISCOFFERCOND
+		{
+			get
+			{
+				return this._DISCOFFERCOND;
+			}
+			set
+			{
+				if ((this._DISCOFFERCOND != value))
+				{
+					this.OnDISCOFFERCONDChanging(value);
+					this.SendPropertyChanging();
+					this._DISCOFFERCOND = value;
+					this.SendPropertyChanged("DISCOFFERCOND");
+					this.OnDISCOFFERCONDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DISCOFFERTIME", DbType="NVarChar(1024)")]
+		public string DISCOFFERTIME
+		{
+			get
+			{
+				return this._DISCOFFERTIME;
+			}
+			set
+			{
+				if ((this._DISCOFFERTIME != value))
+				{
+					this.OnDISCOFFERTIMEChanging(value);
+					this.SendPropertyChanging();
+					this._DISCOFFERTIME = value;
+					this.SendPropertyChanged("DISCOFFERTIME");
+					this.OnDISCOFFERTIMEChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DISCOFFERDATE", DbType="NVarChar(1024)")]
+		public string DISCOFFERDATE
+		{
+			get
+			{
+				return this._DISCOFFERDATE;
+			}
+			set
+			{
+				if ((this._DISCOFFERDATE != value))
+				{
+					this.OnDISCOFFERDATEChanging(value);
+					this.SendPropertyChanging();
+					this._DISCOFFERDATE = value;
+					this.SendPropertyChanged("DISCOFFERDATE");
+					this.OnDISCOFFERDATEChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DELFLAG", DbType="SmallInt NOT NULL")]
+		public short DELFLAG
+		{
+			get
+			{
+				return this._DELFLAG;
+			}
+			set
+			{
+				if ((this._DELFLAG != value))
+				{
+					this.OnDELFLAGChanging(value);
+					this.SendPropertyChanging();
+					this._DELFLAG = value;
+					this.SendPropertyChanged("DELFLAG");
+					this.OnDELFLAGChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DISCOFFERMANUALINP", DbType="SmallInt NOT NULL")]
+		public short DISCOFFERMANUALINP
+		{
+			get
+			{
+				return this._DISCOFFERMANUALINP;
+			}
+			set
+			{
+				if ((this._DISCOFFERMANUALINP != value))
+				{
+					this.OnDISCOFFERMANUALINPChanging(value);
+					this.SendPropertyChanging();
+					this._DISCOFFERMANUALINP = value;
+					this.SendPropertyChanged("DISCOFFERMANUALINP");
+					this.OnDISCOFFERMANUALINPChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_UPDATENUM", DbType="Int NOT NULL")]
+		public int UPDATENUM
+		{
+			get
+			{
+				return this._UPDATENUM;
+			}
+			set
+			{
+				if ((this._UPDATENUM != value))
+				{
+					this.OnUPDATENUMChanging(value);
+					this.SendPropertyChanging();
+					this._UPDATENUM = value;
+					this.SendPropertyChanged("UPDATENUM");
+					this.OnUPDATENUMChanged();
 				}
 			}
 		}

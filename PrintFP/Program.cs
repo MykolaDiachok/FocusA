@@ -63,7 +63,7 @@ namespace PrintFP
                 DisplayHelp(os);
                 return (int)infoPr.Bad;
             }
-            eventLog1 = new MyEventLog(automatic, fpnumber);
+            //eventLog1 = new MyEventLog(automatic, fpnumber);
 
             if (String.IsNullOrEmpty(server))
             {

@@ -13,9 +13,10 @@ namespace SyncOpenStore.DBHelper
     {
         
        
-        string FPNumber { get;  }
+        string sFPNumber { get;   }
+        string sRealNumber { get;  }
 
-        void Init(string FPNumber);
+        void Init(string FPNumber, string Realnumber, Int64 DateTimeBegin, Int64 DateTimeStop);
         void LoadDataFor_tbl_CashierBefore();
         void LoadDataFor_tbl_Cashier();
         void LoadDataFor_tbl_CashierAfter();

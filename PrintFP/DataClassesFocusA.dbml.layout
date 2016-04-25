@@ -14,12 +14,6 @@
         <elementListCompartment Id="d3bd27a7-8112-4d61-9597-bb226999f3ab" absoluteBounds="10.39, 1.085, 1.9700000000000002, 2.5570068359375" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <classShape Id="da26527b-377c-440c-b9cb-1fe4508ed7c8" absoluteBounds="3, 0.5, 2, 8.3091455078125">
-      <DataClassMoniker Name="/DataClasses1DataContext/tbl_Payment" />
-      <nestedChildShapes>
-        <elementListCompartment Id="94a438cc-cea7-4bea-b6e5-f2c32e475c43" absoluteBounds="3.0149999999999997, 0.96, 1.9700000000000002, 7.7491455078125009" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
-      </nestedChildShapes>
-    </classShape>
     <classShape Id="3bee4c33-2cf4-4711-9cbb-8a3d5732d5da" absoluteBounds="10.125, 4.5, 2, 1.7708968098958331">
       <DataClassMoniker Name="/DataClasses1DataContext/tbl_Tax" />
       <nestedChildShapes>
@@ -44,19 +38,6 @@
         <elementListCompartment Id="d1a0d7b4-2691-463a-9602-5d3acd1540a2" absoluteBounds="5.14, 0.96, 1.9700000000000002, 1.7878011067708335" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <classShape Id="871dcdf7-2b87-4d94-a927-b7cda5de25d3" absoluteBounds="0.875, 1.375, 2, 7.1553369140625">
-      <DataClassMoniker Name="/DataClasses1DataContext/tbl_SALE" />
-      <nestedChildShapes>
-        <elementListCompartment Id="218aa7ee-f9b7-49b0-a75f-5951a957d43f" absoluteBounds="0.88999999999999968, 1.835, 1.9700000000000002, 6.5953369140625" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
-      </nestedChildShapes>
-    </classShape>
-    <associationConnector edgePoints="[(3 : 4.95266845703125); (2.875 : 4.95266845703125)]" fixedFrom="Algorithm" fixedTo="Algorithm">
-      <AssociationMoniker Name="/DataClasses1DataContext/tbl_Payment/tbl_Payment_tbl_SALE" />
-      <nodes>
-        <classShapeMoniker Id="da26527b-377c-440c-b9cb-1fe4508ed7c8" />
-        <classShapeMoniker Id="871dcdf7-2b87-4d94-a927-b7cda5de25d3" />
-      </nodes>
-    </associationConnector>
     <classShape Id="77c94496-aa56-4326-a31a-1b14991090e1" absoluteBounds="10.125, 6.375, 2, 1.5785953776041666">
       <DataClassMoniker Name="/DataClasses1DataContext/tbl_SyncFP" />
       <nestedChildShapes>
@@ -75,5 +56,24 @@
         <elementListCompartment Id="77fd55ee-2a2e-4216-b080-51c51ea1a927" absoluteBounds="0.88999999999999968, 9.46, 1.9700000000000002, 7.556844075520833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
+    <classShape Id="c93aed45-1070-499d-8674-2cfeb2ff156e" absoluteBounds="3.25, 1.125, 2, 8.6937483723958326">
+      <DataClassMoniker Name="/DataClasses1DataContext/tbl_Payment" />
+      <nestedChildShapes>
+        <elementListCompartment Id="d948a873-3d37-4d85-89d5-85fd81ad4620" absoluteBounds="3.2649999999999997, 1.585, 1.9700000000000002, 8.1337483723958321" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="1c2445d7-5786-4edc-a59b-163b2ae5fc5f" absoluteBounds="0.875, 1.875, 2, 7.3476383463541657">
+      <DataClassMoniker Name="/DataClasses1DataContext/tbl_SALE" />
+      <nestedChildShapes>
+        <elementListCompartment Id="4586b778-4a2f-4dff-b441-6825b1d1232b" absoluteBounds="0.88999999999999968, 2.335, 1.9700000000000002, 6.7876383463541661" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <associationConnector edgePoints="[(3.25 : 5.54881917317708); (2.875 : 5.54881917317708)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/DataClasses1DataContext/tbl_Payment/tbl_Payment_tbl_SALE" />
+      <nodes>
+        <classShapeMoniker Id="c93aed45-1070-499d-8674-2cfeb2ff156e" />
+        <classShapeMoniker Id="1c2445d7-5786-4edc-a59b-163b2ae5fc5f" />
+      </nodes>
+    </associationConnector>
   </nestedChildShapes>
 </ordesignerObjectsDiagram>

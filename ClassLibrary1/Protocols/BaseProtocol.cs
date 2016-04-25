@@ -1023,7 +1023,7 @@ namespace CentralLib.Protocols
                 _price = _price ^ (1 << 31);
             }
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(_price));
-            byte[] VAT = new byte[] { 0x80 }; ;
+            byte[] VAT = new byte[] { 0x80 }; 
             if (NalogGroup == 1)
                 VAT = new byte[] { 0x81 };
             else if (NalogGroup == 2)

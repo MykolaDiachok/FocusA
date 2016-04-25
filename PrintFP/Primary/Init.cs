@@ -102,7 +102,7 @@ namespace PrintFP.Primary
                     {
                         logger.Error(ex);
                         UpdateStatusFP.setStatusFP(FPnumber, "Была ошибка, waiting...");
-                        Thread.Sleep(Properties.Settings.Default.TimerIntervalSec*1000);
+                        Thread.Sleep(Properties.Settings.Default.TimerIntervalSec * 1000);
                     }
                 }
                 //logger.Trace("lockthis out {0}", DateTime.Now);
@@ -296,25 +296,34 @@ namespace PrintFP.Primary
                                 Dictionary<ulong, int> listgoods = new Dictionary<ulong, int>();
                                 if (tableCheck.Count() != 0)
                                 {
+                                    UInt16 index = 0;
                                     foreach (var rowCheck in tableCheck)
                                     {
                                         //string forPrint = rowCheck.GoodName;                                        
                                         ReceiptInfo rowSum;
                                         //if ((listgoods.ContainsKey((ulong)rowCheck.packname))&&(listgoods[(ulong)rowCheck.packname]!= rowCheck.Price))
                                         ulong packcode = (ulong)rowCheck.packname.GetValueOrDefault();
-                                        if (listgoods.ContainsKey((ulong)rowCheck.packname))
+                                        var tlistg = (from listg in listgoods
+                                                 where listg.Key == (ulong)rowCheck.packname
+                                                 && listg.Value == rowCheck.Price
+                                                 select listg);
+                                        if (tlistg.Count()==0)
                                         {
-                                            packcode = (ulong)rowCheck.packname + ulong.Parse(rowCheck.StrCode) * ((ulong)rowCheck.SORT * 1000000);
+                                            if ((listgoods.ContainsKey((ulong)rowCheck.packname)))
+                                            {
+                                                packcode = (ulong)rowCheck.packname + ulong.Parse(rowCheck.StrCode) * index * 1000000;
+                                            }
+                                            else
+                                            {
+                                                listgoods.Add((ulong)rowCheck.packname, rowCheck.Price);
+                                            }
                                         }
-                                        else
-                                        {
-                                            listgoods.Add((ulong)rowCheck.packname, rowCheck.Price);
-                                        }
-
                                         Art art = new Art(int.Parse(rowCheck.StrCode), rowCheck.GoodName, packcode, (ushort)rowCheck.NalogGroup, rowCheck.FPNumber, _focusA);
                                         setStatusFP(string.Format("Check #{0} row#{1} name:{2} pr:{3}", headCheck.id, rowCheck.SORT, art.ARTNAME, rowCheck.Price));
                                         rowSum = pr.FPSaleEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, art.NalogGroup, false, art.ARTNAME, art.PackCode);
-
+                                        DiscountInfo rowDiscount;
+                                        if (rowCheck.discount.GetValueOrDefault() != 0)
+                                            rowDiscount = pr.Discount(CentralLib.Helper.FPDiscount.AbsoluteDiscountMarkupAtLastGoods, (short)rowCheck.discount, rowCheck.DiscountComment);
 
                                         rowCheck.ByteReserv = pr.ByteReserv;
                                         rowCheck.ByteResult = pr.ByteResult;
@@ -322,7 +331,8 @@ namespace PrintFP.Primary
                                         rowCheck.Error = !pr.statusOperation;
                                         rowCheck.FPSum = rowSum.CostOfGoodsOrService;
                                         headCheck.FPSumm = rowSum.SumAtReceipt;
-                                        if (rowCheck.RowSum != rowSum.CostOfGoodsOrService)
+                                        var razn =(rowCheck.RowSum.GetValueOrDefault() + rowCheck.discount.GetValueOrDefault()) - rowSum.CostOfGoodsOrService;
+                                        if ( Math.Abs(razn)>5 )
                                         {
                                             string errorinfo = String.Format("Отличается сумма по строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
                                             setStatusFP(string.Format("{2}!!!! Operation={0},id={1}", operation.Operation, operation.id, errorinfo));
@@ -331,9 +341,30 @@ namespace PrintFP.Primary
                                             logger.Error(errorinfo);
                                             throw new ApplicationException(errorinfo);
                                         }
-
+                                        index++;
                                     }
-                                    if (headCheck.FPSumm != headCheck.CheckSum)
+
+                                    DiscountInfo disc = new DiscountInfo();
+                                    if ((headCheck.PayBonus.GetValueOrDefault() != 0) || (headCheck.Discount.GetValueOrDefault() != 0))
+                                    {
+                                        int val = Math.Max(headCheck.PayBonus.GetValueOrDefault(), headCheck.Discount.GetValueOrDefault());
+
+                                        disc = pr.Discount(CentralLib.Helper.FPDiscount.AbsoluteDiscountMarkupAtIntermediateSum, (short)(val), "");
+                                        headCheck.FPSumm = disc.SumOfReceipt;
+                                    }
+
+                                    if (headCheck.Comment.Length != 0)
+                                    {
+                                        string str = headCheck.Comment;
+                                        string[] strs = str.Split('\n');
+                                        foreach (var com in strs)
+                                        {
+                                            pr.FPCommentLine(com);
+                                        }
+                                    }
+
+                                    int checkRazn = headCheck.FPSumm.GetValueOrDefault() - headCheck.CheckSum.GetValueOrDefault();
+                                    if (Math.Abs(checkRazn)>5)
                                     {
                                         string errorinfo = String.Format("Отличается сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id);
                                         setStatusFP(string.Format("{2}!!!! Operation={0},id={1}", operation.Operation, operation.id, errorinfo));
@@ -358,7 +389,7 @@ namespace PrintFP.Primary
                                     }
                                     if (headCheck.Payment3 > 0)
                                     {
-                                        pr.FPPayment(3, (uint)headCheck.Payment3, false, true);
+                                        pr.FPPayment(3, (uint)headCheck.Payment3+(uint)checkRazn, false, true);
                                         setStatusFP(string.Format("Check #{0} Payment3:{1}", headCheck.id, (uint)headCheck.Payment3));
                                     }
                                     headCheck.ByteReserv = pr.ByteReserv;
@@ -382,12 +413,13 @@ namespace PrintFP.Primary
                                                  select table).FirstOrDefault();
                                 if (headCheck == null)
                                 {
+                                    setStatusFP(string.Format("Строка заголовки чека пустая!!!! Operation={0},id=", operation.Operation, operation.id));
                                     string errorinfo = "Строка заголовки чека пустая";
-                                    setStatusFP(string.Format("{2}!!!! Operation={0},id={1}", operation.Operation, operation.id, errorinfo));
                                     initRow.ErrorInfo = errorinfo;
                                     _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                                     throw new ApplicationException(errorinfo);
                                 }
+                                setStatusFP(string.Format("HEAD CHECK!!!! Operation={0},id={1}, row count={2}", operation.Operation, operation.id, headCheck.RowCount));
                                 headCheck.ForWork = true;
                                 var tableCheck = (from tableSales in tblSales
                                                   where tableSales.DATETIME == headCheck.DATETIME
@@ -398,77 +430,115 @@ namespace PrintFP.Primary
                                                   && tableSales.SRECNUM == headCheck.SRECNUM
                                                   && tableSales.NumPayment == headCheck.id
                                                   select tableSales);
-                                //logger.Trace("Check payment begin #{0}", headCheck.id);
+                                //logger.Trace("Check begin #{0}", headCheck.id);
+                                //List<string, int> listGoodsName = new List<string, int>();
                                 Dictionary<ulong, int> listgoods = new Dictionary<ulong, int>();
-                                foreach (var rowCheck in tableCheck)
+                                if (tableCheck.Count() != 0)
                                 {
-
-                                    ulong packcode = (ulong)rowCheck.packname.GetValueOrDefault();
-                                    if (listgoods.ContainsKey((ulong)rowCheck.packname))
+                                    UInt16 index = 0;
+                                    foreach (var rowCheck in tableCheck)
                                     {
-                                        packcode = (ulong)rowCheck.packname + ulong.Parse(rowCheck.StrCode) * ((ulong)rowCheck.SORT * 1000000);
+                                        //string forPrint = rowCheck.GoodName;                                        
+                                        ReceiptInfo rowSum;
+                                        //if ((listgoods.ContainsKey((ulong)rowCheck.packname))&&(listgoods[(ulong)rowCheck.packname]!= rowCheck.Price))
+                                        ulong packcode = (ulong)rowCheck.packname.GetValueOrDefault();
+                                        var tlistg = (from listg in listgoods
+                                                      where listg.Key == (ulong)rowCheck.packname
+                                                      && listg.Value == rowCheck.Price
+                                                      select listg);
+                                        if (tlistg.Count() == 0)
+                                        {
+                                            if ((listgoods.ContainsKey((ulong)rowCheck.packname)))
+                                            {
+                                                packcode = (ulong)rowCheck.packname + ulong.Parse(rowCheck.StrCode) * index * 1000000;
+                                            }
+                                            else
+                                            {
+                                                listgoods.Add((ulong)rowCheck.packname, rowCheck.Price);
+                                            }
+                                        }
+                                        Art art = new Art(int.Parse(rowCheck.StrCode), rowCheck.GoodName, packcode, (ushort)rowCheck.NalogGroup, rowCheck.FPNumber, _focusA);
+                                        setStatusFP(string.Format("Check #{0} row#{1} name:{2} pr:{3}", headCheck.id, rowCheck.SORT, art.ARTNAME, rowCheck.Price));
+                                        rowSum = pr.FPPayMoneyEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, art.NalogGroup, false, art.ARTNAME, art.PackCode);
+                                        DiscountInfo rowDiscount;
+                                        if (rowCheck.discount.GetValueOrDefault() != 0)
+                                            rowDiscount = pr.Discount(CentralLib.Helper.FPDiscount.AbsoluteDiscountMarkupAtLastGoods, (short)rowCheck.discount, rowCheck.DiscountComment);
+
+                                        rowCheck.ByteReserv = pr.ByteReserv;
+                                        rowCheck.ByteResult = pr.ByteResult;
+                                        rowCheck.ByteStatus = pr.ByteStatus;
+                                        rowCheck.Error = !pr.statusOperation;
+                                        rowCheck.FPSum = rowSum.CostOfGoodsOrService;
+                                        headCheck.FPSumm = rowSum.SumAtReceipt;
+                                        int razn = (rowCheck.RowSum.GetValueOrDefault() + rowCheck.discount.GetValueOrDefault()) - rowSum.CostOfGoodsOrService;
+                                        if (Math.Abs(razn) > 5)
+                                        { 
+                                            string errorinfo = String.Format("Отличается сумма по строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
+                                            setStatusFP(string.Format("{2}!!!! Operation={0},id={1}", operation.Operation, operation.id, errorinfo));
+                                            initRow.ErrorInfo = errorinfo;
+                                            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                            logger.Error(errorinfo);
+                                            throw new ApplicationException(errorinfo);
+                                        }
+                                        index++;
                                     }
-                                    else
+
+                                    DiscountInfo disc = new DiscountInfo();
+                                    if ((headCheck.PayBonus.GetValueOrDefault() != 0) || (headCheck.Discount.GetValueOrDefault() != 0))
                                     {
-                                        listgoods.Add((ulong)rowCheck.packname, rowCheck.Price);
+                                        int val = Math.Max(headCheck.PayBonus.GetValueOrDefault(), headCheck.Discount.GetValueOrDefault());
+
+                                        disc = pr.Discount(CentralLib.Helper.FPDiscount.AbsoluteDiscountMarkupAtIntermediateSum, (short)(val), "");
+                                        headCheck.FPSumm = disc.SumOfReceipt;
                                     }
 
-                                    Art art = new Art(int.Parse(rowCheck.StrCode), rowCheck.GoodName, packcode, (ushort)rowCheck.NalogGroup, rowCheck.FPNumber, _focusA);
-                                    logger.Trace("Check payment #{0} row#{1} name:{2} pr:{3}", headCheck.id, rowCheck.SORT, art.ARTNAME, rowCheck.Price);
-
-                                    var rowSum = pr.FPPayMoneyEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, art.NalogGroup, false, art.ARTNAME, art.PackCode);
-
-                                    if (rowCheck.RowSum != rowSum.CostOfGoodsOrService)
+                                    if (headCheck.Comment.Length != 0)
                                     {
-                                        string errorinfo = String.Format("Отличается сумма по строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
+                                        string str = headCheck.Comment;
+                                        string[] strs = str.Split('\n');
+                                        foreach (var com in strs)
+                                        {
+                                            pr.FPCommentLine(com);
+                                        }
+                                    }
+
+                                    int checkRazn = headCheck.FPSumm.GetValueOrDefault() - headCheck.CheckSum.GetValueOrDefault();
+                                    if (Math.Abs(checkRazn) > 5)
+                                    {
+                                        string errorinfo = String.Format("Отличается сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id);
                                         setStatusFP(string.Format("{2}!!!! Operation={0},id={1}", operation.Operation, operation.id, errorinfo));
-                                        initRow.ErrorInfo = errorinfo;
                                         _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                                         logger.Error(errorinfo);
                                         throw new ApplicationException(errorinfo);
                                     }
-                                    rowCheck.ByteReserv = pr.ByteReserv;
-                                    rowCheck.ByteResult = pr.ByteResult;
-                                    rowCheck.ByteStatus = pr.ByteStatus;
-                                    rowCheck.Error = !pr.statusOperation;
-                                    headCheck.FPSumm = rowSum.SumAtReceipt;
+                                    if (headCheck.Payment0 > 0)
+                                    {
+                                        pr.FPPayment(0, (uint)headCheck.Payment0, false, true);
+                                        setStatusFP(string.Format("Check #{0} Payment0:{1}", headCheck.id, (uint)headCheck.Payment0));
+                                    }
+                                    if (headCheck.Payment1 > 0)
+                                    {
+                                        pr.FPPayment(1, (uint)headCheck.Payment1, false, true);
+                                        setStatusFP(string.Format("Check #{0} Payment1:{1}", headCheck.id, (uint)headCheck.Payment1));
+                                    }
+                                    if (headCheck.Payment2 > 0)
+                                    {
+                                        pr.FPPayment(2, (uint)headCheck.Payment2, false, true);
+                                        setStatusFP(string.Format("Check #{0} Payment2:{1}", headCheck.id, (uint)headCheck.Payment2));
+                                    }
+                                    if (headCheck.Payment3 > 0)
+                                    {
+                                        pr.FPPayment(3, (uint)headCheck.Payment3+(uint)checkRazn, false, true);
+                                        setStatusFP(string.Format("Check #{0} Payment3:{1}", headCheck.id, (uint)headCheck.Payment3));
+                                    }
+                                    headCheck.ByteReserv = pr.ByteReserv;
+                                    headCheck.ByteResult = pr.ByteResult;
+                                    headCheck.ByteStatus = pr.ByteStatus;
+                                    headCheck.Error = !pr.statusOperation;
+                                    headCheck.CheckClose = true;
                                 }
-                                if (headCheck.FPSumm != headCheck.CheckSum)
-                                {
-                                    string errorinfo = String.Format("Отличается сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id);
-                                    setStatusFP(string.Format("{2}!!!! Operation={0},id={1}", operation.Operation, operation.id, errorinfo));
-                                    _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
-                                    logger.Error(errorinfo);
-                                    throw new ApplicationException(errorinfo);
-                                }
-                                if (headCheck.Payment0 > 0)
-                                {
-                                    pr.FPPayment(0, (uint)headCheck.Payment0, false, true);
-                                    logger.Trace("Check payment #{0} Payment0:{1}", headCheck.id, (uint)headCheck.Payment0);
-                                }
-                                if (headCheck.Payment1 > 0)
-                                {
-                                    pr.FPPayment(1, (uint)headCheck.Payment1, false, true);
-                                    logger.Trace("Check payment #{0} Payment1:{1}", headCheck.id, (uint)headCheck.Payment1);
-                                }
-                                if (headCheck.Payment2 > 0)
-                                {
-                                    pr.FPPayment(2, (uint)headCheck.Payment2, false, true);
-                                    logger.Trace("Check payment #{0} Payment2:{1}", headCheck.id, (uint)headCheck.Payment2);
-                                }
-                                if (headCheck.Payment3 > 0)
-                                {
-                                    pr.FPPayment(3, (uint)headCheck.Payment3, false, true);
-                                    logger.Trace("Check payment #{0} Payment3:{1}", headCheck.id, (uint)headCheck.Payment3);
-                                }
-                                headCheck.ByteReserv = pr.ByteReserv;
-                                headCheck.ByteResult = pr.ByteResult;
-                                headCheck.ByteStatus = pr.ByteStatus;
-                                headCheck.Error = !pr.statusOperation;
-
-                                headCheck.CheckClose = true;
-
-                                //logger.Trace("Check payment close #{0}", headCheck.id);
+                                //logger.Trace("Check close #{0}", headCheck.id);
+                                //pr.FPPayment();
                             }
                             else if (operation.Operation == 35) //X
                             {

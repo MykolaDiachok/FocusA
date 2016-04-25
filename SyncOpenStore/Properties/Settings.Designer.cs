@@ -36,8 +36,8 @@ namespace SyncOpenStore.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=focus2;Initial Catalog=CashDesk_OS;User ID=sa;Password=1CGhtlghbznbt8" +
-            "2")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=shar_kassa2;Initial Catalog=CashDesk_os;User ID=sa;Password=123456;En" +
+            "crypt=False;TrustServerCertificate=True")]
         public string CashDesk_OSConnectionString {
             get {
                 return ((string)(this["CashDesk_OSConnectionString"]));

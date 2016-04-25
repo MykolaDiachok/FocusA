@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?><Database Name="CashDesk_OS" Class="DataClassesOSDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
-  <Connection Mode="AppSettings" ConnectionString="Data Source=focus2;Initial Catalog=CashDesk_OS;User ID=sa" SettingsObjectName="SyncOpenStore.Properties.Settings" SettingsPropertyName="CashDesk_OSConnectionString" Provider="System.Data.SqlClient" />
+  <Connection Mode="AppSettings" ConnectionString="Data Source=shar_kassa2;Initial Catalog=CashDesk_OS;User ID=sa;Encrypt=False;TrustServerCertificate=True" SettingsObjectName="SyncOpenStore.Properties.Settings" SettingsPropertyName="CashDesk_OSConnectionString1" Provider="System.Data.SqlClient" />
   <Table Name="dbo.SESS" Member="SESSes">
     <Type Name="SESS">
       <Column Name="SESSID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
@@ -145,6 +145,49 @@
       <Column Name="PINCODE" Type="System.String" DbType="VarChar(256)" CanBeNull="true" />
       <Column Name="UPDATENUM" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="LOCKED" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Association Name="CLNT_DCARD" Member="CLNT" ThisKey="CLNTID" OtherKey="CLNTID" Type="CLNT" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.ART" Member="ARTs">
+    <Type Name="ART">
+      <Column Name="ARTID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="GRPID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="OFFERID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="DEFAULTUNITID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ARTNAME" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="COMPOSCARDID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="UKEZEDCODE" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="ARTTYPE" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="ARTSNAME" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="ARTCODE" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="DELFLAG" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="UPDATENUM" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+    </Type>
+  </Table>
+  <Table Name="dbo.CLNT" Member="CLNTs">
+    <Type Name="CLNT">
+      <Column Name="CLNTID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="CLNTGRPID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="COMPANYID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="CLNTNAME" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="CLNTBIRTHDAY" Type="System.String" DbType="VarChar(14)" CanBeNull="true" />
+      <Column Name="LOCKED" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="DELFLAG" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="UPDATENUM" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Association Name="CLNT_DCARD" Member="DCARDs" ThisKey="CLNTID" OtherKey="CLNTID" Type="DCARD" />
+    </Type>
+  </Table>
+  <Table Name="dbo.DISCOFFER" Member="DISCOFFERs">
+    <Type Name="DISCOFFER">
+      <Column Name="DISCOFFERID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="DISCOFFERNAME" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="DISCOFFERVAL" Type="System.String" DbType="NVarChar(1024) NOT NULL" CanBeNull="false" />
+      <Column Name="DISCOFFERCOND" Type="System.String" DbType="NVarChar(1024)" CanBeNull="true" />
+      <Column Name="DISCOFFERTIME" Type="System.String" DbType="NVarChar(1024)" CanBeNull="true" />
+      <Column Name="DISCOFFERDATE" Type="System.String" DbType="NVarChar(1024)" CanBeNull="true" />
+      <Column Name="DELFLAG" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="DISCOFFERMANUALINP" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="UPDATENUM" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
     </Type>
   </Table>
 </Database>
