@@ -54,6 +54,28 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrintFPService", "PrintFPSe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyncOpenStoreService", "SyncOpenStoreService\SyncOpenStoreService.csproj", "{8DD2DBD3-A979-472C-9055-5D8CCADC1C2C}"
 EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebSite2", "..\..\Users\dyachok\Documents\Visual Studio 2015\WebSites\WebSite2\", "{EB0073F4-0975-4FBD-899A-254A752EF030}"
+	ProjectSection(WebsiteProperties) = preProject
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.6.1"
+		Debug.AspNetCompiler.VirtualPath = "/localhost_56641"
+		Debug.AspNetCompiler.PhysicalPath = "..\..\Users\dyachok\Documents\Visual Studio 2015\WebSites\WebSite2\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_56641\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/localhost_56641"
+		Release.AspNetCompiler.PhysicalPath = "..\..\Users\dyachok\Documents\Visual Studio 2015\WebSites\WebSite2\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_56641\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		VWDPort = "56641"
+		SlnRelativePath = "..\..\Users\dyachok\Documents\Visual Studio 2015\WebSites\WebSite2\"
+		DefaultWebSiteLanguage = "Visual C#"
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -108,6 +130,10 @@ Global
 		{8DD2DBD3-A979-472C-9055-5D8CCADC1C2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8DD2DBD3-A979-472C-9055-5D8CCADC1C2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8DD2DBD3-A979-472C-9055-5D8CCADC1C2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB0073F4-0975-4FBD-899A-254A752EF030}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB0073F4-0975-4FBD-899A-254A752EF030}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB0073F4-0975-4FBD-899A-254A752EF030}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB0073F4-0975-4FBD-899A-254A752EF030}.Release|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

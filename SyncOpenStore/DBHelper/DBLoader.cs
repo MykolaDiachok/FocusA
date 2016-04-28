@@ -98,6 +98,33 @@ namespace SyncOpenStore.DBHelper
 
 
 
+        public void settbl_SyncDBStatus(int fpnumber, string status)
+        {
+            using (DataClassesFocusADataContext focus = new DataClassesFocusADataContext())
+            {
+                var loginfo = (from log in focus.GetTable<tbl_SyncDBStatus>()
+                               where log.FPNumber == fpnumber
+                               select log).FirstOrDefault();
+                if (loginfo != null)
+                {
+                    loginfo.DateTimeSyncDB = DateTime.Now;
+                    loginfo.Status = status;
+                }
+                else
+                {
+                    tbl_SyncDBStatus dbstatus = new tbl_SyncDBStatus()
+                    {
+                        FPNumber = fpnumber,
+                        DateTimeSyncDB = DateTime.Now,
+                        Status = status,
+                        CompName = System.Environment.MachineName
+
+                    };
+                }
+            }
+        }
+
+
 
         #region LoadDataFor_tbl_Cashier
 

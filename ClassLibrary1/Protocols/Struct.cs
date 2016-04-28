@@ -9,6 +9,11 @@ namespace CentralLib.Protocols
 {
     public class Status
     {
+        public ReturnedStruct returnedStruct { get; private set; }
+        public strByteReserv infoReserv { get; private set; }
+        public strByteStatus infoStatus { get; private set; }
+        public strByteResult infoResult { get; private set; }
+
         public bool usingCollection { get; private set; } //используются сборы
         public bool modeOfRegistrationsOfPayments { get; private set; } //режим регистраций оплат в чеке(запрещены все регистрации  кроме оплат и комментариев)
         public bool cashDrawerIsOpened { get; private set; } //закрыт денежный ящик
@@ -46,6 +51,7 @@ namespace CentralLib.Protocols
                 , string LineOfTaxNumber
                 , string VersionOfSWOfECR
             , int ConsecutiveNumber // номер операции что бы не обновлять часто
+            , ReturnedStruct returnedStruct
             )
         {
             this.ConsecutiveNumber = ConsecutiveNumber;
@@ -89,7 +95,10 @@ namespace CentralLib.Protocols
 
             this.VersionOfSWOfECR = VersionOfSWOfECR;
 
-
+            this.returnedStruct = returnedStruct;
+            this.infoReserv = new strByteReserv(returnedStruct.ByteReserv);
+            this.infoStatus = new strByteStatus(returnedStruct.ByteStatus);
+            this.infoResult = new strByteResult(returnedStruct.ByteResult);
         }
 
 
@@ -366,6 +375,11 @@ namespace CentralLib.Protocols
     /// </summary>
     public class PapStat
     {
+        public ReturnedStruct returnedStruct { get; private set; }
+        public strByteReserv infoReserv { get; private set; }
+        public strByteStatus infoStatus { get; private set; }
+        public strByteResult infoResult { get; private set; }
+
         /// <summary>
         /// ошибка связи с принтером
         /// </summary>
@@ -387,7 +401,7 @@ namespace CentralLib.Protocols
         /// </summary>
         public bool? ControlPaperIsFinished; //контрольная лента закончилась
 
-        public PapStat(byte inputByte)
+        public PapStat(byte inputByte, ReturnedStruct returnedStruct)
         {
             BitArray _bit = new BitArray(new byte[] { inputByte });
             ErrorOfConnectionWithPrinter = _bit[0];
@@ -395,6 +409,11 @@ namespace CentralLib.Protocols
             ReceiptPaperIsAlmostEnded = _bit[3];
             ControlPaperIsFinished = _bit[5];
             ReceiptPaperIsFinished = _bit[6];
+
+            this.returnedStruct = returnedStruct;
+            this.infoReserv = new strByteReserv(returnedStruct.ByteReserv);
+            this.infoStatus = new strByteStatus(returnedStruct.ByteStatus);
+            this.infoResult = new strByteResult(returnedStruct.ByteResult);
         }
 
         public override string ToString()

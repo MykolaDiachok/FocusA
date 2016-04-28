@@ -456,7 +456,7 @@ namespace CentralLib.Connections
                     networkStream.ReadTimeout = 5000;
                 Begin:
                     logger.Trace("begin:{0}", taskTry);
-                    if (taskTry > 3)
+                    if (taskTry > 5)
                     {
                         string sf = String.Format("Выполнено {0} циклов, ответа нет {1}:{2}", taskTry, this.IpAdress, port.ToString());
                         setError(sf);
@@ -492,9 +492,9 @@ namespace CentralLib.Connections
 
                     byte[] result = new byte[] { };
 
-                    for (int x = 1; x < 3; x++)
+                    for (int x = 1; x < 10; x++)
                     {
-                        logger.Trace("FOR {0} in 5", x);
+                        logger.Trace("FOR {0} in 10", x);
                         int coef = x;
                         if ((inputbyte[2] == 13) || (inputbyte[2] == 9)) // Если отчеты то ждем 2 раза дольше
                         {

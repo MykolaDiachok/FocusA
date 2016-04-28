@@ -399,6 +399,7 @@ namespace CentralLib.Protocols
                     , strTax
                     , ver
                     , connFP.ConsecutiveNumber
+                    , forReturn
                     );
             }
             else
@@ -1047,7 +1048,11 @@ namespace CentralLib.Protocols
             byte[] answer = tanswer.bytesReturn;
             if (answer.Length != 8)
             {
-                throw new ApplicationException(String.Format("не правильный ответ сервера на строку чека, нужно 8 байт - ответ {0}!!!!", answer.Length));
+                throw new ApplicationException(String.Format("не правильный ответ сервера на строку чека, нужно 8 байт - ответ {0}!!!! Status:{1}. Result:{2}. Reserv:{3}"
+                    , answer.Length
+                    , tanswer.Status.ToString()
+                    , tanswer.Result.ToString()
+                    , tanswer.Reserv.ToString()));
             }
             else if ((tanswer.statusOperation) && (answer.Length == 8))
             {

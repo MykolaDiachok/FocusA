@@ -196,8 +196,8 @@ namespace CentralLib.Protocols
         public override ReturnedStruct getStatus()
         {
             byte[] forsending = new byte[] { 0 };
-            ReturnedStruct r = ExchangeWithFP(forsending);
-            byte[] answer = r.bytesReturn;
+            ReturnedStruct forReturn = ExchangeWithFP(forsending);
+            byte[] answer = forReturn.bytesReturn;
 
             if ((statusOperation) && (answer.Length > 21))
             {
@@ -297,13 +297,14 @@ namespace CentralLib.Protocols
                     , strTax
                     , ver
                     , connFP.ConsecutiveNumber
+                    , forReturn
                     );
             }
             else
             {
                 this.statusOperation = false;
             }
-            return r;
+            return forReturn;
         }
 
         private PapStat tpapStat;
@@ -324,11 +325,11 @@ namespace CentralLib.Protocols
         private void getGetPapStat()
         {
             byte[] forsending = new byte[] { 48 };
-            byte[] answer = ExchangeWithFP(forsending).bytesReturn;
-
+            var structreturn = ExchangeWithFP(forsending);
+            byte[] answer = structreturn.bytesReturn;
             if ((connFP.statusOperation) && (answer.Length == 1))
             {
-                this.tpapStat = new PapStat(answer[0]);
+                this.tpapStat = new PapStat(answer[0], structreturn);
             }
             else
             {

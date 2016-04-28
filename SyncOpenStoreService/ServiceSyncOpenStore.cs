@@ -1,4 +1,5 @@
 ﻿using NDesk.Options;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -6,35 +7,27 @@ using System.Data;
 using System.Data.Linq;
 using System.Diagnostics;
 using System.Linq;
+using System.Management;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Management;
-using NLog;
 
-namespace PrintFPService
+namespace SyncOpenStoreService
 {
-    public partial class ServicePrintFP : ServiceBase
+    public partial class ServiceSyncOpenStore : ServiceBase
     {
-        //private System.Diagnostics.EventLog eventLog1;
+
         private Logger logger = LogManager.GetCurrentClassLogger();
         private SmartApps apps;
 
         private string[] args;
 
-        public ServicePrintFP(params string[] args)
+        public ServiceSyncOpenStore(params string[] args)
         {
             InitializeComponent();
-            this.ServiceName = "ServicePrintFP";
-            //eventLog1 = new System.Diagnostics.EventLog();
-            //if (!System.Diagnostics.EventLog.SourceExists("ServiceFP"))
-            //{
-            //    System.Diagnostics.EventLog.CreateEventSource(
-            //        "ServiceFP", "ServiceFPLog");
-            //}
-            //eventLog1.Source = "ServiceFP";
-            //eventLog1.Log = "ServiceFPLog";
+            this.ServiceName = "SyncOpenStoreService";
+
             this.args = args;
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
         }
@@ -58,12 +51,17 @@ namespace PrintFPService
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             string compname = "";
             List<int> fpnumbers = new List<int>();
+            List<string> databases = new List<string>();
+            List<string> dataservers = new List<string>();
+
             if (args.Length != 0)
             {
                 logger.Trace("Next step 1");
                 var os = new OptionSet()
                         .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumbers.Add(int.Parse(a)))
-                       .Add("cn|compname=", "set computer name", cn => compname = cn);
+                       .Add("cn|compname=", "set computer name", cn => compname = cn)
+                       .Add("ds|dataserver=", "set data server name", ds => dataservers.Add(ds))
+                       .Add("db|database=", "set database name", db => databases.Add(db));
                 try
                 {
                     var p = os.Parse(args);
@@ -74,7 +72,7 @@ namespace PrintFPService
                     throw e;
                 }
 
-                apps = new SmartApps(compname, fpnumbers);
+                apps = new SmartApps(compname, fpnumbers, dataservers, databases);
                 apps.OnStart();
                 //Thread.Sleep(300);
             }
@@ -88,7 +86,9 @@ namespace PrintFPService
 
                 var os = new OptionSet()
                         .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumbers.Add(int.Parse(a)))
-                       .Add("cn|compname=", "set computer name", cn => compname = cn);
+                       .Add("cn|compname=", "set computer name", cn => compname = cn)
+                       .Add("ds|dataserver=", "set data server name", ds => dataservers.Add(ds))
+                       .Add("db|database=", "set database name", db => databases.Add(db));
                 try
                 {
                     var p = os.Parse(this.args);
@@ -99,7 +99,7 @@ namespace PrintFPService
                     throw e;
                 }
 
-                apps = new SmartApps(compname, fpnumbers);
+                apps = new SmartApps(compname, fpnumbers, dataservers, databases);
                 apps.OnStart();
                 //Thread.Sleep(300);
 
@@ -112,7 +112,11 @@ namespace PrintFPService
             if (apps != null)
                 apps.OnStop();
         }
+
     }
+
+
+
 
 
     public class SmartApps
@@ -120,27 +124,24 @@ namespace PrintFPService
         private Dictionary<int, StartApp> listApp;
         private string compname;
         private List<int> fpnumbers = new List<int>();
+        private List<string> dataservers = new List<string>();
+        private List<string> databases = new List<string>();
         private System.Timers.Timer _timer;
         private System.Object lockThis = new System.Object();
         private static Logger logger = LogManager.GetCurrentClassLogger();
 
 
-        public SmartApps(string compname)
-        {
-            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
-            listApp = new Dictionary<int, StartApp>();
-            this.compname = compname;
-            logger.Trace("SmartApps=>{0}", compname);
 
-        }
 
-        public SmartApps(string compname, List<int> fpnumbers)
+        public SmartApps(string compname, List<int> fpnumbers, List<string> dataservers, List<string> databases)
         {
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             listApp = new Dictionary<int, StartApp>();
             this.compname = compname;
             this.fpnumbers = fpnumbers;
-            logger.Trace("SmartApps=>{0} =>{1}", compname, fpnumbers.ToString());
+            this.dataservers = dataservers;
+            this.databases = databases;
+            logger.Trace("SmartApps=>{0} =>{1};{2};{3}", compname, fpnumbers.ToString(), dataservers.ToString(), databases.ToString());
 
         }
 
@@ -178,35 +179,28 @@ namespace PrintFPService
 
         private void InitApps()
         {
-            logger.Trace(this.GetType().FullName+"."+ System.Reflection.MethodBase.GetCurrentMethod().Name);
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             using (DataClassesFocusADataContext _focusA = new DataClassesFocusADataContext())
             {
                 Table<tbl_ComInit> tblComInit = _focusA.GetTable<tbl_ComInit>();
                 List<tbl_ComInit> comInit;
-                var tfp = fpnumbers.ToArray();
-                if (fpnumbers.Count > 0)
-                {
-                    comInit = (from table in tblComInit
-                               where table.Init == true
-                               && table.WorkOff != true
-                               && table.auto == true
-                               && table.CompName.ToLower() == compname.ToLower()
-                               select table).Where(x => fpnumbers.Contains(x.FPNumber.GetValueOrDefault())).ToList();
-                }
-                else
-                {
-                    comInit = (from table in tblComInit
-                               where table.Init == true
-                               && table.WorkOff != true
-                               && table.auto == true
-                               && table.CompName.ToLower() == compname.ToLower()
-                               select table).ToList();
-                }
+
+
+                comInit = (from table in tblComInit
+                           where table.Init == true
+                           && table.WorkOff != true
+                           && table.auto == true
+                           && table.CompName.ToLower() == compname.ToLower()
+                           && ((fpnumbers.Count > 0 && fpnumbers.Contains((int)table.FPNumber)) || fpnumbers.Count == 0)
+                           && ((dataservers.Count > 0 && dataservers.Contains(table.DataServer)) || dataservers.Count == 0)
+                            && ((databases.Count > 0 && databases.Contains(table.DataBaseName)) || databases.Count == 0)
+                           select table).ToList();
+
                 foreach (var rowinit in comInit)
                 {
 
                     if (!listApp.ContainsKey(rowinit.FPNumber.GetValueOrDefault()))//(listApp[rowinit.FPNumber.GetValueOrDefault()]==null)
-                    {                       
+                    {
                         StartApp newApp = new StartApp(Guid.NewGuid(), new string[] { string.Format("--fp={0}", rowinit.FPNumber) });
                         listApp.Add(rowinit.FPNumber.GetValueOrDefault(), newApp);
                         newApp.OnStart();
@@ -245,21 +239,16 @@ namespace PrintFPService
                 foreach (var app in listApp)
                 {
                     tbl_ComInit comInit;
-                    if (fpnumbers.Count != 0)
-                    {
-                        comInit = (from table in tblComInit
-                                   where table.Init == true
-                                   && table.CompName.ToLower() == compname.ToLower()
-                                   && table.FPNumber == app.Key
-                                   select table).Where(x => fpnumbers.Contains(x.FPNumber.GetValueOrDefault())).FirstOrDefault();
-                    }
-                    else {
-                        comInit = (from table in tblComInit
-                                   where table.Init == true
-                                   && table.CompName.ToLower() == compname.ToLower()
-                                   && table.FPNumber == app.Key
-                                   select table).FirstOrDefault();
-                    }
+
+                    comInit = (from table in tblComInit
+                               where table.Init == true
+                               && table.CompName.ToLower() == compname.ToLower()
+                               && table.FPNumber == app.Key
+                               && ((fpnumbers.Count > 0 && fpnumbers.Contains((int)table.FPNumber)) || fpnumbers.Count == 0)
+                               && ((dataservers.Count > 0 && dataservers.Contains(table.DataServer)) || dataservers.Count == 0)
+                               && ((databases.Count > 0 && databases.Contains(table.DataBaseName)) || databases.Count == 0)
+                               select table).FirstOrDefault();
+
                     if (comInit == null)
                     {
                         forDelete.Add(app.Key);
@@ -306,13 +295,13 @@ namespace PrintFPService
                         logger.Warn(comInit.ErrorInfo);
                         _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                     }
-                    var loginfo = (from log in _focusA.GetTable<tbl_SyncFP>()
+                    var loginfo = (from log in _focusA.GetTable<tbl_SyncDBStatus>()
                                    where log.FPNumber == app.Key
                                    select log).FirstOrDefault();
                     if (loginfo != null)
                     {
-                        loginfo.DateTimeSync = DateTime.Now;
-                        loginfo.Status = "остановка сервиса, завершение процесса";
+                        loginfo.DateTimeSyncDB = DateTime.Now;
+                        loginfo.Status = "offline";
                     }
                     //if (app.Value.Active())
                     app.Value.OnStop();
@@ -330,7 +319,7 @@ namespace PrintFPService
         private void KillProc()
         {
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
-            Process[] processlist = Process.GetProcesses().Where(x => x.ProcessName.ToLower() == "PrintFp".ToLower()).ToArray();
+            Process[] processlist = Process.GetProcesses().Where(x => x.ProcessName.ToLower() == "SyncOpenStore".ToLower()).ToArray();
 
             foreach (Process theprocess in processlist)
             {
@@ -353,7 +342,7 @@ namespace PrintFPService
         private void setTimer()
         {
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
-            
+
             _timer = new System.Timers.Timer();
             _timer.Interval = (30000);
             //_timer.Interval = (100);
@@ -386,10 +375,10 @@ namespace PrintFPService
                     var rowinit = (from tinit in focusA.GetTable<tbl_ComInit>()
                                    where tinit.FPNumber == app.Key
                                    select tinit).FirstOrDefault();
-                    if (rowinit!=null)
+                    if (rowinit != null)
                     {
                         rowinit.auto = false;
-                    }                   
+                    }
                 }
                 focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
             }
@@ -477,18 +466,18 @@ namespace PrintFPService
             {
                 //UseShellExecute = false, // change value to false
                 UseShellExecute = false,
-                FileName = AppDomain.CurrentDomain.BaseDirectory + @"PrintFp.exe",
+                FileName = AppDomain.CurrentDomain.BaseDirectory + @"SyncOpenStore.exe",
                 Arguments = string.Format("-a --fp={0} --g={1}", fpnumber, appGuid),
                 //RedirectStandardError = true,
                 //RedirectStandardInput = true,
                 //RedirectStandardOutput = true,
                 //CreateNoWindow = true,
-                CreateNoWindow=false,
+                CreateNoWindow = false,
                 ErrorDialog = false,
                 WindowStyle = ProcessWindowStyle.Hidden,
                 //ErrorDialog = false,
                 //WindowStyle = ProcessWindowStyle.Hidden,
-                 Verb = "runas"
+                Verb = "runas"
             };
             process = new Process();
             process.StartInfo = processInfo;
@@ -527,7 +516,7 @@ namespace PrintFPService
             {
                 init(compname, fpnumber);
                 active = process.Start();
-                
+
                 logger.Error(ex);
                 //eventLog1.WriteEntry(ex.Message, EventLogEntryType.Error);
             }
@@ -559,13 +548,13 @@ namespace PrintFPService
                     tinit.Error = true;
                     tinit.ErrorInfo = "Завершение процесса";
                 }
-                var loginfo = (from log in _focusA.GetTable<tbl_SyncFP>()
+                var loginfo = (from log in _focusA.GetTable<tbl_SyncDBStatus>()
                                where log.FPNumber == FPNumber
                                select log).FirstOrDefault();
                 if (loginfo != null)
                 {
-                    loginfo.DateTimeSync = DateTime.Now;
-                    loginfo.Status = "Завершение процесса";
+                    loginfo.DateTimeSyncDB = DateTime.Now;
+                    loginfo.Status = "kill";
                 }
                 _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
             }
@@ -597,4 +586,6 @@ namespace PrintFPService
             return commandLine.ToString();
         }
     }
+
+
 }

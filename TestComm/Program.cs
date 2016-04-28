@@ -34,23 +34,77 @@ namespace TestComm
         static void Main(string[] args)
         {
 
-            //4008 = 10013268
-            //4003 = 10010014
-            //4004 = 10011738
+            //20160426163835
+            //4001 = 10011172 
+            //4002 = 10011171 
+            //4003 = 10014223 
 
             //byteHelper = new ByteHelper();
             //ConsecutiveNumber = 1;
             int fpnumber = 0;
-            BaseProtocol pr = SingletonProtocol.Instance("192.168.255.132", 4016, fpnumber).GetProtocols();
+            string server = "192.168.254.185";
+            int port = 4011;
+
+            //string setDataServer = SearchServer("10011171");
+            BaseProtocol pr = SingletonProtocol.Instance(server, port, fpnumber).GetProtocols();
 
             //var dayReport = pr.dayReport;
             using (DataClassesFocusADataContext focus = new DataClassesFocusADataContext())
             {
-                var t = pr.FPDayClrReport();
-                var tmp = pr.GetMemmory(0x3000, 16, 1);
+
+
+
+                //var t = pr.FPDayClrReport();
+                //var tmp = pr.GetMemmory(0x3000, 16, 1);
+
+
                 var st = pr.status;
-                var dayReport = pr.dayReport;
-               
+
+                Table<tbl_ComInit> tbl_ComInit = focus.GetTable<tbl_ComInit>();
+                tbl_ComInit init = new tbl_ComInit()
+                {
+
+                    CompName = "FOCUS-A",
+                    Port = 0,
+                    Init = true,
+                    Error = true,
+                    WorkOff = false,
+                    auto = true,
+                    FPNumber = int.Parse(st.serialNumber),
+                    RealNumber = st.serialNumber,
+                    SerialNumber = st.serialNumber,
+                    DateTimeBegin = 20160427193730,
+                    DateTimeStop = long.Parse(DateTime.Now.ToString("yyyyMMdd") + "235959"),
+                    DeltaTime = -600,
+                    DataServer = SearchServer(st.serialNumber.Trim()),
+                    DataBaseName = "CashDesk_OS",
+                    MinSumm = 0,
+                    MaxSumm = Int32.MaxValue,
+                    TypeEvery = false,
+                    PrintEvery = 10,
+                    MoxaIP = server,
+                    MoxaPort = port,
+                    Version = st.VersionOfSWOfECR
+                };
+                focus.tbl_ComInits.InsertOnSubmit(init);
+                focus.SubmitChanges();
+
+                tbl_Operation op = new tbl_Operation
+                {
+                    Operation=39,
+                    DateTime = 20160427193730,
+                    CurentDateTime = DateTime.Now,
+                    DateTimeCreate = DateTime.Now,
+                    FPNumber = int.Parse(st.serialNumber),
+                    InWork = false,
+                    Closed =false,
+                    Error=false,
+                    Disable=false
+                };
+                focus.tbl_Operations.InsertOnSubmit(op);
+                focus.SubmitChanges();
+                //var dayReport = pr.dayReport;
+
                 //pr.FPResetOrder();
                 //var A = pr.FPSaleEx(1, 0, false, 2000, 0, false, "tA", 450);
 
@@ -99,6 +153,103 @@ namespace TestComm
             }
 
 
+        }
+
+
+        static string SearchServer(string fpnumber)
+        {
+            Dictionary<string, string> listAP = new Dictionary<string, string>()
+            {
+                 { "10014212","Shar_kassa2" },
+                { "10013660","FON_KASSA3" },
+                {"10013649","FON_KASSA1"},
+                {"10013940","FON_KASSA2"},
+                {"10013294","CELEN_KASSA1"},
+                {"10013295","CELEN_KASSA2"},
+                {"10011427","CELEN_KASSA3"},
+                {"10011463","SALT_KASSA4"},
+                {"10011820","SALT_KASSA5"},
+                {"10011459","SALT_KASSA2"},
+{"10011460","SALT_KASSA1"},
+{"10013947","SALT_KASSA6"},
+{"10011455","SALT_KASSA3"},
+{"10011454","SALT_KASSA7"},
+{"10013496","TR_KASSA2"},
+{"10013495","TR_KASSA4"},
+{"10013505","TR_KASSA3"},
+{"10013628","TR_KASSA1"},
+{"10014360","LENIN_KASSA4"},
+{"10014138","LENIN_KASSA3"},
+{"10014143","LENIN_KASSA2"},
+{"10014141","LENIN_KASSA1"},
+{"10011236","STUDION_KASSA5"},
+{"10011356","STUDION_KASSA2"},
+{"10010360","STUDION_KASSA3"},
+{"10011352","STUDION_KASSA1"},
+{"10011348","STUDION_KASSA4"},
+{"10011190","23AVG_KASSA1"},
+{"10011185","23AVG_KASSA4"},
+{"10012838","23AVG_KASSA2"},
+{"10011160","23AVG_KASSA3"},
+{"10011191","AHSAROVA_KASSA2"},
+{"10011018","AHSAROVA_KASSA3"},
+{"10010161","AHSAROVA_KASSA1"},
+{"10014142","BL23_KASSA3"},
+{"10013948","BL23_KASSA2"},
+{"10013677","BL23_KASSA1"},
+{"10014203","MIRA_KASSA1"},
+{"10014355","MIRA_KASSA4"},
+{"10014356","MIRA_KASSA3"},
+{"10014205","MIRA_KASSA2"},
+{"10014362","BL18_KASSA4"},
+{"10014363","BL18_KASSA3"},
+{"10014357","BL18_KASSA2"},
+{"10014361","BL18_KASSA1"},
+{ "10013972","UBI_KASSA1"},
+{"10013984","UBI_KASSA6"},
+{"10011281","UBI_KASSA7"},
+{"10013958","UBI_KASSA2"},
+{"10013951","UBI_KASSA4"},
+{"10013640","UBI_KASSA3"},
+{"10014244","COLD_KASSA1"},
+{"10014144","COLD_KASSA4"},
+{"10013941","COLD_KASSA5"},
+{"10014254","COLD_KASSA2"},
+{"10014235","COLD_KASSA3"},
+{"10013943","COLD_KASSA6"},
+{"10014230","STUD_KASSA2"},
+{"10014190","STUD_KASSA1"},
+{"10014186","STUD_KASSA3"},
+{"10010542","TOBOL_KASSA3"},
+{"10013960","TOBOL_KASSA1"},
+{"10013643","TOBOL_KASSA2"},
+{"10013978","SHIRON_KASSA5"},
+{"10013852","SHIRON_KASSA2"},
+{"10013848","SHIRON_KASSA1"},
+{"10013937","SHIRON_KASSA3"},
+{"10013970","SHIRON_KASSA4"},
+{"10014358","MINI_KASSA2"},
+{"10014359","MINI_KASSA1"},
+{"10014193","SHAR_KASSA1"},
+{"10014191","SHAR_KASSA6"},
+{"10014204","SHAR_KASSA4"},
+{"10014209","SHAR_KASSA5"},
+{"10014196","SHAR_KASSA3"},
+{"10014197","POBEDY_KASSA2"},
+{"10014211","POBEDY_KASSA3"},
+{"10014198","POBEDY_KASSA1"},
+{"10013966","TIT_KASSA1"},
+{"10013957","TIT_KASSA2"},
+{"10011826","KOSIOR_KASSA6"},
+{"10014192","KOSIOR_KASSA3"},
+{"10014199","KOSIOR_KASSA4"},
+{"10011172","KOSIOR_KASSA2"},
+{"10011171","KOSIOR_KASSA1"},
+
+
+            };
+
+            return listAP[fpnumber];
         }
     }
 

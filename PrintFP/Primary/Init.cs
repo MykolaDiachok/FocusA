@@ -253,14 +253,24 @@ namespace PrintFP.Primary
                                 UInt32 rest = pr.GetMoneyInBox();
 
                                 var tblCashIO = getCashIO(_focusA, operation);
+
                                 var outMoney = Math.Min(rest, (uint)tblCashIO.Money);
                                 setStatusFP(string.Format("out money. in base:{0}; in box{1}, make:{2}", tblCashIO.Money, rest, outMoney));
-                                pr.FPCashOut(outMoney);
-                                tblCashIO.MoneyFP = (int)outMoney;
-                                //tblCashIO.ByteReserv = pr.ByteReserv;
-                                tblCashIO.ByteResult = pr.ByteResult;
-                                tblCashIO.ByteStatus = pr.ByteStatus;
-                                tblCashIO.Error = !pr.statusOperation;
+                                if (outMoney > 0)
+                                {
+                                    pr.FPCashOut(outMoney);
+                                    tblCashIO.MoneyFP = (int)outMoney;
+                                    //tblCashIO.ByteReserv = pr.ByteReserv;
+                                    tblCashIO.ByteResult = pr.ByteResult;
+                                    tblCashIO.ByteStatus = pr.ByteStatus;
+                                    tblCashIO.Error = !pr.statusOperation;
+                                }
+                                else
+                                {
+                                    tblCashIO.MoneyFP = 0;
+                                    tblCashIO.Error = false;
+                                    
+                                }
                             }
                             else if (operation.Operation == 12) //check
                             {
@@ -331,17 +341,23 @@ namespace PrintFP.Primary
                                         Art art = new Art(int.Parse(rowCheck.StrCode), rowCheck.GoodName, packcode, (ushort)rowCheck.NalogGroup, rowCheck.FPNumber, _focusA);
                                         setStatusFP(string.Format("Check #{0} row#{1} name:{2} pr:{3}", headCheck.id, rowCheck.SORT, art.ARTNAME, rowCheck.Price));
                                         rowSum = pr.FPSaleEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, art.NalogGroup, false, art.ARTNAME, art.PackCode);
+                                        int suminfp = rowSum.CostOfGoodsOrService;
+                                        int suminfpdisc = 0;
+                                        int SumAtReceipt = rowSum.SumAtReceipt;
                                         DiscountInfo rowDiscount;
                                         if (rowCheck.discount.GetValueOrDefault() != 0)
+                                        {
                                             rowDiscount = pr.Discount(CentralLib.Helper.FPDiscount.AbsoluteDiscountMarkupAtLastGoods, (short)rowCheck.discount, rowCheck.DiscountComment);
-
+                                            suminfpdisc = rowDiscount.ValueOfDiscountMarkup;
+                                            SumAtReceipt = rowDiscount.SumOfReceipt;
+                                        }
                                         rowCheck.ByteReserv = pr.ByteReserv;
                                         rowCheck.ByteResult = pr.ByteResult;
                                         rowCheck.ByteStatus = pr.ByteStatus;
                                         rowCheck.Error = !pr.statusOperation;
-                                        rowCheck.FPSum = rowSum.CostOfGoodsOrService;
-                                        headCheck.FPSumm = rowSum.SumAtReceipt;
-                                        var razn = (rowCheck.RowSum.GetValueOrDefault() + rowCheck.discount.GetValueOrDefault()) - rowSum.CostOfGoodsOrService;
+                                        rowCheck.FPSum = suminfp - suminfpdisc;
+                                        headCheck.FPSumm = SumAtReceipt;
+                                        var razn = (rowCheck.RowSum.GetValueOrDefault()) - (suminfp - suminfpdisc);
                                         if (Math.Abs(razn) > 5)
                                         {
                                             string errorinfo = String.Format("Отличается сумма по строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
@@ -453,7 +469,7 @@ namespace PrintFP.Primary
                                         foreach (var com in strs)
                                         {
                                             if (com.Trim().Length > 0)
-                                                pr.FPCommentLine(com);
+                                                pr.FPCommentLine(com, true);
                                         }
                                     }
                                     UInt16 index = 0;
@@ -481,17 +497,23 @@ namespace PrintFP.Primary
                                         Art art = new Art(int.Parse(rowCheck.StrCode), rowCheck.GoodName, packcode, (ushort)rowCheck.NalogGroup, rowCheck.FPNumber, _focusA);
                                         setStatusFP(string.Format("Check #{0} row#{1} name:{2} pr:{3}", headCheck.id, rowCheck.SORT, art.ARTNAME, rowCheck.Price));
                                         rowSum = pr.FPPayMoneyEx((ushort)rowCheck.Amount, (byte)rowCheck.Amount_Status, false, rowCheck.Price, art.NalogGroup, false, art.ARTNAME, art.PackCode);
+                                        int suminfp = rowSum.CostOfGoodsOrService;
+                                        int suminfpdisc = 0;
+                                        int SumAtReceipt = rowSum.SumAtReceipt;
                                         DiscountInfo rowDiscount;
                                         if (rowCheck.discount.GetValueOrDefault() != 0)
+                                        {
                                             rowDiscount = pr.Discount(CentralLib.Helper.FPDiscount.AbsoluteDiscountMarkupAtLastGoods, (short)rowCheck.discount, rowCheck.DiscountComment);
-
+                                            suminfpdisc = rowDiscount.ValueOfDiscountMarkup;
+                                            SumAtReceipt = rowDiscount.SumOfReceipt;
+                                        }
                                         rowCheck.ByteReserv = pr.ByteReserv;
                                         rowCheck.ByteResult = pr.ByteResult;
                                         rowCheck.ByteStatus = pr.ByteStatus;
                                         rowCheck.Error = !pr.statusOperation;
-                                        rowCheck.FPSum = rowSum.CostOfGoodsOrService;
-                                        headCheck.FPSumm = rowSum.SumAtReceipt;
-                                        int razn = (rowCheck.RowSum.GetValueOrDefault() + rowCheck.discount.GetValueOrDefault()) - rowSum.CostOfGoodsOrService;
+                                        rowCheck.FPSum = suminfp - suminfpdisc;
+                                        headCheck.FPSumm = SumAtReceipt;
+                                        var razn = (rowCheck.RowSum.GetValueOrDefault()) - (suminfp - suminfpdisc);
                                         if (Math.Abs(razn) > 5)
                                         {
                                             string errorinfo = String.Format("Отличается сумма по строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
@@ -520,7 +542,7 @@ namespace PrintFP.Primary
                                         foreach (var com in strs)
                                         {
                                             if (com.Trim().Length > 0)
-                                                pr.FPCommentLine(com);
+                                                pr.FPCommentLine(com, true);
                                         }
                                     }
 
@@ -571,12 +593,46 @@ namespace PrintFP.Primary
                             {
                                 //pr.
                                 pr.setFPCplCutter(true);
-                                pr.FPNullCheck();
+                                pr.FPDayReport();
                                 UInt32 rest = pr.GetMoneyInBox();
                                 if (rest != 0)
                                 {
                                     logger.Trace("out money:{0}", rest);
-                                    pr.FPCashOut(rest);
+                                    var result = pr.FPCashOut(rest);
+                                    DateTime tDateTime = DateTime.Now;
+
+                                    tbl_CashIO cashio = new tbl_CashIO()
+                                    {
+                                        FPNumber = FPnumber,
+                                        DATETIME = getintDateTime(tDateTime),
+                                        Operation = 15,
+                                        Type = true,
+                                        Money = (int)rest,
+                                        MoneyFP = (int)rest,
+                                        Old_Money = (int)rest,
+                                        Error = !pr.statusOperation,
+                                        ByteResult = pr.ByteResult,
+                                        ByteStatus = pr.ByteStatus
+
+                                    };
+                                    _focusA.tbl_CashIOs.InsertOnSubmit(cashio);
+                                    _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+
+                                    tbl_Operation newop = new tbl_Operation()
+                                    {
+                                        Operation = 15,
+                                        CurentDateTime = DateTime.Now,
+                                        DateTime = getintDateTime(tDateTime),
+                                        Closed = true,
+                                        InWork = true,
+                                        FPNumber = FPnumber,
+                                        Error = !pr.statusOperation,
+                                        ByteReserv = pr.ByteReserv,
+                                        ByteResult = pr.ByteResult,
+                                        ByteStatus = pr.ByteStatus
+                                    };
+                                    _focusA.tbl_Operations.InsertOnSubmit(newop);
+                                    _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                                 }
                                 setInfo(pr, operation.Operation, operation.DateTime);
                                 Thread.Sleep(30 * 1000);
@@ -840,6 +896,15 @@ namespace PrintFP.Primary
             initRow.ErrorInfo = "";
             initRow.ErrorCode = 0;
             var status = pr.status;
+
+            initRow.ByteStatus = status.returnedStruct.ByteStatus;
+            initRow.ByteStatusInfo = status.returnedStruct.Status.ToString();
+            initRow.ByteReserv = status.returnedStruct.ByteReserv;
+            initRow.ByteReservInfo = status.returnedStruct.Reserv.ToString();
+            initRow.ByteResult = status.returnedStruct.ByteResult;
+            initRow.ByteResultInfo = status.returnedStruct.Result.ToString();
+            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+
             pr.setFPCplCutter(false);
             //var dayReport = pr.dayReport;
             PapStat papstatus = pr.papStat;
@@ -887,6 +952,7 @@ namespace PrintFP.Primary
             initRow.SerialNumber = status.serialNumber;
             initRow.Version = status.VersionOfSWOfECR;
             initRow.CurrentSystemDateTime = DateTime.Now;
+
             if (pr.structResult.ByteResult == 2)
             {
                 pr.showBottomString(pr.structResult.ToString());
@@ -904,6 +970,7 @@ namespace PrintFP.Primary
             {
                 pr.FPResetOrder();
             }
+
             if (sStatus.ByteStatus != 0)
             {
                 pr.showTopString(pr.structResult.ToString());
@@ -914,32 +981,35 @@ namespace PrintFP.Primary
             }
             try
             {
-                string curdate = pr.fpDateTime.ToString("dd.MM.yy");
-                initRow.CurrentDate = curdate;
-                initRow.CurrentTime = pr.fpDateTime.ToString("HH:mm:ss");
+                DateTime infpDT = pr.fpDateTime;                
+                initRow.CurrentDate = infpDT.ToString("dd.MM.yy");
+                initRow.CurrentTime = infpDT.ToString("HH:mm:ss");
 
-                TimeSpan ts = pr.fpDateTime - DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault());
+                TimeSpan ts = infpDT - DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault());
                 //TODO подумать как если день назад, а не только вперед....
-                if ((!status.sessionIsOpened) && (DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault()).ToString("dd.MM.yy") != curdate))
+                if ((!status.sessionIsOpened) && (DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault()).ToString("dd.MM.yy") != initRow.CurrentDate))
                 {
                     pr.fpDateTime = DateTime.Parse(String.Format("{0} 23:59:59", initRow.CurrentDate));
                     Thread.Sleep(2000);
+                    infpDT = pr.fpDateTime;
+                    initRow.CurrentDate = infpDT.ToString("dd.MM.yy");
+                    initRow.CurrentTime = infpDT.ToString("HH:mm:ss");
                 }
                 if ((!status.sessionIsOpened) && (ts.Minutes != 0))
                 {
                     pr.fpDateTime = DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault());
+                    infpDT = pr.fpDateTime;
+                    initRow.CurrentDate = infpDT.ToString("dd.MM.yy");
+                    initRow.CurrentTime = infpDT.ToString("HH:mm:ss");
                 }
-                initRow.CurrentDate = pr.fpDateTime.ToString("dd.MM.yy");
-                initRow.CurrentTime = pr.fpDateTime.ToString("HH:mm:ss");
-                if (papstatus != null)
-                    initRow.PapStat = papstatus.ToString();
+                
             }
             catch (Exception ex)
             {
-
-                logger.Error(ex, "Error get date from fiscal printer");
+                string errorinfo = string.Format("Error:{0};St={1};Rt={2};Rv={3}", ex.Message + " #" + "Error get date from fiscal printer", pr.structStatus.ToString(), pr.structResult.ToString(), pr.structReserv.ToString());
+                logger.Error(ex, errorinfo);
                 initRow.Error = true;
-                initRow.ErrorInfo = string.Format("Error:{0};St={1};Rt={2};Rv={3}", ex.Message + " #" + "Error get date from fiscal printer", pr.structStatus.ToString(), pr.structResult.ToString(), pr.structReserv.ToString());
+                initRow.ErrorInfo = errorinfo;
                 initRow.CurrentSystemDateTime = DateTime.Now;
                 initRow.ByteStatus = pr.ByteStatus;
                 initRow.ByteStatusInfo = pr.structStatus.ToString();
@@ -951,7 +1021,7 @@ namespace PrintFP.Primary
                 _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
             }
 
-            if ((((operation.Operation != 3) || (operation.Operation != 40) || (operation.Operation != 35))) && (!status.sessionIsOpened))
+            if ((((operation.Operation != 3) || (operation.Operation != 40) || (operation.Operation != 15) || (operation.Operation != 35))) && (!status.sessionIsOpened))
             {
                 pr.FPNullCheck();
             }

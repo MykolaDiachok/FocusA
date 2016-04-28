@@ -24,11 +24,18 @@ namespace SyncOpenStore.DBHelper
         /// </summary>
         public override void SyncData()
         {
+            //settbl_SyncDBStatus(iFPNumber, "loading...");
+            settbl_SyncDBStatus(iFPNumber, "loading tbl_Cashier...");
             LoadDataFor_tbl_Cashier();
+            settbl_SyncDBStatus(iFPNumber, "loading tbl_SALES...");
             LoadDataFor_tbl_SALES();
+            settbl_SyncDBStatus(iFPNumber, "loading tbl_Payment...");
             LoadDataFor_tbl_Payment();
+            settbl_SyncDBStatus(iFPNumber, "loading tbl_CashIO...");
             LoadDataFor_tbl_CashIO();
+            settbl_SyncDBStatus(iFPNumber, "loading tbl_Operations...");
             LoadDataFor_tbl_Operations();
+            settbl_SyncDBStatus(iFPNumber, "waiting...");
         }
 
         public override void LoadDataFor_tbl_Cashier()
@@ -39,21 +46,41 @@ namespace SyncOpenStore.DBHelper
             using (DataClassesOSDataContext OS = new DataClassesOSDataContext(OSConnectionString))
             {
 
-                var getCachier = (from tsess in OS.GetTable<SESS>()
+                var tempv = (from tsales in OS.GetTable<SALE>()
+                             where tsales.PACKNAME == sRealNumber && tsales.DELFLAG == 0 && tsales.SALESTAG == 1
+                             && (Convert.ToInt64(tsales.SALESTIME) >= this.DateTimeBegin)
+                             && (Convert.ToInt64(tsales.SALESTIME) <= this.DateTimeStop)
+                             group tsales by new { tsales.SAREAID }
+                             into grp
+                             select new { grp.Key.SAREAID});
+
+                var sess = (from tsess in OS.GetTable<SESS>()
+                            join tsales in tempv
+                            on new {tsess.SAREAID} equals new {tsales.SAREAID}
+                            where tsess.DELFLAG == 0
+                            && (Convert.ToInt64(tsess.SESSSTART) >= this.DateTimeBegin)
+                            && (Convert.ToInt64(tsess.SESSSTART) <= this.DateTimeStop)
+                            select tsess);
+                
+                var getCachier = (from tsess in sess
                                   join tcashier in OS.GetTable<CASHIER>()
                                   on tsess.CASHIERID equals tcashier.CASHIERID
-                                  join tsales in OS.GetTable<SALE>()
-                                  on new { SAREAID = tsess.SAREAID, SESSID = tsess.SESSID } equals new { SAREAID = tsales.SAREAID, SESSID = tsales.SESSID }
-                                  where tsess.DELFLAG == 0
-                                     //&& long.Parse(tsales.PACKNAME)!=null
-                                     && (Convert.ToInt64(tsess.SESSSTART) >= this.DateTimeBegin)
-                                     && (Convert.ToInt64(tsess.SESSSTART) <= this.DateTimeStop)
-                                     && tsales.PACKNAME == sRealNumber && tsales.DELFLAG == 0 && tsales.SALESTAG == 1
-                                  && (Convert.ToInt64(tsales.SALESTIME) >= this.DateTimeBegin)
-                                  && (Convert.ToInt64(tsales.SALESTIME) <= this.DateTimeStop)
-                                  select new { SAREAID = tsess.SAREAID, CASHIERID = tcashier.CASHIERID, DATETIME = tsess.SESSSTART, FPNumber = FPNumber, Num_Cashier = 0, Name_Cashier = tcashier.CASHIERNAME.Substring(0, 15), Pass_Cashier = 0, TakeProgName = false })
-                                    .GroupBy(x => x.DATETIME, (key, g) => g.OrderBy(e => e.Name_Cashier).First())
-                                    .OrderBy(o => o.DATETIME);
+                                  select new { SAREAID = tsess.SAREAID, CASHIERID = tcashier.CASHIERID, DATETIME = tsess.SESSSTART, FPNumber = FPNumber, Num_Cashier = 0, Name_Cashier = tcashier.CASHIERNAME.Substring(0, 15), Pass_Cashier = 0, TakeProgName = false });
+                //var getCachier = (from tsess in OS.GetTable<SESS>()
+                //                  join tcashier in OS.GetTable<CASHIER>()
+                //                  on tsess.CASHIERID equals tcashier.CASHIERID
+                //                  join tsales in OS.GetTable<SALE>()
+                //                  on new { SAREAID = tsess.SAREAID, SESSID = tsess.SESSID } equals new { SAREAID = tsales.SAREAID, SESSID = tsales.SESSID }
+                //                  where tsess.DELFLAG == 0
+                //                     //&& long.Parse(tsales.PACKNAME)!=null
+                //                     && (Convert.ToInt64(tsess.SESSSTART) >= this.DateTimeBegin)
+                //                     && (Convert.ToInt64(tsess.SESSSTART) <= this.DateTimeStop)
+                //                     && tsales.PACKNAME == sRealNumber && tsales.DELFLAG == 0 && tsales.SALESTAG == 1
+                //                  //&& (Convert.ToInt64(tsales.SALESTIME) >= this.DateTimeBegin)
+                //                  //&& (Convert.ToInt64(tsales.SALESTIME) <= this.DateTimeStop)
+                //                  select new { SAREAID = tsess.SAREAID, CASHIERID = tcashier.CASHIERID, DATETIME = tsess.SESSSTART, FPNumber = FPNumber, Num_Cashier = 0, Name_Cashier = tcashier.CASHIERNAME.Substring(0, 15), Pass_Cashier = 0, TakeProgName = false })
+                //                    .GroupBy(x => x.DATETIME, (key, g) => g.OrderBy(e => e.Name_Cashier).First())
+                //                    .OrderBy(o => o.DATETIME);
 
                 //var s2 = (from t in tbl_Cashier select new { t.DATETIME, t.FPNumber, t.Num_Cashier, t.Name_Cashier, t.Pass_Cashier, t.TakeProgName });
 
@@ -176,6 +203,13 @@ namespace SyncOpenStore.DBHelper
                                where cominit.FPNumber == iFPNumber
                                select cominit).FirstOrDefault();
 
+
+                List<string> loadedheaders = (from headers in focusA.GetTable<tbl_Payment>()
+                                     where headers.DATETIME>=this.DateTimeBegin 
+                                     && headers.DATETIME<=this.DateTimeStop
+                                     && headers.FPNumber==iFPNumber
+                                     select new { Value =(headers.DATETIME.ToString()) }).Select(x=>x.Value).ToList();
+
                 var prepareHeaders = (from headers in OS.GetTable<SALE>()
                                       where headers.PACKNAME == sRealNumber
                                       && headers.DELFLAG == 0
@@ -183,6 +217,7 @@ namespace SyncOpenStore.DBHelper
                                       && headers.SALESCANC == 0
                                       && Convert.ToInt32(headers.FRECNUM) != 0
                                       && Convert.ToInt64(headers.SALESTIME) >= DateTimeBegin && Convert.ToInt64(headers.SALESTIME) <= DateTimeStop
+                                      && !loadedheaders.Contains(headers.SALESTIME)
                                       select headers).OrderBy(x => x.SALESTIME);
 
 
@@ -402,8 +437,9 @@ namespace SyncOpenStore.DBHelper
                                            where discoffer.OFFERID == sale.OFFERIDFORDISC
                                            select discoffer).FirstOrDefault();
                         int discount = 0;
-                        if (sale.OFFERIDFORDISC != null)
+                        if( (sale.OFFERIDFORDISC != null)||((header.SALESDISC==0)&&(sale.discount!=0)))
                             discount = (int)sale.discount.GetValueOrDefault();
+
                         tbl_SALE newsale = new tbl_SALE()
                         {
                             NumPayment = newpay.id,
@@ -440,18 +476,19 @@ namespace SyncOpenStore.DBHelper
                     }
                     int sumdisc = Math.Max(newpay.Discount.GetValueOrDefault(), newpay.PayBonus.GetValueOrDefault());
                     int razn = Math.Abs(newpay.CheckSum.GetValueOrDefault() + sumdisc - rowsum);
-                    if (razn == 0)
+                    //if (razn == 0)
+                    if (razn < 5)
                     {
                         focusA.tbl_SALEs.InsertAllOnSubmit(salesList);
                         changeTable.Change_tbl_SALES();
                     }
-                    else if (razn < 5)
-                    {
-                        logger.Error("Разница {3} в чеке меньше 5 копеек загружаем, корректируем CheckSum. DATETIME:{0} FRECNUM:{1}, SRECNUM:{2}", newpay.DATETIME, newpay.FRECNUM, newpay.SRECNUM, razn);
-                        newpay.CheckSum = (Convert.ToInt32(newpay.CheckSum) - (((int)newpay.CheckSum - Convert.ToInt32(newpay.Discount)) - (int)rowsum));
-                        focusA.tbl_SALEs.InsertAllOnSubmit(salesList);
+                    //else if (razn < 5)
+                    //{
+                    //    logger.Error("Разница {3} в чеке меньше 5 копеек загружаем, корректируем CheckSum. DATETIME:{0} FRECNUM:{1}, SRECNUM:{2}", newpay.DATETIME, newpay.FRECNUM, newpay.SRECNUM, razn);
+                    //    //newpay.CheckSum = (Convert.ToInt32(newpay.CheckSum) - (((int)newpay.CheckSum - Convert.ToInt32(newpay.Discount)) - (int)rowsum));
+                    //    //focusA.tbl_SALEs.InsertAllOnSubmit(salesList);
 
-                    }
+                    //}
                     else
                     {
                         logger.Fatal("Разница {3} в чеке больше 5 копеек не загружаем. DATETIME:{0} FRECNUM:{1}, SRECNUM:{2}", newpay.DATETIME, newpay.FRECNUM, newpay.SRECNUM, razn);
@@ -583,7 +620,7 @@ namespace SyncOpenStore.DBHelper
                 }
 
                 var getZrep = (from rowsz in OS.GetTable<ZREP>()
-                              where rowsz.ZREPFPSN == sFPNumber
+                              where rowsz.ZREPFPSN == sRealNumber
                               && Convert.ToInt64(rowsz.ZREPTIME) >= this.DateTimeBegin && Convert.ToInt64(rowsz.ZREPTIME)<=this.DateTimeStop
                               select rowsz);
                 foreach(var row in getZrep)

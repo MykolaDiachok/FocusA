@@ -220,6 +220,7 @@ namespace CentralLib.Helper
         public byte[] CodingBytes(string InputString, UInt16 MaxVal, out byte length)
         {
             Encoding cp866 = Encoding.GetEncoding(866);
+            InputString = InputString.Replace("№", "N");
             string tempStr = InputString.Substring(0, Math.Min(MaxVal, InputString.Length));
             length = (byte)tempStr.Length;
             return cp866.GetBytes(tempStr);
@@ -234,6 +235,7 @@ namespace CentralLib.Helper
         public byte[] CodingStringToBytesWithLength(string InputString, UInt16 MaxVal)
         {
             Encoding cp866 = Encoding.GetEncoding(866);
+            InputString = InputString.Replace("№", "N");
             string tempStr = InputString.Substring(0, Math.Min(MaxVal, InputString.Length));
             //length = (byte)tempStr.Length;
 

@@ -12,11 +12,11 @@
     <ProjectView>ShowAllFiles</ProjectView>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <StartArguments>-r --fp=10014193</StartArguments>
+    <StartArguments>-r --fp=10011191</StartArguments>
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
     <EnableSQLServerDebugging>false</EnableSQLServerDebugging>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <StartArguments>-r -fp="10014193"</StartArguments>
+    <StartArguments>-a -fp=a10011185</StartArguments>
   </PropertyGroup>
 </Project>
