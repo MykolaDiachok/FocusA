@@ -31,7 +31,7 @@ namespace PrintFP.Primary
                     FPNumber = FPnumber,
                     InWork = true,
                     Closed = true,
-                    Error= false,
+                    Error= true,
                     ByteStatus = returnpr.ByteStatus,
                     ByteResult = returnpr.ByteResult,
                     ByteReserv = returnpr.ByteReserv,

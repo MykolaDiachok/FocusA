@@ -207,9 +207,10 @@ namespace PrintFP.Primary
 
                         using (var pr = searchProtocol)
                         {
+                            DayReport currentDayReport = null;
                             try
                             {
-                                setInfo(pr, operation.Operation, operation.DateTime);
+                                currentDayReport = setInfo(pr, operation.Operation, operation.DateTime);
                             }
                             catch (Exception ex)
                             {
@@ -217,7 +218,7 @@ namespace PrintFP.Primary
                             }
                             setStatusFP(searchProtocol.GetType().ToString() + operation.Operation.ToString());
 
-                            if (!InitialSet(_focusA, initRow, pr, operation))
+                            if (!InitialSet(_focusA, initRow, pr, operation, currentDayReport))
                             {
                                 setStatusFP(string.Format("Problem init!!!! Operation={0},id={1}", operation.Operation, operation.id));
                                 return;
@@ -228,10 +229,10 @@ namespace PrintFP.Primary
 
                                 var tblCashier = getCashier(_focusA, operation);
                                 logger.Trace(string.Format("set cachier:{0}", tblCashier.Name_Cashier));
-                                pr.FPRegisterCashier(0, tblCashier.Name_Cashier);
-                                tblCashier.ByteReserv = pr.ByteReserv;
-                                tblCashier.ByteResult = pr.ByteResult;
-                                tblCashier.ByteStatus = pr.ByteStatus;
+                                var retStruct = pr.FPRegisterCashier(0, tblCashier.Name_Cashier);
+                                tblCashier.ByteReserv = retStruct.ByteReserv;
+                                tblCashier.ByteResult = retStruct.ByteResult;
+                                tblCashier.ByteStatus = retStruct.ByteStatus;
 
                                 //tblCashier.Error = pr.er
                             }
@@ -734,7 +735,7 @@ namespace PrintFP.Primary
         }
 
 
-        private void setInfo(BaseProtocol pr, int Operation, long datetime)
+        private DayReport setInfo(BaseProtocol pr, int Operation, long datetime)
         {
             var dayReport = pr.dayReport;
             using (DataClasses1DataContext focus = new DataClasses1DataContext())
@@ -798,6 +799,7 @@ namespace PrintFP.Primary
                 rowinfo.DateTimeUpdate = DateTime.Now;
 
                 focus.SubmitChanges(ConflictMode.ContinueOnConflict);
+                return dayReport;
             }
         }
 
@@ -889,14 +891,15 @@ namespace PrintFP.Primary
         /// <param name="initRow">строка инициализации</param>
         /// <param name="pr">протокол обмена</param>
         /// /// <param name="operation">текущая операция</param>
-        private bool InitialSet(DataClasses1DataContext _focusA, tbl_ComInit initRow, BaseProtocol pr, tbl_Operation operation)
+        private bool InitialSet(DataClasses1DataContext _focusA, tbl_ComInit initRow, BaseProtocol pr, tbl_Operation operation, DayReport inDayReport)
         {
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
+
             initRow.Error = false;
             initRow.ErrorInfo = "";
             initRow.ErrorCode = 0;
             var status = pr.status;
-
+            initRow.SmenaOpened = status.sessionIsOpened;
             initRow.ByteStatus = status.returnedStruct.ByteStatus;
             initRow.ByteStatusInfo = status.returnedStruct.Status.ToString();
             initRow.ByteReserv = status.returnedStruct.ByteReserv;
@@ -948,7 +951,7 @@ namespace PrintFP.Primary
             //                            initRow.FPNumber = Int32.Parse(status.fiscalNumber);
             //#endif
             initRow.FiscalNumber = status.fiscalNumber;
-            initRow.SmenaOpened = status.sessionIsOpened;
+            //initRow.SmenaOpened = status.sessionIsOpened;
             initRow.SerialNumber = status.serialNumber;
             initRow.Version = status.VersionOfSWOfECR;
             initRow.CurrentSystemDateTime = DateTime.Now;
@@ -1025,6 +1028,18 @@ namespace PrintFP.Primary
             {
                 pr.FPNullCheck();
             }
+            if ((operation.Operation==12)&&(inDayReport!=null)&&(inDayReport.DailySumOfServiceCashEntering==0)&&(inDayReport.DailySumOfServiceCashGivingOut==0))//&&(inDayReport.CountersOfPayoutByTaxGroupsAndTypesOfPayments.Cash==0))
+            {
+                logger.Trace("FPCashIn=30000");
+                pr.FPCashIn(30000);
+            }
+            status = pr.status;
+
+            initRow.FiscalNumber = status.fiscalNumber;
+            initRow.SmenaOpened = status.sessionIsOpened;
+            initRow.SerialNumber = status.serialNumber;
+            initRow.Version = status.VersionOfSWOfECR;
+            
             initRow.CurrentSystemDateTime = DateTime.Now;
             initRow.ByteStatus = pr.ByteStatus;
             initRow.ByteStatusInfo = pr.structStatus.ToString();

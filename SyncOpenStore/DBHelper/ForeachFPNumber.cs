@@ -92,8 +92,9 @@ namespace SyncOpenStore.DBHelper
                     }
                     catch (Exception ex)
                     {
-                        logger.Error(ex);                        
-                        Thread.Sleep(Properties.Settings.Default.TimerIntervalSec * 1000);
+                        logger.Error(ex);
+                        //Thread.Sleep(Properties.Settings.Default.TimerIntervalSec * 1000);
+                        Thread.Sleep(30 * 1000);
                     }
                 }
                 //logger.Trace("lockthis out {0}", DateTime.Now);

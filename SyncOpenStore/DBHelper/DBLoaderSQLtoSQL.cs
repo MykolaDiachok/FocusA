@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Linq;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 
@@ -314,7 +315,7 @@ namespace SyncOpenStore.DBHelper
                     };
 
 
-                    if ((header.BONUSSUM != 0) && (header.SALESBONUS != 0))
+                    if ( (header.BONUSSUM.GetValueOrDefault() != 0) && (header.SALESBONUS.GetValueOrDefault() != 0))
                     {
                         string tOPENTIME = acc.OPENTIME.ToString();
                         DateTime bondatetime = new DateTime(int.Parse(tOPENTIME.Substring(0, 4)),
@@ -326,10 +327,10 @@ namespace SyncOpenStore.DBHelper
                         newpay.Comment = string.Format("Бонусiв на {0: dd.MM.yy HH:mm}\n{1:F}\nСплачено бонусами:\n{3:F}\nНараховано бонусiв:\n{2:F}"
                            , bondatetime
                            , (double)acc.ACCOUNTSUM / 100
-                           , (double)header.BONUSSUM / 100                           
-                           , header.SALESBONUS / 100);
+                           , (double)header.BONUSSUM.GetValueOrDefault() / 100                           
+                           , header.SALESBONUS.GetValueOrDefault() / 100);
                     }
-                    else if (header.BONUSSUM != 0)
+                    else if ((header.BONUSSUM.GetValueOrDefault() != 0))
                     {
                         string tOPENTIME = acc.OPENTIME.ToString();
                         DateTime bondatetime = new DateTime(int.Parse(tOPENTIME.Substring(0, 4)),
@@ -341,7 +342,7 @@ namespace SyncOpenStore.DBHelper
                         newpay.Comment = string.Format("Бонусiв на {0: dd.MM.yy HH:mm}\n{1:F}\nНараховано бонусiв:\n{2:F}"
                             , bondatetime
                             , (double)acc.ACCOUNTSUM / 100
-                            , (double)header.BONUSSUM / 100                            );
+                            , (double)header.BONUSSUM.GetValueOrDefault() / 100                            );
                     }
                     if (header.CLNTID.GetValueOrDefault()>0)
                     {
@@ -366,7 +367,15 @@ namespace SyncOpenStore.DBHelper
                     }
 
                     focusA.tbl_Payments.InsertOnSubmit(newpay);
-                    focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                    try
+                    {
+                        focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.Fatal(ex);
+                        return;
+                    }
                     changeTable.Change_tbl_Payment();
                     var prepareSales = (from sales in OS.GetTable<SALE>()
                                         join art in OS.GetTable<ART>()
@@ -494,7 +503,25 @@ namespace SyncOpenStore.DBHelper
                         logger.Fatal("Разница {3} в чеке больше 5 копеек не загружаем. DATETIME:{0} FRECNUM:{1}, SRECNUM:{2}", newpay.DATETIME, newpay.FRECNUM, newpay.SRECNUM, razn);
                         focusA.tbl_Payments.DeleteOnSubmit(newpay);
                     }
-                    focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                    bool moreToSubmit = true;
+                    do
+                    {
+                        try
+                        {
+                            focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                            moreToSubmit = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.Fatal(ex);
+                            Thread.Sleep(50);
+                            foreach (ObjectChangeConflict occ in focusA.ChangeConflicts)
+                            {
+                                occ.Resolve(RefreshMode.OverwriteCurrentValues);
+                            }
+                        }
+                    }
+                    while (moreToSubmit);
                 }
 
             }
@@ -532,9 +559,23 @@ namespace SyncOpenStore.DBHelper
                 if (PrintEvery == 0) PrintEvery = 1;
                 bool TypeEvery = (bool)initRow.TypeEvery;
                 //bool disable = false;
-
+                List<tbl_Payment> listForDelete = new List<tbl_Payment>();
                 foreach (var rowPayment in preparePayment)
                 {
+                    var countSales = (from listsales in focusA.GetTable<tbl_SALE>()
+                                       where listsales.DATETIME == rowPayment.DATETIME
+                                       && listsales.FPNumber == rowPayment.FPNumber
+                                       && rowPayment.id == listsales.NumPayment
+                                       select listsales).Count();
+                    if (countSales==0)
+                    {
+                        listForDelete.Add(rowPayment);
+                        continue;
+                    }
+
+
+
+
                     index++;
                     if (TypeEvery)
                     {
@@ -559,7 +600,28 @@ namespace SyncOpenStore.DBHelper
                     if (rowPayment.Payment0 != 0)
                         rowPayment.Disable = false;
                 }
-                focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                if (listForDelete.Count > 0)
+                    focusA.tbl_Payments.DeleteAllOnSubmit(listForDelete);
+
+                bool moreToSubmit = true;
+                do
+                {
+                    try
+                    {
+                        focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                        moreToSubmit = false;
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.Fatal(ex);
+                        Thread.Sleep(50);
+                        foreach (ObjectChangeConflict occ in focusA.ChangeConflicts)
+                        {
+                            occ.Resolve(RefreshMode.OverwriteCurrentValues);
+                        }
+                    }
+                }
+                while (moreToSubmit);
                 changeTable.Change_tbl_Payment();
 
             }

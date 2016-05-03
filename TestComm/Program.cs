@@ -43,7 +43,7 @@ namespace TestComm
             //ConsecutiveNumber = 1;
             int fpnumber = 0;
             string server = "192.168.254.185";
-            int port = 4011;
+            int port = 4002;
 
             //string setDataServer = SearchServer("10011171");
             BaseProtocol pr = SingletonProtocol.Instance(server, port, fpnumber).GetProtocols();
@@ -59,50 +59,51 @@ namespace TestComm
 
 
                 var st = pr.status;
+                var bbb = pr.dayReport;
+                var ddd = pr.FPDayReport();
+                //Table<tbl_ComInit> tbl_ComInit = focus.GetTable<tbl_ComInit>();
+                //tbl_ComInit init = new tbl_ComInit()
+                //{
 
-                Table<tbl_ComInit> tbl_ComInit = focus.GetTable<tbl_ComInit>();
-                tbl_ComInit init = new tbl_ComInit()
-                {
+                //    CompName = "FOCUS-A",
+                //    Port = 0,
+                //    Init = true,
+                //    Error = true,
+                //    WorkOff = false,
+                //    auto = true,
+                //    FPNumber = int.Parse(st.serialNumber),
+                //    RealNumber = st.serialNumber,
+                //    SerialNumber = st.serialNumber,
+                //    DateTimeBegin = long.Parse(DateTime.Now.ToString("yyyyMMdd") + "000000"),
+                //    DateTimeStop = long.Parse(DateTime.Now.ToString("yyyyMMdd") + "235959"),
+                //    DeltaTime = -600,
+                //    DataServer = "chameleonserver",//SearchServer(st.serialNumber.Trim()),
+                //    DataBaseName = "chameleonserver",
+                //    MinSumm = 0,
+                //    MaxSumm = Int32.MaxValue,
+                //    TypeEvery = false,
+                //    PrintEvery = 10,
+                //    MoxaIP = server,
+                //    MoxaPort = port,
+                //    Version = st.VersionOfSWOfECR
+                //};
+                //focus.tbl_ComInits.InsertOnSubmit(init);
+                //focus.SubmitChanges();
 
-                    CompName = "FOCUS-A",
-                    Port = 0,
-                    Init = true,
-                    Error = true,
-                    WorkOff = false,
-                    auto = true,
-                    FPNumber = int.Parse(st.serialNumber),
-                    RealNumber = st.serialNumber,
-                    SerialNumber = st.serialNumber,
-                    DateTimeBegin = 20160427193730,
-                    DateTimeStop = long.Parse(DateTime.Now.ToString("yyyyMMdd") + "235959"),
-                    DeltaTime = -600,
-                    DataServer = SearchServer(st.serialNumber.Trim()),
-                    DataBaseName = "CashDesk_OS",
-                    MinSumm = 0,
-                    MaxSumm = Int32.MaxValue,
-                    TypeEvery = false,
-                    PrintEvery = 10,
-                    MoxaIP = server,
-                    MoxaPort = port,
-                    Version = st.VersionOfSWOfECR
-                };
-                focus.tbl_ComInits.InsertOnSubmit(init);
-                focus.SubmitChanges();
-
-                tbl_Operation op = new tbl_Operation
-                {
-                    Operation=39,
-                    DateTime = 20160427193730,
-                    CurentDateTime = DateTime.Now,
-                    DateTimeCreate = DateTime.Now,
-                    FPNumber = int.Parse(st.serialNumber),
-                    InWork = false,
-                    Closed =false,
-                    Error=false,
-                    Disable=false
-                };
-                focus.tbl_Operations.InsertOnSubmit(op);
-                focus.SubmitChanges();
+                //tbl_Operation op = new tbl_Operation
+                //{
+                //    Operation=39,
+                //    DateTime = 20160427193730,
+                //    CurentDateTime = DateTime.Now,
+                //    DateTimeCreate = DateTime.Now,
+                //    FPNumber = int.Parse(st.serialNumber),
+                //    InWork = false,
+                //    Closed =false,
+                //    Error=false,
+                //    Disable=false
+                //};
+                //focus.tbl_Operations.InsertOnSubmit(op);
+                //focus.SubmitChanges();
                 //var dayReport = pr.dayReport;
 
                 //pr.FPResetOrder();
