@@ -53,16 +53,16 @@ namespace SyncOpenStore.DBHelper
                              && (Convert.ToInt64(tsales.SALESTIME) <= this.DateTimeStop)
                              group tsales by new { tsales.SAREAID }
                              into grp
-                             select new { grp.Key.SAREAID});
+                             select new { grp.Key.SAREAID });
 
                 var sess = (from tsess in OS.GetTable<SESS>()
                             join tsales in tempv
-                            on new {tsess.SAREAID} equals new {tsales.SAREAID}
+                            on new { tsess.SAREAID } equals new { tsales.SAREAID }
                             where tsess.DELFLAG == 0
                             && (Convert.ToInt64(tsess.SESSSTART) >= this.DateTimeBegin)
                             && (Convert.ToInt64(tsess.SESSSTART) <= this.DateTimeStop)
                             select tsess);
-                
+
                 var getCachier = (from tsess in sess
                                   join tcashier in OS.GetTable<CASHIER>()
                                   on tsess.CASHIERID equals tcashier.CASHIERID
@@ -140,7 +140,7 @@ namespace SyncOpenStore.DBHelper
                             CurentDateTime = DateTime.Now,
                             DateTimeCreate = DateTime.Now
                         };
-                        focusA.tbl_Operations.InsertOnSubmit(newoperation);                        
+                        focusA.tbl_Operations.InsertOnSubmit(newoperation);
                         focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                         changeTable.Change_tbl_Operations();
                     }
@@ -160,7 +160,7 @@ namespace SyncOpenStore.DBHelper
                         TakeProgName = rowCachier.TakeProgName,
                         Operation = 3
                     };
-                    focusA.tbl_Cashiers.InsertOnSubmit(addNewCashier);                    
+                    focusA.tbl_Cashiers.InsertOnSubmit(addNewCashier);
                     focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                     changeTable.Change_tbl_Cashiers();
 
@@ -206,10 +206,10 @@ namespace SyncOpenStore.DBHelper
 
 
                 List<string> loadedheaders = (from headers in focusA.GetTable<tbl_Payment>()
-                                     where headers.DATETIME>=this.DateTimeBegin 
-                                     && headers.DATETIME<=this.DateTimeStop
-                                     && headers.FPNumber==iFPNumber
-                                     select new { Value =(headers.DATETIME.ToString()) }).Select(x=>x.Value).ToList();
+                                              where headers.DATETIME >= this.DateTimeBegin
+                                              && headers.DATETIME <= this.DateTimeStop
+                                              && headers.FPNumber == iFPNumber
+                                              select new { Value = (headers.DATETIME.ToString()) }).Select(x => x.Value).ToList();
 
                 var prepareHeaders = (from headers in OS.GetTable<SALE>()
                                       where headers.PACKNAME == sRealNumber
@@ -308,14 +308,14 @@ namespace SyncOpenStore.DBHelper
                         ForWork = false,
                         Disable = false,
                         Comment = "",
-                        CommentUp = "Касса N "+header.SYSTEMID.ToString(),
+                        CommentUp = "Касса N " + header.SYSTEMID.ToString(),
                         Discount = Convert.ToInt32(header.SALESDISC),
                         DiscountComment = ""
 
                     };
 
 
-                    if ( (header.BONUSSUM.GetValueOrDefault() != 0) && (header.SALESBONUS.GetValueOrDefault() != 0))
+                    if ((header.BONUSSUM.GetValueOrDefault() != 0) && (header.SALESBONUS.GetValueOrDefault() != 0))
                     {
                         string tOPENTIME = acc.OPENTIME.ToString();
                         DateTime bondatetime = new DateTime(int.Parse(tOPENTIME.Substring(0, 4)),
@@ -327,7 +327,7 @@ namespace SyncOpenStore.DBHelper
                         newpay.Comment = string.Format("Бонусiв на {0: dd.MM.yy HH:mm}\n{1:F}\nСплачено бонусами:\n{3:F}\nНараховано бонусiв:\n{2:F}"
                            , bondatetime
                            , (double)acc.ACCOUNTSUM / 100
-                           , (double)header.BONUSSUM.GetValueOrDefault() / 100                           
+                           , (double)header.BONUSSUM.GetValueOrDefault() / 100
                            , header.SALESBONUS.GetValueOrDefault() / 100);
                     }
                     else if ((header.BONUSSUM.GetValueOrDefault() != 0))
@@ -342,13 +342,13 @@ namespace SyncOpenStore.DBHelper
                         newpay.Comment = string.Format("Бонусiв на {0: dd.MM.yy HH:mm}\n{1:F}\nНараховано бонусiв:\n{2:F}"
                             , bondatetime
                             , (double)acc.ACCOUNTSUM / 100
-                            , (double)header.BONUSSUM.GetValueOrDefault() / 100                            );
+                            , (double)header.BONUSSUM.GetValueOrDefault() / 100);
                     }
-                    if (header.CLNTID.GetValueOrDefault()>0)
+                    if (header.CLNTID.GetValueOrDefault() > 0)
                     {
                         if (newpay.Comment.Length > 0)
                             newpay.Comment += "\n";
-                        if (DCARD.CLNTNAME.Length>0)
+                        if (DCARD.CLNTNAME.Length > 0)
                             newpay.Comment += string.Format("Покупатель:\n{0}", DCARD.CLNTNAME);
                         else
                             newpay.Comment += string.Format("Покупатель:\n{0}", DCARD.DCARDNAME);
@@ -446,7 +446,7 @@ namespace SyncOpenStore.DBHelper
                                            where discoffer.OFFERID == sale.OFFERIDFORDISC
                                            select discoffer).FirstOrDefault();
                         int discount = 0;
-                        if( (sale.OFFERIDFORDISC != null)||((header.SALESDISC==0)&&(sale.discount!=0)))
+                        if ((sale.OFFERIDFORDISC != null) || ((header.SALESDISC == 0) && (sale.discount != 0)))
                             discount = (int)sale.discount.GetValueOrDefault();
 
                         tbl_SALE newsale = new tbl_SALE()
@@ -479,7 +479,10 @@ namespace SyncOpenStore.DBHelper
                             discount = discount,
                             DiscountComment = disccomment == null ? "" : disccomment.OFFERNAME
                         };
-                        rowsum += ((int)newsale.RowSum);
+                        rowsum += ((int)newsale.RowSum);                        
+                        newsale.GoodName = newsale.GoodName.Substring(0, Math.Min(75, newsale.GoodName.Length));
+                        newsale.DiscountComment = newsale.DiscountComment.Substring(0, Math.Min(25, newsale.DiscountComment.Length));
+
                         salesList.Add(newsale);
 
                     }
@@ -503,25 +506,9 @@ namespace SyncOpenStore.DBHelper
                         logger.Fatal("Разница {3} в чеке больше 5 копеек не загружаем. DATETIME:{0} FRECNUM:{1}, SRECNUM:{2}", newpay.DATETIME, newpay.FRECNUM, newpay.SRECNUM, razn);
                         focusA.tbl_Payments.DeleteOnSubmit(newpay);
                     }
-                    bool moreToSubmit = true;
-                    do
-                    {
-                        try
-                        {
-                            focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
-                            moreToSubmit = false;
-                        }
-                        catch (Exception ex)
-                        {
-                            logger.Fatal(ex);
-                            Thread.Sleep(50);
-                            foreach (ObjectChangeConflict occ in focusA.ChangeConflicts)
-                            {
-                                occ.Resolve(RefreshMode.OverwriteCurrentValues);
-                            }
-                        }
-                    }
-                    while (moreToSubmit);
+
+                    focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+
                 }
 
             }
@@ -563,11 +550,11 @@ namespace SyncOpenStore.DBHelper
                 foreach (var rowPayment in preparePayment)
                 {
                     var countSales = (from listsales in focusA.GetTable<tbl_SALE>()
-                                       where listsales.DATETIME == rowPayment.DATETIME
-                                       && listsales.FPNumber == rowPayment.FPNumber
-                                       && rowPayment.id == listsales.NumPayment
-                                       select listsales).Count();
-                    if (countSales==0)
+                                      where listsales.DATETIME == rowPayment.DATETIME
+                                      && listsales.FPNumber == rowPayment.FPNumber
+                                      && rowPayment.id == listsales.NumPayment
+                                      select listsales).Count();
+                    if (countSales == 0)
                     {
                         listForDelete.Add(rowPayment);
                         continue;
@@ -603,25 +590,25 @@ namespace SyncOpenStore.DBHelper
                 if (listForDelete.Count > 0)
                     focusA.tbl_Payments.DeleteAllOnSubmit(listForDelete);
 
-                bool moreToSubmit = true;
-                do
-                {
-                    try
-                    {
+                //bool moreToSubmit = true;
+                //do
+                //{
+                //    try
+                //    {
                         focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
-                        moreToSubmit = false;
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.Fatal(ex);
-                        Thread.Sleep(50);
-                        foreach (ObjectChangeConflict occ in focusA.ChangeConflicts)
-                        {
-                            occ.Resolve(RefreshMode.OverwriteCurrentValues);
-                        }
-                    }
-                }
-                while (moreToSubmit);
+                //        moreToSubmit = false;
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        logger.Fatal(ex);
+                //        Thread.Sleep(50);
+                //        foreach (ObjectChangeConflict occ in focusA.ChangeConflicts)
+                //        {
+                //            occ.Resolve(RefreshMode.OverwriteCurrentValues);
+                //        }
+                //    }
+                //}
+                //while (moreToSubmit);
                 changeTable.Change_tbl_Payment();
 
             }
@@ -633,7 +620,7 @@ namespace SyncOpenStore.DBHelper
             LoadDataFor_tbl_OperationsBefore();
 
             using (DataClassesFocusADataContext focusA = new DataClassesFocusADataContext())
-                using (DataClassesOSDataContext OS = new DataClassesOSDataContext(OSConnectionString))
+            using (DataClassesOSDataContext OS = new DataClassesOSDataContext(OSConnectionString))
             {
                 var allOp = (from tOperation in focusA.GetTable<tbl_Operation>()
                              where tOperation.FPNumber == iFPNumber
@@ -682,15 +669,15 @@ namespace SyncOpenStore.DBHelper
                 }
 
                 var getZrep = (from rowsz in OS.GetTable<ZREP>()
-                              where rowsz.ZREPFPSN == sRealNumber
-                              && Convert.ToInt64(rowsz.ZREPTIME) >= this.DateTimeBegin && Convert.ToInt64(rowsz.ZREPTIME)<=this.DateTimeStop
-                              select rowsz);
-                foreach(var row in getZrep)
+                               where rowsz.ZREPFPSN == sRealNumber
+                               && Convert.ToInt64(rowsz.ZREPTIME) >= this.DateTimeBegin && Convert.ToInt64(rowsz.ZREPTIME) <= this.DateTimeStop
+                               select rowsz);
+                foreach (var row in getZrep)
                 {
                     Int64 tDateTime = Convert.ToInt64(row.ZREPTIME);
                     var loaded = (from rowsop in focusA.GetTable<tbl_Operation>()
-                                  where rowsop.Operation==39
-                                  && rowsop.FPNumber==iFPNumber
+                                  where rowsop.Operation == 39
+                                  && rowsop.FPNumber == iFPNumber
                                   && rowsop.DateTime == tDateTime
                                   select rowsop).FirstOrDefault();
                     if (loaded != null)
@@ -713,7 +700,7 @@ namespace SyncOpenStore.DBHelper
                 }
             }
 
-            
+
 
             LoadDataFor_tbl_OperationsAfter();
         }
