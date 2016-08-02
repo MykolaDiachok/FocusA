@@ -14,7 +14,7 @@ namespace CentralLib.Connections
 
 
 
-    class ConnectNetFactory : IConnectFactory, IDisposable
+    public class ConnectNetFactory : IConnectFactory, IDisposable
     {
         private NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         private int FPNumber;
@@ -90,11 +90,11 @@ namespace CentralLib.Connections
                 // Use the default Ttl value which is 128,
                 // but change the fragmentation behavior.
                 options.DontFragment = true;
+                
 
-                // Create a buffer of 32 bytes of data to be transmitted.
-                string data = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-                byte[] buffer = Encoding.ASCII.GetBytes(data);
-                int timeout = 120;
+                // Create a buffer of 64 bytes of data to be transmitted.                
+                byte[] buffer = Encoding.ASCII.GetBytes(new String('a', 64));
+                int timeout = 2000;
                 PingReply reply = pingSender.Send(_HostURI, timeout, buffer, options);
                 if (reply.Status == IPStatus.Success)
                 {
@@ -428,7 +428,8 @@ namespace CentralLib.Connections
             //logger.Trace("Begin>>>>");
             if (!PingHost(IpAdress, port))
             {
-                setError("Ошибка подключения к серверу ip:" + this.IpAdress + ":" + port.ToString());
+                string serror = $"Ошибка подключения к серверу не удачный ping ip:{this.IpAdress}:{port}";
+                setError(serror);
                 rRs.ByteStatus = ByteStatus;
                 rRs.ByteResult = ByteResult;
                 rRs.ByteReserv = ByteReserv;
@@ -436,7 +437,7 @@ namespace CentralLib.Connections
                 rRs.errorInfo += errorInfo + "; ";
                 //return rRs;
                 //Thread.Sleep(3000);// Если что то ждем 3 секунды
-                throw new ApplicationException("Ошибка подключения к серверу");
+                throw new ApplicationException(serror);
             }
             byte[] unsigned = null;
             using (TcpClient client = new TcpClient())
@@ -444,19 +445,19 @@ namespace CentralLib.Connections
                 logger.Trace(">>>>Connect {0}:{1}", IPAddress.Parse(IpAdress), port);
                 client.Connect(IPAddress.Parse(IpAdress), port);
                 logger.Trace("<<<Connect {0}:{1}", IPAddress.Parse(IpAdress), port);
-                client.ReceiveTimeout = 5000;
-                client.SendTimeout = 5000;
+                client.ReceiveTimeout = 10000;
+                client.SendTimeout = 10000;
 #if Debug
                 Console.ForegroundColor = ConsoleColor.Blue;
                 Console.WriteLine("подготовка к отправке:{0}", byteHelper.PrintByteArrayX(inputbyte));
 #endif
                 using (var networkStream = client.GetStream())
                 {
-                    networkStream.WriteTimeout = 5000;
-                    networkStream.ReadTimeout = 5000;
+                    networkStream.WriteTimeout = 10000;
+                    networkStream.ReadTimeout = 10000;
                 Begin:
                     logger.Trace("begin:{0}", taskTry);
-                    if (taskTry > 5)
+                    if (taskTry > 9)
                     {
                         string sf = String.Format("Выполнено {0} циклов, ответа нет {1}:{2}", taskTry, this.IpAdress, port.ToString());
                         setError(sf);
@@ -467,7 +468,7 @@ namespace CentralLib.Connections
                         rRs.statusOperation = false;
                         rRs.errorInfo += errorInfo + "; ";
                         //return rRs;
-                        throw new ApplicationException(this.errorInfo);
+                        throw new ApplicationException(sf);
                     }
                     taskTry++;
                     logger.Trace("Write try{1}, send to FP:{0}", byteHelper.PrintByteArrayX(inputbyte), taskTry);
@@ -492,15 +493,13 @@ namespace CentralLib.Connections
 
                     byte[] result = new byte[] { };
 
-                    for (int x = 1; x < 10; x++)
+                    for (int x = 1; x < 15; x++)
                     {
-                        logger.Trace("FOR {0} in 10", x);
+                        logger.Trace("FOR {0} in 15", x);
                         int coef = x;
                         if ((inputbyte[2] == 13) || (inputbyte[2] == 9)) // Если отчеты то ждем 2 раза дольше
                         {
                             coef = x * 2;
-
-
                         }
                         Thread.Sleep(coef * this.waiting);
                         logger.Trace("ожидание в цикле {1} = {0}", coef * this.waiting,x);
@@ -651,38 +650,52 @@ namespace CentralLib.Connections
                     //e  } while (base.BytesToRead>0);
 
 
-                    if (useCRC16)
-                    {
-                        unsigned = new byte[positionPacketEnd - positionPacketBegin + 4];
-                        Buffer.BlockCopy(result, positionPacketBegin, unsigned, 0, positionPacketEnd - positionPacketBegin + 4);
-                    }
-                    else
-                    {
+                    //if (useCRC16)
+                    //{
+                    //    unsigned = new byte[positionPacketEnd - positionPacketBegin + 4];
+                    //    Buffer.BlockCopy(result, positionPacketBegin, unsigned, 0, positionPacketEnd - positionPacketBegin + 4);
+                    //}
+                    //else
+                    //{
                         unsigned = new byte[positionPacketEnd - positionPacketBegin + 2];
                         Buffer.BlockCopy(result, positionPacketBegin, unsigned, 0, positionPacketEnd - positionPacketBegin + 2);
-                    }
+                    //}
                     //this.bytesOutput = unsigned;
                     //TODO: доработать проверку CRC && CRC16
                     unsigned = byteHelper.returnWithOutDublicateDLE(unsigned);
                     this.glbytesResponse = unsigned;
+                    byte byteCheckSum = 0;
+                    //if (useCRC16)
+                    //{
+                    //    byteCheckSum = unsigned[unsigned.Length - 5];
+                    //    unsigned[unsigned.Length - 5] = 0;
+                    //}
+                    //else
+                    //{
+                        byteCheckSum = unsigned[unsigned.Length - 3];
+                        unsigned[unsigned.Length - 3] = 0;
+                  //  }
+                    //if (unsigned[2] < 2 && unsigned[3] == 0) // Если только начали работать то контрольную сумму еще не можем проверить
+                    //{
 
-                    byte byteCheckSum = unsigned[unsigned.Length - 3];
-                    unsigned[unsigned.Length - 3] = 0;
+                    //}
+                    //else
+                    //{
+                        if ((byteCheckSum != byteHelper.getchecksum(unsigned)))
+                        {
+                            StringBuilder sb = new StringBuilder();
+                            sb.AppendFormat("Не правильная check сумма {2}!={3} обмена, ip:{0}:{1}", this.IpAdress, port, byteCheckSum, byteHelper.getchecksum(unsigned));
+                            this.statusOperation = false;
+                            setError(sb.ToString());
+                            networkStream.Flush();
+                            logger.Trace("goto Begin");
+                            goto Begin;
+                            //не совпала чек сумма
 
-                    if (byteCheckSum != byteHelper.getchecksum(unsigned))
-                    {
-                        StringBuilder sb = new StringBuilder();
-                        sb.AppendFormat("Не правильная check сумма {2}!={3} обмена, ip:{0}:{1}", this.IpAdress, port, byteCheckSum, byteHelper.getchecksum(unsigned));
-                        this.statusOperation = false;
-                        setError(sb.ToString());
-                        networkStream.Flush();
-                        logger.Trace("goto Begin");
-                        goto Begin;
-                        //не совпала чек сумма
 
-
-                        //throw new ArgumentException(this.errorInfo);
-                    }
+                            //throw new ArgumentException(this.errorInfo);
+                        }
+                    //}
                     //logger.Warn("End<<<<<<<<");
                     this.statusOperation = true;
                     this.ByteStatus = unsigned[4];

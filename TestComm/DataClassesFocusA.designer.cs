@@ -127,6 +127,14 @@ namespace TestComm
 				return this.GetTable<tbl_Operation>();
 			}
 		}
+		
+		public System.Data.Linq.Table<tbl_Connection> tbl_Connections
+		{
+			get
+			{
+				return this.GetTable<tbl_Connection>();
+			}
+		}
 	}
 	
 	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.tbl_Payment")]
@@ -4478,6 +4486,159 @@ namespace TestComm
 			if ((this.PropertyChanged != null))
 			{
 				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.tbl_Connections")]
+	public partial class tbl_Connection
+	{
+		
+		private long _id;
+		
+		private string _GroupName;
+		
+		private int _FPNumber;
+		
+		private string _DataServer;
+		
+		private string _DataServerIP;
+		
+		private string _DataBaseName;
+		
+		private string _UserName;
+		
+		private string _UserPassword;
+		
+		public tbl_Connection()
+		{
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_id", AutoSync=AutoSync.Always, DbType="BigInt NOT NULL IDENTITY", IsDbGenerated=true)]
+		public long id
+		{
+			get
+			{
+				return this._id;
+			}
+			set
+			{
+				if ((this._id != value))
+				{
+					this._id = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_GroupName", DbType="NVarChar(50) NOT NULL", CanBeNull=false)]
+		public string GroupName
+		{
+			get
+			{
+				return this._GroupName;
+			}
+			set
+			{
+				if ((this._GroupName != value))
+				{
+					this._GroupName = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="Int NOT NULL")]
+		public int FPNumber
+		{
+			get
+			{
+				return this._FPNumber;
+			}
+			set
+			{
+				if ((this._FPNumber != value))
+				{
+					this._FPNumber = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DataServer", DbType="NVarChar(1024) NOT NULL", CanBeNull=false)]
+		public string DataServer
+		{
+			get
+			{
+				return this._DataServer;
+			}
+			set
+			{
+				if ((this._DataServer != value))
+				{
+					this._DataServer = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DataServerIP", DbType="NVarChar(50) NOT NULL", CanBeNull=false)]
+		public string DataServerIP
+		{
+			get
+			{
+				return this._DataServerIP;
+			}
+			set
+			{
+				if ((this._DataServerIP != value))
+				{
+					this._DataServerIP = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DataBaseName", DbType="NVarChar(1024) NOT NULL", CanBeNull=false)]
+		public string DataBaseName
+		{
+			get
+			{
+				return this._DataBaseName;
+			}
+			set
+			{
+				if ((this._DataBaseName != value))
+				{
+					this._DataBaseName = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_UserName", DbType="NVarChar(50) NOT NULL", CanBeNull=false)]
+		public string UserName
+		{
+			get
+			{
+				return this._UserName;
+			}
+			set
+			{
+				if ((this._UserName != value))
+				{
+					this._UserName = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_UserPassword", DbType="NVarChar(50) NOT NULL", CanBeNull=false)]
+		public string UserPassword
+		{
+			get
+			{
+				return this._UserPassword;
+			}
+			set
+			{
+				if ((this._UserPassword != value))
+				{
+					this._UserPassword = value;
+				}
 			}
 		}
 	}

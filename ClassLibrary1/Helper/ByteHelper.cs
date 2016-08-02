@@ -234,6 +234,8 @@ namespace CentralLib.Helper
         /// <returns>Возврат массив байт из строки + вначале байт с длиной строки</returns>
         public byte[] CodingStringToBytesWithLength(string InputString, UInt16 MaxVal)
         {
+            if (InputString == null)
+                InputString = "";
             Encoding cp866 = Encoding.GetEncoding(866);
             InputString = InputString.Replace("№", "N");
             string tempStr = InputString.Substring(0, Math.Min(MaxVal, InputString.Length));

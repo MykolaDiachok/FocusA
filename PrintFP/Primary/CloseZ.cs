@@ -21,7 +21,10 @@ namespace PrintFP.Primary
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             long ldatetime = long.Parse(DateTime.Now.ToString("yyyyMMddHHmmss"));
             setInfo(pr, 39, ldatetime); // обновляем инфо по смене....
+            pr.setFPCplCutter(true);
+            pr.FPDayReport();
             var returnpr = pr.FPDayClrReport();
+            pr.setFPCplCutter(false);
             using (DataClasses1DataContext focus = new DataClasses1DataContext())
             {
                 tbl_Operation newZ = new tbl_Operation()

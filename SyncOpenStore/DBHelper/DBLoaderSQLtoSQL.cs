@@ -313,6 +313,8 @@ namespace SyncOpenStore.DBHelper
                         DiscountComment = ""
 
                     };
+                    string accOPENTIME = acc == null ? DateTime.Now.ToString("yyyyMMddHHmmss") : acc.OPENTIME.ToString();
+                    decimal accACCOUNTSUM = acc == null ? 0 : acc.ACCOUNTSUM;
 
 
                     if ((header.BONUSSUM.GetValueOrDefault() != 0) && (header.SALESBONUS.GetValueOrDefault() != 0))
@@ -326,13 +328,13 @@ namespace SyncOpenStore.DBHelper
 
                         newpay.Comment = string.Format("Бонусiв на {0: dd.MM.yy HH:mm}\n{1:F}\nСплачено бонусами:\n{3:F}\nНараховано бонусiв:\n{2:F}"
                            , bondatetime
-                           , (double)acc.ACCOUNTSUM / 100
+                           , (double)accACCOUNTSUM / 100
                            , (double)header.BONUSSUM.GetValueOrDefault() / 100
                            , header.SALESBONUS.GetValueOrDefault() / 100);
                     }
                     else if ((header.BONUSSUM.GetValueOrDefault() != 0))
                     {
-                        string tOPENTIME = acc.OPENTIME.ToString();
+                        string tOPENTIME = accOPENTIME.ToString();
                         DateTime bondatetime = new DateTime(int.Parse(tOPENTIME.Substring(0, 4)),
                             int.Parse(tOPENTIME.Substring(4, 2)),
                             int.Parse(tOPENTIME.Substring(6, 2)),
@@ -341,7 +343,7 @@ namespace SyncOpenStore.DBHelper
 
                         newpay.Comment = string.Format("Бонусiв на {0: dd.MM.yy HH:mm}\n{1:F}\nНараховано бонусiв:\n{2:F}"
                             , bondatetime
-                            , (double)acc.ACCOUNTSUM / 100
+                            , (double)accACCOUNTSUM / 100
                             , (double)header.BONUSSUM.GetValueOrDefault() / 100);
                     }
                     if (header.CLNTID.GetValueOrDefault() > 0)
@@ -427,6 +429,8 @@ namespace SyncOpenStore.DBHelper
 
                     List<tbl_SALE> salesList = new List<tbl_SALE>();
                     int rowsum = 0;
+                    int rowDiscMinus = 0;
+                    int rowDiscGlobal = 0;
                     foreach (var sale in prepareSales)
                     {
                         var loaded = (from tblsales in focusA.GetTable<tbl_SALE>()
@@ -445,10 +449,14 @@ namespace SyncOpenStore.DBHelper
                         var disccomment = (from discoffer in OS.GetTable<OFFER>()
                                            where discoffer.OFFERID == sale.OFFERIDFORDISC
                                            select discoffer).FirstOrDefault();
-                        int discount = 0;
-                        if ((sale.OFFERIDFORDISC != null) || ((header.SALESDISC == 0) && (sale.discount != 0)))
-                            discount = (int)sale.discount.GetValueOrDefault();
-
+                        int rowdiscount = (int)sale.discount.GetValueOrDefault();
+                        rowDiscGlobal += rowdiscount;
+                        bool useDisc = false;
+                        if ((sale.OFFERIDFORDISC != null)&&(sale.discount.GetValueOrDefault()>0))
+                        {
+                            useDisc = true;
+                            rowDiscMinus += rowdiscount;
+                        }
                         tbl_SALE newsale = new tbl_SALE()
                         {
                             NumPayment = newpay.id,
@@ -474,20 +482,26 @@ namespace SyncOpenStore.DBHelper
                             Old_Price = Convert.ToInt32(sale.Old_Price),
                             packname = sale.PACKID,
                             //PackGuid = sale.PackGuid,                            
-                            RowSum = getRowSum((int)sale.SALESTYPE, (int)sale.SALESCOUNT, (int)sale.SALESPRICE, sale.Amount_Status) - discount,
+                            RowSum = getRowSum((int)sale.SALESTYPE, (int)sale.SALESCOUNT, (int)sale.SALESPRICE, sale.Amount_Status) - (useDisc ? rowdiscount : 0),
                             ForWork = true,
-                            discount = discount,
+                            discount = (useDisc ? rowdiscount : 0),
                             DiscountComment = disccomment == null ? "" : disccomment.OFFERNAME
                         };
-                        rowsum += ((int)newsale.RowSum);                        
+                        rowsum += ((int)newsale.RowSum);
                         newsale.GoodName = newsale.GoodName.Substring(0, Math.Min(75, newsale.GoodName.Length));
                         newsale.DiscountComment = newsale.DiscountComment.Substring(0, Math.Min(25, newsale.DiscountComment.Length));
 
                         salesList.Add(newsale);
 
                     }
+                    if ((newpay.Discount.GetValueOrDefault()== rowDiscGlobal) &&((newpay.Discount.GetValueOrDefault() - rowDiscMinus) >= 0))
+                    {
+                        newpay.Discount = newpay.Discount.GetValueOrDefault() - rowDiscMinus;
+                    }
+                    if ((newpay.Discount.GetValueOrDefault() == 0) && (rowDiscGlobal > 0) && (rowDiscMinus==0))
+                        newpay.Discount = rowDiscGlobal;
                     int sumdisc = Math.Max(newpay.Discount.GetValueOrDefault(), newpay.PayBonus.GetValueOrDefault());
-                    int razn = Math.Abs(newpay.CheckSum.GetValueOrDefault() + sumdisc - rowsum);
+                    int razn = Math.Abs(newpay.CheckSum.GetValueOrDefault() + (sumdisc) - rowsum);
                     //if (razn == 0)
                     if (razn < 5)
                     {
@@ -595,7 +609,7 @@ namespace SyncOpenStore.DBHelper
                 //{
                 //    try
                 //    {
-                        focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                 //        moreToSubmit = false;
                 //    }
                 //    catch (Exception ex)

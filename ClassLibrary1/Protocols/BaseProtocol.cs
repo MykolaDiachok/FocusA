@@ -163,7 +163,7 @@ namespace CentralLib.Protocols
 
 
 
-        public DayReport getDayReport(bool frommemory=true)
+        public DayReport getDayReport(bool frommemory = true)
         {
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             if (frommemory)
@@ -199,7 +199,8 @@ namespace CentralLib.Protocols
                 return new DayReport(this, sbor.ToArray());
             }
 
-            else {
+            else
+            {
                 byte[] forsending = new byte[] { 42 };
                 var answer42 = ExchangeWithFP(forsending);
                 if ((answer42.statusOperation) && (answer42.bytesReturn.Length > 0))
@@ -218,14 +219,35 @@ namespace CentralLib.Protocols
         }
 
         #region DateTime
+        public virtual ReturnedStruct setDate(int year, int month, int day)
+        {
+            if (year > 2000)
+                year = year - 2000;
+            else if (!((year > 16) && (year < 99)))
+                throw new Exception("Exception on set date");
+            byte dd = Convert.ToByte(Convert.ToInt32(day.ToString(), 16));
+            byte MM = Convert.ToByte(Convert.ToInt32(month.ToString(), 16));
+            byte yy = Convert.ToByte(Convert.ToInt32(year.ToString(), 16));
+            return ExchangeWithFP(new byte[] { 2, dd, MM, yy });
+        }
+
+        public virtual ReturnedStruct setTime(int hour, int min, int sec)
+        {
+            byte hh = Convert.ToByte(Convert.ToInt32(hour.ToString(), 16));
+            byte mm = Convert.ToByte(Convert.ToInt32(min.ToString(), 16));
+            byte ss = Convert.ToByte(Convert.ToInt32(sec.ToString(), 16));
+            return ExchangeWithFP(new byte[] { 4, hh, mm, ss });
+        }
+
         public virtual DateTime fpDateTime
         {
             get
             {
                 logger.Trace("get " + this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
-                byte[] answer = ExchangeWithFP(new byte[] { 1 }).bytesReturn;
+                var exch = ExchangeWithFP(new byte[] { 1 });
+                byte[] answer = exch.bytesReturn;
 
-                if (connFP.statusOperation)
+                if (exch.statusOperation)
                 {
                     string hexday = answer[0].ToString("X");
                     int _day = Math.Min(Math.Max((int)Convert.ToInt16(hexday), 1), 31);
@@ -236,9 +258,9 @@ namespace CentralLib.Protocols
                     string hexyear = answer[2].ToString("X");
                     int _year = Convert.ToInt16(hexyear);
 
-
-                    byte[] answerTime = ExchangeWithFP(new byte[] { 3 }).bytesReturn;
-                    if (connFP.statusOperation)
+                    var exchTime = ExchangeWithFP(new byte[] { 3 });
+                    byte[] answerTime = exchTime.bytesReturn;
+                    if (exchTime.statusOperation)
                     {
 
                         string hexhour = answerTime[0].ToString("X");
@@ -545,7 +567,7 @@ namespace CentralLib.Protocols
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             //byte[] forsending = new byte[] { 28, 00, 30 };
             //byte[] answer = ExchangeWithFP(forsending).bytesReturn;
-            
+
             var answer = ExchangeWithFP(new byte[] { 0 });
             string tCurProtocol = "";
             if ((answer.statusOperation) && (answer.bytesReturn.Length > 21))
@@ -566,7 +588,7 @@ namespace CentralLib.Protocols
             {
                 connFP.Close();
             }
-            if (tPr == "ЕП-11")
+            if ((tPr == "ЕП-11")||(tPr == "ЕП-09"))
             {
                 this.useCRC16 = true;
                 this.currentProtocol = WorkProtocol.EP11;
@@ -772,7 +794,7 @@ namespace CentralLib.Protocols
             forsending = byteHelper.Combine(forsending, new byte[] { 0 });
             //if (AuthorizationCode.Length != 0)
             //    forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(AuthorizationCode, 50));
-            
+
             var sanswer = ExchangeWithFP(forsending);
             byte[] answer = sanswer.bytesReturn;
             PaymentInfo _paymentInfo = new PaymentInfo(sanswer);
@@ -859,7 +881,7 @@ namespace CentralLib.Protocols
             var answer = ExchangeWithFP(forsending);
             if ((answer.statusOperation) && (answer.bytesReturn.Length == 8))
             {
-                ReceiptInfo _checkinfo = new ReceiptInfo(answer, BitConverter.ToInt32(answer.bytesReturn, 0), BitConverter.ToInt32(answer.bytesReturn, 4));                
+                ReceiptInfo _checkinfo = new ReceiptInfo(answer, BitConverter.ToInt32(answer.bytesReturn, 0), BitConverter.ToInt32(answer.bytesReturn, 4));
                 return _checkinfo;
             }
             return new ReceiptInfo();
@@ -1024,7 +1046,7 @@ namespace CentralLib.Protocols
                 _price = _price ^ (1 << 31);
             }
             forsending = byteHelper.Combine(forsending, BitConverter.GetBytes(_price));
-            byte[] VAT = new byte[] { 0x80 }; 
+            byte[] VAT = new byte[] { 0x80 };
             if (NalogGroup == 1)
                 VAT = new byte[] { 0x81 };
             else if (NalogGroup == 2)
@@ -1056,7 +1078,7 @@ namespace CentralLib.Protocols
             }
             else if ((tanswer.statusOperation) && (answer.Length == 8))
             {
-                ReceiptInfo _checkinfo = new ReceiptInfo(tanswer, BitConverter.ToInt32(answer, 0), BitConverter.ToInt32(answer, 4));               
+                ReceiptInfo _checkinfo = new ReceiptInfo(tanswer, BitConverter.ToInt32(answer, 0), BitConverter.ToInt32(answer, 4));
                 return _checkinfo;
             }
             return new ReceiptInfo();
@@ -1161,28 +1183,28 @@ namespace CentralLib.Protocols
         /// <param name="value">% или сумма скидки/наценки, если процент то 9999(где 99.99% является макс значением)</param>
         /// <param name="comment">пояснительная строка</param>
         /// <returns></returns>
-        public virtual DiscountInfo Discount(FPDiscount typeDiscount,Int16 value, string comment)
+        public virtual DiscountInfo Discount(FPDiscount typeDiscount, Int16 value, string comment)
         {
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             //TODO test discount
             //проблему решить с комментариями!!!!!
-            
-            
+
+
             uint newval = 0;
             byte[] byteval;
             if (value > 0) // тогда скидка, если -"наценка"
             {
                 newval = (uint)(value ^ (1 << 31));
             }
-           else
+            else
             {
-                newval = (uint) -value;
+                newval = (uint)-value;
             }
-            if ((typeDiscount==FPDiscount.PercentageDiscountMarkupAtIntermediateSum)||(typeDiscount == FPDiscount.PercentageDiscountMarkupAtLastGoods))
+            if ((typeDiscount == FPDiscount.PercentageDiscountMarkupAtIntermediateSum) || (typeDiscount == FPDiscount.PercentageDiscountMarkupAtLastGoods))
             {
                 UInt16 tval = (UInt16)newval;
                 byteval = BitConverter.GetBytes(tval);
-                byteval = byteHelper.Combine(byteval, new byte[] {0, 2+2 }); // 0 так как unint16 = 2 байтам, а надо 3.
+                byteval = byteHelper.Combine(byteval, new byte[] { 0, 2 + 2 }); // 0 так как unint16 = 2 байтам, а надо 3.
             }
             else
             {
@@ -1190,9 +1212,17 @@ namespace CentralLib.Protocols
             }
             byte[] forsending = new byte[] { 35, (byte)typeDiscount };
             forsending = byteHelper.Combine(forsending, byteval);
-            forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(comment, 25));            
+            forsending = byteHelper.Combine(forsending, byteHelper.CodingStringToBytesWithLength(comment, 25));
             return new DiscountInfo(ExchangeWithFP(forsending));
-            
+
+        }
+
+        public virtual KleffInfo getKleff()
+        {
+            logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
+            byte[] forsending = new byte[] { 51 };
+            ReturnedStruct answer = ExchangeWithFP(forsending);
+            return new KleffInfo(answer);
         }
     }
 }

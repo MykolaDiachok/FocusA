@@ -82,7 +82,7 @@ namespace PrintFP.Primary
                         var rowinit = (from tinit in focus.GetTable<tbl_ComInit>()
                                        where tinit.FPNumber == int.Parse(fpnumber)
                                        select tinit).FirstOrDefault();
-                        if (!(bool)rowinit.auto)
+                        if (rowinit == null || !rowinit.auto.GetValueOrDefault())
                         {
                             logger.Trace("set shutdownEvent");
                             shutdownEvent.Set();
@@ -97,6 +97,11 @@ namespace PrintFP.Primary
                     {
                         Do();
                         UpdateStatusFP.setStatusFP(FPnumber, "waiting...");
+                    }
+                    catch (NullReferenceException ex)
+                    {
+                        logger.Error(ex);
+                        throw ex;
                     }
                     catch (Exception ex)
                     {
@@ -119,15 +124,16 @@ namespace PrintFP.Primary
             //using (var trans = new TransactionScope(TransactionScopeOption.Required,new TransactionOptions{IsolationLevel = System.Transactions.IsolationLevel.ReadUncommitted,Timeout= new TimeSpan(0,0,25)}))
             {
 
-                _focusA.CommandTimeout = 30;
+                //_focusA.CommandTimeout = 60;
                 //_focusA.Transaction = _focusA.Connection.BeginTransaction(IsolationLevel.ReadCommitted);
 
                 //eventLog1.WriteEntry("start tbl_ComInit");
                 Table<tbl_ComInit> tablePayment = _focusA.GetTable<tbl_ComInit>();
                 var initRow = (from list in tablePayment
-                               where list.Init == true
+                               where list.Init
+                               && !list.WorkOff.GetValueOrDefault()
                                && list.CompName.ToLower() == server.ToLower()
-                               && list.FPNumber == int.Parse(fpnumber)
+                               && list.FPNumber == FPnumber
                                select list).FirstOrDefault();
                 //logger.Trace("cominit:{0}",comInit.ToString());
                 //eventLog1.WriteEntry("start foreach initRow");
@@ -157,55 +163,8 @@ namespace PrintFP.Primary
 
                         //try
                         //{
-                        //    //using (Protocol_EP11 pr = new Protocol_EP11(initRow.Port))
-                        BaseProtocol searchProtocol;
-                        try
-                        {
-                            if (initRow.Version == "ЕП-06")
-                            {
-                                if ((initRow.MoxaIP.Trim().Length != 0) && ((int)initRow.MoxaPort > 0))
-                                {
-                                    searchProtocol = new Protocol_EP06(initRow.MoxaIP, (int)initRow.MoxaPort, FPnumber);
-                                }
-                                else
-                                {
-                                    searchProtocol = new Protocol_EP06(initRow.Port, FPnumber);
-                                }
-                            }
-                            else
-                            {
-                                setStatusFP("start get protocols....");
-                                if ((initRow.MoxaIP.Trim().Length != 0) && ((int)initRow.MoxaPort > 0))
-                                {
-                                    searchProtocol = (BaseProtocol)SingletonProtocol.Instance(initRow.MoxaIP, (int)initRow.MoxaPort, FPnumber).GetProtocols();
-                                }
-                                else
-                                    searchProtocol = (BaseProtocol)SingletonProtocol.Instance(initRow.Port, FPnumber).GetProtocols();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            logger.Error(ex);
-                            setStatusFP(string.Format("Error in protocol:{0}", ex.Message));
-
-                            initRow.Error = true;
-                            initRow.ErrorInfo = "Error info:" + "Fatal crash app;" + ex.Message;
-                            initRow.ErrorCode = 9999; // ошибка которая привела к большому падению
-                            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
-
-                            throw new ApplicationException(initRow.ErrorInfo);
-                        }
-                        if (searchProtocol == null)
-                        {
-                            initRow.Error = true;
-                            initRow.ErrorInfo = "Error info:" + "Fatal crash app; Протокол не определен";
-                            setStatusFP(initRow.ErrorInfo);
-                            initRow.ErrorCode = 9999; // ошибка которая привела к большому падению
-                            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
-                            throw new ApplicationException(initRow.ErrorInfo);
-                        }
-
-                        using (var pr = searchProtocol)
+                        //    //using (Protocol_EP11 pr = new Protocol_EP11(initRow.Port))                        
+                        using (var pr = getProtocol(_focusA, initRow))
                         {
                             DayReport currentDayReport = null;
                             try
@@ -216,7 +175,7 @@ namespace PrintFP.Primary
                             {
                                 logger.Warn(ex);
                             }
-                            setStatusFP(searchProtocol.GetType().ToString() + operation.Operation.ToString());
+                            setStatusFP(pr.GetType().ToString() + operation.Operation.ToString());
 
                             if (!InitialSet(_focusA, initRow, pr, operation, currentDayReport))
                             {
@@ -224,16 +183,23 @@ namespace PrintFP.Primary
                                 return;
                             }
                             setStatusFP(string.Format("Operation={0},id={1}", operation.Operation, operation.id));
-                            if (operation.Operation == 3) // set cachier
+                            if (operation.Operation == 0) // updatestatus
+                            {
+                                PapStat papstat;
+                                updateInitTable(_focusA, initRow, pr, out papstat);
+                            }
+                            else if (operation.Operation == 3) // set cachier
                             {
 
                                 var tblCashier = getCashier(_focusA, operation);
-                                logger.Trace(string.Format("set cachier:{0}", tblCashier.Name_Cashier));
-                                var retStruct = pr.FPRegisterCashier(0, tblCashier.Name_Cashier);
-                                tblCashier.ByteReserv = retStruct.ByteReserv;
-                                tblCashier.ByteResult = retStruct.ByteResult;
-                                tblCashier.ByteStatus = retStruct.ByteStatus;
-
+                                if (tblCashier != null)
+                                {
+                                    logger.Trace(string.Format("set cachier:{0}", tblCashier.Name_Cashier));
+                                    var retStruct = pr.FPRegisterCashier(0, tblCashier.Name_Cashier);
+                                    tblCashier.ByteReserv = retStruct.ByteReserv;
+                                    tblCashier.ByteResult = retStruct.ByteResult;
+                                    tblCashier.ByteStatus = retStruct.ByteStatus;
+                                }
                                 //tblCashier.Error = pr.er
                             }
                             else if (operation.Operation == 10) //in money
@@ -270,7 +236,7 @@ namespace PrintFP.Primary
                                 {
                                     tblCashIO.MoneyFP = 0;
                                     tblCashIO.Error = false;
-                                    
+
                                 }
                             }
                             else if (operation.Operation == 12) //check
@@ -294,13 +260,13 @@ namespace PrintFP.Primary
                                 setStatusFP(string.Format("HEAD CHECK!!!! Operation={0},id={1}, row count={2}", operation.Operation, operation.id, headCheck.RowCount));
                                 headCheck.ForWork = true;
                                 var tableCheck = (from tableSales in tblSales
-                                                  where tableSales.DATETIME == headCheck.DATETIME
+                                                  where tableSales.NumPayment == headCheck.id
+                                                  && tableSales.DATETIME == headCheck.DATETIME
                                                   && tableSales.FPNumber == headCheck.FPNumber
                                                   && tableSales.FRECNUM == headCheck.FRECNUM
                                                   && tableSales.SAREAID == headCheck.SAREAID
                                                   && tableSales.SESSID == headCheck.SESSID
-                                                  && tableSales.SRECNUM == headCheck.SRECNUM
-                                                  && tableSales.NumPayment == headCheck.id
+                                                  && tableSales.SRECNUM == headCheck.SRECNUM                                                  
                                                   select tableSales);
                                 //logger.Trace("Check begin #{0}", headCheck.id);
                                 //List<string, int> listGoodsName = new List<string, int>();
@@ -441,11 +407,17 @@ namespace PrintFP.Primary
                                                  select table).FirstOrDefault();
                                 if (headCheck == null)
                                 {
-                                    setStatusFP(string.Format("Строка заголовки чека пустая!!!! Operation={0},id=", operation.Operation, operation.id));
+                                    setStatusFP(string.Format("Empty header check!!!! Operation={0},id=", operation.Operation, operation.id));
                                     string errorinfo = "Строка заголовки чека пустая";
                                     initRow.ErrorInfo = errorinfo;
                                     _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                                     throw new ApplicationException(errorinfo);
+                                }
+                                var suminFP = pr.GetMoneyInBox();
+                                if (headCheck.Payment3 > suminFP)
+                                {
+                                    logger.Info("add sum in fp={0} for a payment operation", headCheck.Payment3);
+                                    pr.FPCashIn((uint)headCheck.Payment3);
                                 }
                                 setStatusFP(string.Format("HEAD CHECK!!!! Operation={0},id={1}, row count={2}", operation.Operation, operation.id, headCheck.RowCount));
                                 headCheck.ForWork = true;
@@ -594,7 +566,7 @@ namespace PrintFP.Primary
                             {
                                 //pr.
                                 pr.setFPCplCutter(true);
-                                pr.FPDayReport();
+                               
                                 UInt32 rest = pr.GetMoneyInBox();
                                 if (rest != 0)
                                 {
@@ -635,45 +607,46 @@ namespace PrintFP.Primary
                                     _focusA.tbl_Operations.InsertOnSubmit(newop);
                                     _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                                 }
-                                setInfo(pr, operation.Operation, operation.DateTime);
-                                Thread.Sleep(30 * 1000);
-                                //var status = pr.get
-                                logger.Trace("print Z");
-                                var rreport = pr.FPDayClrReport();
-                                if (rreport.statusOperation)
+                                pr.FPDayReport();
+                                var info = setInfo(pr, operation.Operation, operation.DateTime);
+                                var status = pr.status;
+                                if (!status.sessionIsOpened
+                                    && info.DailySumOfServiceCashEntering == 0
+                                    && info.DailySumOfServiceCashGivingOut == 0
+                                    && info.CounterOfSalesReceipt == 0
+                                    && info.CounterOfSaleReceipts == 0)
                                 {
+                                    logger.Trace("Don't need close session");
                                     operation.CurentDateTime = DateTime.Now;
-                                    operation.ByteStatus = rreport.ByteStatus;
-                                    operation.ByteReserv = rreport.ByteReserv;
-                                    operation.ByteResult = rreport.ByteResult;
-                                    operation.Error = !rreport.statusOperation;
-                                    if (rreport.statusOperation)
-                                        operation.Closed = true;
-                                    operation.InWork = true;
+                                    operation.ByteStatus = status.returnedStruct.ByteStatus;
+                                    operation.ByteReserv = status.returnedStruct.ByteReserv;
+                                    operation.ByteResult = status.returnedStruct.ByteResult;
+                                    operation.Error = true;
+                                    operation.Closed = true;
+                                    operation.InWork = false;
                                     _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                                 }
-                                if (DateTime.Now.Day == 1)
+                                else
                                 {
-                                    var now = DateTime.Now.AddMonths(-1);
-                                    var startOfMonth = new DateTime(now.Year, now.Month, 1);
-                                    var DaysInMonth = DateTime.DaysInMonth(now.Year, now.Month);
-                                    var lastDay = new DateTime(now.Year, now.Month, DaysInMonth);
-                                    var report = pr.FPPeriodicReport(0, startOfMonth, lastDay);
+                                    Thread.Sleep(30 * 1000);
+                                    //var status = pr.get
+                                    logger.Trace("print Z");
+                                    var rreport = pr.FPDayClrReport();
+                                    if (rreport.statusOperation)
+                                    {
+                                        operation.CurentDateTime = DateTime.Now;
+                                        operation.ByteStatus = rreport.ByteStatus;
+                                        operation.ByteReserv = rreport.ByteReserv;
+                                        operation.ByteResult = rreport.ByteResult;
+                                        operation.Error = !rreport.statusOperation;
+                                        if (rreport.statusOperation)
+                                            operation.Closed = true;
+                                        operation.InWork = true;
+                                        _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                    }
                                 }
-                                if (DateTime.Now.Day == 11)
-                                {
-                                    var now = DateTime.Now;
-                                    var startOfMonth = new DateTime(now.Year, now.Month, 1);
-                                    var lastDay = new DateTime(now.Year, now.Month, 10);
-                                    var report = pr.FPPeriodicReport(0, startOfMonth, lastDay);
-                                }
-                                if (DateTime.Now.Day == 21)
-                                {
-                                    var now = DateTime.Now;
-                                    var startOfMonth = new DateTime(now.Year, now.Month, 1);
-                                    var lastDay = new DateTime(now.Year, now.Month, 20);
-                                    var report = pr.FPPeriodicReport(0, startOfMonth, lastDay);
-                                }
+                                PrintPeriodicReport(_focusA, pr);
+
                                 pr.setFPCplCutter(false);
                                 deleteArt();
                             }
@@ -700,6 +673,18 @@ namespace PrintFP.Primary
                                 //}
                                 //logger.Trace("print periodic report");
                             }
+                            else if (operation.Operation == 41) //periodic report last month
+                            {
+                                pr.setFPCplCutter(true);                               
+                                var now = DateTime.Now.AddMonths(-1);
+                                var startOfMonth = new DateTime(now.Year, now.Month, 1);
+                                var DaysInMonth = DateTime.DaysInMonth(now.Year, now.Month);
+                                var lastDay = new DateTime(now.Year, now.Month, DaysInMonth);
+                                pr.FPPeriodicReport(0, startOfMonth, lastDay);                                
+                                pr.setFPCplCutter(false);
+                                //}
+                                //logger.Trace("print periodic report");
+                            }
 
                             setStatuses(operation, initRow, pr);
                             //initRow.DateTimeSyncFP = DateTime.Now;
@@ -722,11 +707,35 @@ namespace PrintFP.Primary
                         //}
 
                     }
+                    else//Если не операции то.....
+                    {
+                        TimeSpan tTS = DateTime.Now - initRow.DateTimeSyncFP.GetValueOrDefault();
+                        if (tTS.TotalMinutes > 30)
+                        {
+                            using (var pr = getProtocol(_focusA, initRow))
+                            {
+                                PapStat papstat;
+                                try
+                                {
+                                    if (initRow.Version.ToUpper() == "ЕП-11".ToUpper())
+                                    {
+                                        var returnedInfo = pr.FPLineFeed();                                       
+                                    }
+                                }
+                                catch { };
+                                updateInitTable(_focusA, initRow, pr, out papstat);
+                            }
+                        }
+                    }
                     //logger.Trace("out Get operation");
                     //initRow.DateTimeSyncFP = DateTime.Now;
                     //_focusA.SubmitChanges();
                     //trans.Complete();
                     //_focusA.Transaction.Commit();
+                }
+                else
+                {
+                    throw new NullReferenceException("Not found Fpnumber in a base");
                 }
 
             }
@@ -734,6 +743,209 @@ namespace PrintFP.Primary
             setStatusFP("out work, waiting...");
         }
 
+        private Status updateInitTable(DataClasses1DataContext _focusA, tbl_ComInit initRow, BaseProtocol pr, out PapStat papstatus)
+        {
+            initRow.Error = false;
+            initRow.ErrorInfo = "";
+            initRow.ErrorCode = 0;
+
+            var status = pr.status;
+            setStatusFP("Online");
+            initRow.ByteReserv = status.returnedStruct.ByteReserv;
+            initRow.ByteReservInfo = status.infoReserv.ToString();
+            initRow.ByteResult = status.returnedStruct.ByteResult;
+            initRow.ByteResultInfo = status.infoResult.ToString();
+            initRow.ByteStatus = status.returnedStruct.ByteStatus;
+            initRow.ByteStatusInfo = status.infoStatus.ToString();
+
+            initRow.SmenaOpened = status.sessionIsOpened;
+
+            initRow.SerialNumber = status.serialNumber;
+            initRow.FiscalNumber = status.fiscalNumber;
+            initRow.DateTimeSyncFP = DateTime.Now;
+            papstatus = null;
+            if (status.returnedStruct.ByteStatus == 0)
+            {
+                var timeIn = pr.fpDateTime;
+                initRow.CurrentSystemDateTime = DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault());
+                initRow.CurrentDate = timeIn.ToString("dd.MM.yy");
+                initRow.CurrentTime = timeIn.ToString("HH:mm:ss");
+                DateTime today = DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault());
+                //при проблеме с датой обнуляем время и ждем пока не прийдет наш час.
+                TimeSpan ts = today - timeIn;
+                if ((ts.TotalDays < 0)&&(!status.sessionIsOpened))
+                {
+                    if (Math.Abs(Math.Round(ts.TotalDays)) >= 1)
+                    {
+                        pr.fpDateTime = new DateTime(today.Year, today.Month, today.Day, 0, 0, 0);
+                    }
+                }
+
+                    papstatus = pr.papStat;
+
+                if (papstatus != null)
+                {
+                    initRow.PapStat = papstatus.ToString();
+                    if (papstatus.ControlPaperIsAlmostEnded.GetValueOrDefault()
+                        || papstatus.ControlPaperIsFinished.GetValueOrDefault()
+                        || papstatus.ErrorOfConnectionWithPrinter.GetValueOrDefault()
+                        || papstatus.ReceiptPaperIsAlmostEnded.GetValueOrDefault()
+                        || papstatus.ReceiptPaperIsFinished.GetValueOrDefault())
+                    {
+                        pr.showTopString(papstatus.ToString());
+                    }
+                    if (papstatus.ReceiptPaperIsFinished.GetValueOrDefault()
+                        || papstatus.ControlPaperIsFinished.GetValueOrDefault())
+                    {
+                        initRow.ErrorInfo = papstatus.ToString();
+                    }
+                }
+            }
+            else
+            {
+                initRow.ErrorCode = status.returnedStruct.ByteStatus;
+                initRow.ErrorInfo = status.infoStatus.ToString();
+            }
+
+
+            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+
+            return status;
+        }
+
+        private BaseProtocol getProtocol(DataClasses1DataContext _focusA, tbl_ComInit initRow)
+        {
+            BaseProtocol searchProtocol;
+            try
+            {
+                if (initRow.Version == "ЕП-06")
+                {
+                    if ((initRow.MoxaIP.Trim().Length != 0) && ((int)initRow.MoxaPort > 0))
+                    {
+                        searchProtocol = new Protocol_EP06(initRow.MoxaIP, (int)initRow.MoxaPort, FPnumber);
+                    }
+                    else
+                    {
+                        searchProtocol = new Protocol_EP06(initRow.Port, FPnumber);
+                    }
+                }
+                else
+                {
+                    setStatusFP("start get protocols....");
+                    if ((initRow.MoxaIP.Trim().Length != 0) && ((int)initRow.MoxaPort > 0))
+                    {
+                        searchProtocol = (BaseProtocol)SingletonProtocol.Instance(initRow.MoxaIP, (int)initRow.MoxaPort, FPnumber).GetProtocols();
+                    }
+                    else
+                        searchProtocol = (BaseProtocol)SingletonProtocol.Instance(initRow.Port, FPnumber).GetProtocols();
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+                setStatusFP(string.Format("Error in protocol:{0}", ex.Message));
+
+                initRow.Error = true;
+                initRow.ErrorInfo = "Error info:" + "Fatal crash app;" + ex.Message;
+                initRow.ErrorCode = 9999; // ошибка которая привела к большому падению
+                _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+
+                throw new ApplicationException(initRow.ErrorInfo);
+            }
+            if (searchProtocol == null)
+            {
+                initRow.Error = true;
+                initRow.ErrorInfo = "Error info:" + "Fatal crash app; Протокол не определен";
+                setStatusFP(initRow.ErrorInfo);
+                initRow.ErrorCode = 9999; // ошибка которая привела к большому падению
+                _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                throw new ApplicationException(initRow.ErrorInfo);
+            }
+
+            return searchProtocol;
+        }
+
+        /// <summary>
+        /// печать периодчиского отчета
+        /// </summary>
+        /// <param name="_focusA"></param>
+        /// <param name="pr"></param>
+        private void PrintPeriodicReport(DataClasses1DataContext _focusA, BaseProtocol pr)
+        {
+            if (DateTime.Now.Day == 1)
+            {
+
+                var now = DateTime.Now.AddMonths(-1);
+                var startOfMonth = new DateTime(now.Year, now.Month, 1);
+                var DaysInMonth = DateTime.DaysInMonth(now.Year, now.Month);
+                var lastDay = new DateTime(now.Year, now.Month, DaysInMonth);
+                var report = pr.FPPeriodicReport(0, startOfMonth, lastDay);
+
+                tbl_Operation newop = new tbl_Operation()
+                {
+                    Operation = 40,
+                    CurentDateTime = DateTime.Now,
+                    DateTime = getintDateTime(DateTime.Now),
+                    Closed = true,
+                    InWork = true,
+                    FPNumber = FPnumber,
+                    Error = !report.statusOperation,
+                    ByteReserv = report.ByteReserv,
+                    ByteResult = report.ByteResult,
+                    ByteStatus = report.ByteStatus
+                };
+                _focusA.tbl_Operations.InsertOnSubmit(newop);
+
+            }
+            else if (DateTime.Now.Day == 11)
+            {
+
+                var now = DateTime.Now;
+                var startOfMonth = new DateTime(now.Year, now.Month, 1);
+                var lastDay = new DateTime(now.Year, now.Month, 10);
+                var report = pr.FPPeriodicReport(0, startOfMonth, lastDay);
+
+                tbl_Operation newop = new tbl_Operation()
+                {
+                    Operation = 40,
+                    CurentDateTime = DateTime.Now,
+                    DateTime = getintDateTime(DateTime.Now),
+                    Closed = true,
+                    InWork = true,
+                    FPNumber = FPnumber,
+                    Error = !report.statusOperation,
+                    ByteReserv = report.ByteReserv,
+                    ByteResult = report.ByteResult,
+                    ByteStatus = report.ByteStatus
+                };
+                _focusA.tbl_Operations.InsertOnSubmit(newop);
+            }
+            else if (DateTime.Now.Day == 21)
+            {
+
+
+                var now = DateTime.Now;
+                var startOfMonth = new DateTime(now.Year, now.Month, 1);
+                var lastDay = new DateTime(now.Year, now.Month, 20);
+                var report = pr.FPPeriodicReport(0, startOfMonth, lastDay);
+
+                tbl_Operation newop = new tbl_Operation()
+                {
+                    Operation = 40,
+                    CurentDateTime = DateTime.Now,
+                    DateTime = getintDateTime(DateTime.Now),
+                    Closed = true,
+                    InWork = true,
+                    FPNumber = FPnumber,
+                    Error = !report.statusOperation,
+                    ByteReserv = report.ByteReserv,
+                    ByteResult = report.ByteResult,
+                    ByteStatus = report.ByteStatus
+                };
+                _focusA.tbl_Operations.InsertOnSubmit(newop);
+
+            }
+        }
 
         private DayReport setInfo(BaseProtocol pr, int Operation, long datetime)
         {
@@ -863,7 +1075,7 @@ namespace PrintFP.Primary
         private void setStatuses(tbl_Operation tOp, tbl_ComInit tInit, BaseProtocol pr)
         {
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
-            tInit.CurrentSystemDateTime = DateTime.Now;
+            tInit.CurrentSystemDateTime = DateTime.Now.AddSeconds(tInit.DeltaTime.GetValueOrDefault());
             tInit.ByteStatus = pr.ByteStatus;
             tInit.ByteStatusInfo = pr.structStatus.ToString();
             tInit.ByteReserv = pr.ByteReserv;
@@ -894,67 +1106,26 @@ namespace PrintFP.Primary
         private bool InitialSet(DataClasses1DataContext _focusA, tbl_ComInit initRow, BaseProtocol pr, tbl_Operation operation, DayReport inDayReport)
         {
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
+            PapStat papstatus;
+            var status = updateInitTable(_focusA, initRow, pr, out papstatus);
 
-            initRow.Error = false;
-            initRow.ErrorInfo = "";
-            initRow.ErrorCode = 0;
-            var status = pr.status;
-            initRow.SmenaOpened = status.sessionIsOpened;
-            initRow.ByteStatus = status.returnedStruct.ByteStatus;
-            initRow.ByteStatusInfo = status.returnedStruct.Status.ToString();
-            initRow.ByteReserv = status.returnedStruct.ByteReserv;
-            initRow.ByteReservInfo = status.returnedStruct.Reserv.ToString();
-            initRow.ByteResult = status.returnedStruct.ByteResult;
-            initRow.ByteResultInfo = status.returnedStruct.Result.ToString();
-            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+            var kleff = pr.getKleff();
+            initRow.KlefMem = kleff.FreeMem;
+
+            if (papstatus != null && (papstatus.ControlPaperIsFinished.GetValueOrDefault() || papstatus.ReceiptPaperIsFinished.GetValueOrDefault()))
+            {
+                return false;
+            }
 
             pr.setFPCplCutter(false);
             //var dayReport = pr.dayReport;
-            PapStat papstatus = pr.papStat;
-            if (papstatus != null)
-                initRow.PapStat = papstatus.ToString();
-            if ((papstatus != null) && (papstatus.ControlPaperIsAlmostEnded != null) && ((bool)papstatus.ControlPaperIsAlmostEnded))
-            {
-                initRow.Error = true;
-                initRow.ErrorInfo = papstatus.ToString();
-                initRow.CurrentSystemDateTime = DateTime.Now;
-                initRow.ByteStatus = pr.ByteStatus;
-                initRow.ByteStatusInfo = pr.structStatus.ToString();
-                initRow.ByteReserv = pr.ByteReserv;
-                initRow.ByteReservInfo = pr.structReserv.ToString();
-                initRow.ByteResult = pr.ByteResult;
-                initRow.ByteResultInfo = pr.structResult.ToString();
 
-                _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
-                pr.showTopString("Контрольная лента закончилась!");
-
-                return false;
-            }
-            if ((papstatus != null) && (papstatus.ReceiptPaperIsAlmostEnded != null) && ((bool)papstatus.ReceiptPaperIsAlmostEnded))
-            {
-                initRow.Error = true;
-                initRow.ErrorInfo = papstatus.ToString();
-                initRow.CurrentSystemDateTime = DateTime.Now;
-                initRow.ByteStatus = pr.ByteStatus;
-                initRow.ByteStatusInfo = pr.structStatus.ToString();
-                initRow.ByteReserv = pr.ByteReserv;
-                initRow.ByteReservInfo = pr.structReserv.ToString();
-                initRow.ByteResult = pr.ByteResult;
-                initRow.ByteResultInfo = pr.structResult.ToString();
-                _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
-                pr.showTopString("Чековая лента закончилась!");
-                return false;
-            }
 
             strByteStatus sStatus = pr.structStatus;
             //#if (!DEBUG)
             //                            initRow.FPNumber = Int32.Parse(status.fiscalNumber);
             //#endif
-            initRow.FiscalNumber = status.fiscalNumber;
-            //initRow.SmenaOpened = status.sessionIsOpened;
-            initRow.SerialNumber = status.serialNumber;
-            initRow.Version = status.VersionOfSWOfECR;
-            initRow.CurrentSystemDateTime = DateTime.Now;
+
 
             if (pr.structResult.ByteResult == 2)
             {
@@ -968,6 +1139,8 @@ namespace PrintFP.Primary
             if ((status.sessionIsOpened) && ((bool)sStatus.ExceedingOfWorkingShiftDuration))
             {
                 onlyZReport(pr);
+                status = pr.status;
+                inDayReport = pr.dayReport;
             }
             if (status.receiptIsOpened)
             {
@@ -984,36 +1157,89 @@ namespace PrintFP.Primary
             }
             try
             {
-                DateTime infpDT = pr.fpDateTime;                
-                initRow.CurrentDate = infpDT.ToString("dd.MM.yy");
-                initRow.CurrentTime = infpDT.ToString("HH:mm:ss");
+                if ((!status.sessionIsOpened) && (pr.ByteStatus == 0))
+                {
+                    DateTime infpDT = pr.fpDateTime;
+                    DateTime today = DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault());
+                    TimeSpan ts = today - infpDT;
+                    if (ts.TotalMinutes < 0)
+                    {
+                        if (Math.Abs(Math.Round(ts.TotalDays)) >= 1)
+                        {
+                            pr.fpDateTime = new DateTime(today.Year, today.Month, today.Day, 0, 0, 0);
+                        }
+                        else
+                        {
+                            pr.fpDateTime = DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault());
+                        }
+                    }
+                    else if (ts.TotalMinutes > 0)
+                    {
+                        CentralLib.ReturnedStruct ret = null;
+                        if (ts.TotalDays >= 1)
+                        {
+                            //pr1.fpDateTime = new DateTime(today.Year, today.Month, today.Day, 23, 59, 59);
+                            ret = pr.setDate(today.Year, today.Month, today.Day);
+                            Thread.Sleep(2000);
+                        }
+                        //if ((ret != null) && (ret.statusOperation))
+                        pr.fpDateTime = DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault());
 
-                TimeSpan ts = infpDT - DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault());
-                //TODO подумать как если день назад, а не только вперед....
-                if ((!status.sessionIsOpened) && (DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault()).ToString("dd.MM.yy") != initRow.CurrentDate))
-                {
-                    pr.fpDateTime = DateTime.Parse(String.Format("{0} 23:59:59", initRow.CurrentDate));
-                    Thread.Sleep(2000);
+                    }
                     infpDT = pr.fpDateTime;
                     initRow.CurrentDate = infpDT.ToString("dd.MM.yy");
                     initRow.CurrentTime = infpDT.ToString("HH:mm:ss");
+
+
+
+                    //TimeSpan ts = infpDT - DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault());
+                    //int fpday = infpDT.Day;
+                    //int fpmonth = infpDT.Month;
+                    //int fpyear = infpDT.Year;
+
+                    //DateTime today = DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault());
+
+                    //int tdday = today.Day;
+                    //int tdmonth = today.Month;
+                    //int tdyear = today.Year;
+                    //TimeSpan ts = today - infpDT;
+                    //if (ts.)
+
+                    //TODO подумать как если день назад, а не только вперед....
+                    //if ((DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault()).ToString("dd.MM.yy") != initRow.CurrentDate))
+                    //{
+                    //    pr.fpDateTime = DateTime.Parse(String.Format("{0} 23:59:59", initRow.CurrentDate));
+                    //    Thread.Sleep(2000);
+                    //    infpDT = pr.fpDateTime;
+                    //    initRow.CurrentDate = infpDT.ToString("dd.MM.yy");
+                    //    initRow.CurrentTime = infpDT.ToString("HH:mm:ss");
+                    //}
+                    //if ((ts.Minutes != 0))
+                    //{
+                    //    pr.fpDateTime = DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault());
+                    //    infpDT = pr.fpDateTime;
+                    //    initRow.CurrentDate = infpDT.ToString("dd.MM.yy");
+                    //    initRow.CurrentTime = infpDT.ToString("HH:mm:ss");
+                    //}
                 }
-                if ((!status.sessionIsOpened) && (ts.Minutes != 0))
+                // если статус не был равен 0 то запрашиваем статус заново, если не исправился отменяем дальнейшее продолжение
+                if (status.returnedStruct.ByteStatus != 0)
                 {
-                    pr.fpDateTime = DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault());
-                    infpDT = pr.fpDateTime;
-                    initRow.CurrentDate = infpDT.ToString("dd.MM.yy");
-                    initRow.CurrentTime = infpDT.ToString("HH:mm:ss");
+                    status = updateInitTable(_focusA, initRow, pr, out papstatus);
+                    if (status.returnedStruct.ByteStatus != 0)
+                    {
+                        return false;
+                    }
                 }
-                
+
+
             }
             catch (Exception ex)
             {
-                string errorinfo = string.Format("Error:{0};St={1};Rt={2};Rv={3}", ex.Message + " #" + "Error get date from fiscal printer", pr.structStatus.ToString(), pr.structResult.ToString(), pr.structReserv.ToString());
+                string errorinfo = string.Format("Error:{0};St={1};Rt={2};Rv={3}", ex.Message + " #" + "Error fiscal printer", pr.structStatus.ToString(), pr.structResult.ToString(), pr.structReserv.ToString());
                 logger.Error(ex, errorinfo);
                 initRow.Error = true;
                 initRow.ErrorInfo = errorinfo;
-                initRow.CurrentSystemDateTime = DateTime.Now;
                 initRow.ByteStatus = pr.ByteStatus;
                 initRow.ByteStatusInfo = pr.structStatus.ToString();
                 initRow.ByteReserv = pr.ByteReserv;
@@ -1024,29 +1250,54 @@ namespace PrintFP.Primary
                 _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
             }
 
-            if ((((operation.Operation != 3) || (operation.Operation != 40) || (operation.Operation != 15) || (operation.Operation != 35))) && (!status.sessionIsOpened))
+            if (((operation.Operation == 12)||(operation.Operation == 39)) && (!status.sessionIsOpened))
             {
+                logger.Trace("FPNullCheck");
                 pr.FPNullCheck();
+                Thread.Sleep(30 * 1000);
             }
-            if ((operation.Operation==12)&&(inDayReport!=null)&&(inDayReport.DailySumOfServiceCashEntering==0)&&(inDayReport.DailySumOfServiceCashGivingOut==0))//&&(inDayReport.CountersOfPayoutByTaxGroupsAndTypesOfPayments.Cash==0))
+            if ((operation.Operation == 12) && (inDayReport != null) && (inDayReport.DailySumOfServiceCashEntering == 0) && (inDayReport.DailySumOfServiceCashGivingOut == 0))//&&(inDayReport.CountersOfPayoutByTaxGroupsAndTypesOfPayments.Cash==0))
             {
-                logger.Trace("FPCashIn=30000");
-                pr.FPCashIn(30000);
-            }
-            status = pr.status;
+                uint inMoney = 30000;
+                logger.Trace("FPCashIn={0}", inMoney);
 
-            initRow.FiscalNumber = status.fiscalNumber;
-            initRow.SmenaOpened = status.sessionIsOpened;
-            initRow.SerialNumber = status.serialNumber;
-            initRow.Version = status.VersionOfSWOfECR;
-            
-            initRow.CurrentSystemDateTime = DateTime.Now;
-            initRow.ByteStatus = pr.ByteStatus;
-            initRow.ByteStatusInfo = pr.structStatus.ToString();
-            initRow.ByteReserv = pr.ByteReserv;
-            initRow.ByteReservInfo = pr.structReserv.ToString();
-            initRow.ByteResult = pr.ByteResult;
-            initRow.ByteResultInfo = pr.structResult.ToString();
+                pr.FPCashIn(inMoney);
+                DateTime tDateTime = DateTime.Now;
+                tbl_CashIO cashio = new tbl_CashIO()
+                {
+                    FPNumber = FPnumber,
+                    DATETIME = getintDateTime(tDateTime),
+                    Operation = 10,
+                    Type = false,
+                    Money = (int)inMoney,
+                    MoneyFP = (int)inMoney,
+                    Old_Money = (int)inMoney,
+                    Error = !pr.statusOperation,
+                    ByteResult = pr.ByteResult,
+                    ByteStatus = pr.ByteStatus
+
+                };
+                _focusA.tbl_CashIOs.InsertOnSubmit(cashio);
+                _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+
+                tbl_Operation newop = new tbl_Operation()
+                {
+                    Operation = 10,
+                    CurentDateTime = DateTime.Now,
+                    DateTime = getintDateTime(tDateTime),
+                    Closed = true,
+                    InWork = true,
+                    FPNumber = FPnumber,
+                    Error = !pr.statusOperation,
+                    ByteReserv = pr.ByteReserv,
+                    ByteResult = pr.ByteResult,
+                    ByteStatus = pr.ByteStatus
+                };
+                _focusA.tbl_Operations.InsertOnSubmit(newop);
+
+                Thread.Sleep(30 * 1000);
+            }
+            updateInitTable(_focusA, initRow, pr, out papstatus);
             _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
             return !initRow.Error;
         }

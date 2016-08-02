@@ -1121,6 +1121,7 @@ namespace CentralLib.Protocols
         public bool ToProgramChargeRates; // = 1 – программировать ставки сборов
         public ushort ChargeRateOfGroupЕ;
 
+       
     }
 
     public class Tax
@@ -1262,6 +1263,28 @@ namespace CentralLib.Protocols
         public Int32 SumOfReceipt { get; private set; }
     }
 
+    public class KleffInfo
+    {
+        public UInt32 PacketFirst { get; private set; }
+        public UInt32 PacketLast { get; private set; }
+        public UInt16 FreeMem { get; private set; }
+        public ReturnedStruct returnedStruct { get; private set; }
+
+        public KleffInfo()
+        {
+
+        }
+
+        public KleffInfo(ReturnedStruct inReturnedStruct)
+        {
+            returnedStruct = inReturnedStruct;
+            PacketFirst = inReturnedStruct.bytesReturn.returnUint32FromBytes(0, 4);
+            PacketLast = inReturnedStruct.bytesReturn.returnUint32FromBytes(4, 4);            
+            FreeMem = inReturnedStruct.bytesReturn.returnUint16FromBytes(8, 2);
+            if (PacketFirst == 0 && PacketLast == 0 && FreeMem == 0)
+                FreeMem = 65535;
+        }
+    }
 
 
 }

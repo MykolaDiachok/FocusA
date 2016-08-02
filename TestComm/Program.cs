@@ -16,6 +16,7 @@ using System.Data.Linq;
 using System.Diagnostics;
 using System.Management;
 using NLog;
+using CentralLib.Connections;
 
 namespace TestComm
 {
@@ -33,6 +34,38 @@ namespace TestComm
 
         static void Main(string[] args)
         {
+            //printPeriodicReport();
+            //AddFPAttika();
+            //return;
+
+            //DateTime infpDT = new DateTime(2016,06,10,22,54,00).AddSeconds(-600);
+            //DateTime today = DateTime.Now.AddSeconds(-600);
+            //DateTime setday;
+            //TimeSpan ts = today - infpDT;
+            //if (ts.TotalMinutes<0)
+            //{
+            //    if (Math.Abs(Math.Round(ts.TotalDays))>=1)
+            //    {
+            //        setday = new DateTime(today.Year, today.Month, today.Day, 0, 0, 0);
+            //    }
+            //    else
+            //    {
+            //        setday = DateTime.Now.AddSeconds(-600);
+            //    }
+            //}
+            //else if (ts.TotalMinutes>0)
+            //{
+            //    if (ts.TotalDays>=1)
+            //    {
+            //        //pr1.fpDateTime = new DateTime(today.Year, today.Month, today.Day, 23, 59, 59);
+            //        //var ret = pr1.setDate(today.Year, today.Month, today.Day);
+            //        Thread.Sleep(2000);                    
+            //    }
+            //    setday = DateTime.Now.AddSeconds(-600);
+
+            //}
+
+            //return;
 
             //20160426163835
             //4001 = 10011172 
@@ -42,53 +75,70 @@ namespace TestComm
             //byteHelper = new ByteHelper();
             //ConsecutiveNumber = 1;
             int fpnumber = 0;
-            string server = "192.168.254.185";
+            string server = "10.143.6.1";
             int port = 4002;
 
-            //string setDataServer = SearchServer("10011171");
+            ////string setDataServer = SearchServer("10011171");
             BaseProtocol pr = SingletonProtocol.Instance(server, port, fpnumber).GetProtocols();
-
-            //var dayReport = pr.dayReport;
+            ////pr.setTime(0, 1, 1);
+            //DateTime dt = pr.fpDateTime;
+            //for (int x = 0; x < 3; x++)
+            //    pr.FPDayReport(0);
+            //for (int x = 0; x < 10; x++)
+            //{
+            //    pr.FPDayReport(0);
+            //}
+            //pr.FPCashIn(5000);
+            pr.FPDayClrReport(0);
+            return;
             using (DataClassesFocusADataContext focus = new DataClassesFocusADataContext())
             {
 
 
+                //var st1 = pr.status;
 
-                //var t = pr.FPDayClrReport();
                 //var tmp = pr.GetMemmory(0x3000, 16, 1);
 
 
                 var st = pr.status;
-                var bbb = pr.dayReport;
-                var ddd = pr.FPDayReport();
-                //Table<tbl_ComInit> tbl_ComInit = focus.GetTable<tbl_ComInit>();
-                //tbl_ComInit init = new tbl_ComInit()
-                //{
+                //var bbb = pr.dayReport;
+                //var ddd = pr.FPDayReport();
+                //var st2 = pr.status;
+                //pr.FPRegisterCashier(0, "Yoda");
+                //var st3 = pr.status;
+                //pr.FPCashIn(30000);
+                //var st4 = pr.status;
+                //pr.FPCashOut(30000);
+                //bool i = true;
+                Table<tbl_ComInit> tbl_ComInit = focus.GetTable<tbl_ComInit>();
+                tbl_ComInit init = new tbl_ComInit()
+                {
 
-                //    CompName = "FOCUS-A",
-                //    Port = 0,
-                //    Init = true,
-                //    Error = true,
-                //    WorkOff = false,
-                //    auto = true,
-                //    FPNumber = int.Parse(st.serialNumber),
-                //    RealNumber = st.serialNumber,
-                //    SerialNumber = st.serialNumber,
-                //    DateTimeBegin = long.Parse(DateTime.Now.ToString("yyyyMMdd") + "000000"),
-                //    DateTimeStop = long.Parse(DateTime.Now.ToString("yyyyMMdd") + "235959"),
-                //    DeltaTime = -600,
-                //    DataServer = "chameleonserver",//SearchServer(st.serialNumber.Trim()),
-                //    DataBaseName = "chameleonserver",
-                //    MinSumm = 0,
-                //    MaxSumm = Int32.MaxValue,
-                //    TypeEvery = false,
-                //    PrintEvery = 10,
-                //    MoxaIP = server,
-                //    MoxaPort = port,
-                //    Version = st.VersionOfSWOfECR
-                //};
-                //focus.tbl_ComInits.InsertOnSubmit(init);
-                //focus.SubmitChanges();
+                    CompName = "FOCUS-A",
+                    Port = 0,
+                    Init = true,
+                    Error = true,
+                    WorkOff = false,
+                    auto = true,
+                    FPNumber = 867,
+                    RealNumber = "10014209",
+                    SerialNumber = st.serialNumber,
+                    DateTimeBegin = long.Parse(DateTime.Now.ToString("yyyyMMdd") + "000000"),
+                    //DateTimeBegin = 20160506220746,
+                    DateTimeStop = long.Parse(DateTime.Now.ToString("yyyyMMdd") + "235959"),
+                    DeltaTime = -600,
+                    DataServer = "172.22.30.124",
+                    DataBaseName = "CashDesk_OS",
+                    MinSumm = 0,
+                    MaxSumm = Int32.MaxValue,
+                    TypeEvery = false,
+                    PrintEvery = 0,
+                    MoxaIP = server,
+                    MoxaPort = port,
+                    Version = st.VersionOfSWOfECR
+                };
+                focus.tbl_ComInits.InsertOnSubmit(init);
+                focus.SubmitChanges();
 
                 //tbl_Operation op = new tbl_Operation
                 //{
@@ -156,6 +206,168 @@ namespace TestComm
 
         }
 
+
+        static bool AddFPAttika()
+        {
+            //ConsecutiveNumber = 1;
+            int fpnumber = 0;
+            string server = "192.168.255.132";
+            int port = 4010;
+
+            ////string setDataServer = SearchServer("10011171");
+            BaseProtocol pr = SingletonProtocol.Instance(server, port, fpnumber).GetProtocols();
+
+            using (DataClassesFocusADataContext focus = new DataClassesFocusADataContext())
+            {
+                var st = pr.status;
+                Table<tbl_ComInit> tbl_ComInit = focus.GetTable<tbl_ComInit>();
+                tbl_ComInit init = new tbl_ComInit()
+                {
+
+                    CompName = "FOCUS-A",
+                    Port = 0,
+                    Init = true,
+                    Error = true,
+                    WorkOff = false,
+                    auto = true,
+                    FPNumber = int.Parse(st.serialNumber),
+                    RealNumber = "867",
+                    SerialNumber = st.serialNumber,
+                    DateTimeBegin = long.Parse(DateTime.Now.ToString("yyyyMMdd") + "000000"),
+                    //DateTimeBegin = 20160506220746,
+                    DateTimeStop = long.Parse(DateTime.Now.ToString("yyyyMMdd") + "235959"),
+                    DeltaTime = -180,
+                    DataServer = "chameleonserver",
+                    DataBaseName = "chameleonserver",
+                    MinSumm = 0,
+                    MaxSumm = Int32.MaxValue,
+                    TypeEvery = false,
+                    PrintEvery = 10,
+                    MoxaIP = server,
+                    MoxaPort = port,
+                    Version = st.VersionOfSWOfECR
+                };
+                focus.tbl_ComInits.InsertOnSubmit(init);
+                focus.SubmitChanges();
+                //return true;
+            }
+
+            return true;
+        }
+
+        static void printPeriodicReport()
+        {
+            int year = 2015;
+            int month = 6;
+            IProtocols pr;
+            StringBuilder sb = new StringBuilder();
+            using (DataClassesFocusADataContext focus = new DataClassesFocusADataContext())
+            {
+                List<int> testFP = new List<int>();
+                //testFP.Add(10014357);
+                //testFP.Add(10014361);
+                //testFP.Add(10014209);
+                testFP.Add(10013984);
+                testFP.Add(10013958);
+                testFP.Add(10013640);
+                testFP.Add(10013972);
+                testFP.Add(10013951);
+                testFP.Add(10011281);
+
+                Table<tbl_ComInit> tbl_ComInit = focus.GetTable<tbl_ComInit>();
+                var selectTable = (from st in tbl_ComInit
+                                   where st.Init && testFP.Contains(st.FPNumber.GetValueOrDefault())
+                                   orderby st.FPNumber
+                                   select st
+                                   );
+                foreach (var row in selectTable)
+                {
+                    if ((row.Version == "ЕП-11") || (row.Version == "ЕП-09"))
+                    {
+                        pr = new Protocol_EP11(row.MoxaIP, row.MoxaPort.GetValueOrDefault(), row.FPNumber.GetValueOrDefault());
+                    }
+                    else
+                    {
+                        pr = new Protocol_EP06(row.MoxaIP, row.MoxaPort.GetValueOrDefault(), row.FPNumber.GetValueOrDefault());
+                    }
+
+                    var startOfMonth = new DateTime(year, month, 1);
+                    var lastDay = new DateTime(year, month, DateTime.DaysInMonth(year, month));
+                    var st1 = pr.FPPeriodicReport(0, startOfMonth, lastDay);
+                    var st2 = pr.FPPeriodicReportShort(0, startOfMonth, lastDay);
+                    sb.AppendLine(new String('=', 30));
+                    sb.AppendFormat("{0} - {1}+{2}", row.FPNumber, st1.statusOperation, st2.statusOperation);
+                    pr.Dispose();
+                    pr = null;
+
+
+                }
+                Console.WriteLine(sb.ToString());
+                Console.WriteLine(new String('=', 30));
+                Console.WriteLine(new String('=', 30));
+                Console.ReadKey();
+            }
+        }
+
+        static void printPeriodicReportYear()
+        {
+            int year = 2014;
+            IProtocols pr;
+            using (DataClassesFocusADataContext focus = new DataClassesFocusADataContext())
+            {
+                Table<tbl_ComInit> tbl_ComInit = focus.GetTable<tbl_ComInit>();
+                var selectTable = (from st in tbl_ComInit
+                                   where st.Init && st.FPNumber >= 10011185
+                                   orderby st.FPNumber
+                                   select st
+                                   );
+                foreach (var row in selectTable)
+                {
+                    if ((row.Version == "ЕП-11") || (row.Version == "ЕП-09"))
+                    {
+                        pr = new Protocol_EP11(row.MoxaIP, row.MoxaPort.GetValueOrDefault(), row.FPNumber.GetValueOrDefault());
+                        //new ConnectNetFP_EP11(row.MoxaIP, row.MoxaPort.GetValueOrDefault(), row.FPNumber.GetValueOrDefault());
+                    }
+                    else
+                    {
+                        pr = new Protocol_EP06(row.MoxaIP, row.MoxaPort.GetValueOrDefault(), row.FPNumber.GetValueOrDefault());
+                    }
+                    //BaseProtocol pr = SingletonProtocol.Instance(row.MoxaIP, row.MoxaPort.GetValueOrDefault(), row.FPNumber.GetValueOrDefault()).GetProtocols();
+                    //for (int month = 1; month <= 12; month++)
+                    //{
+                    //    var startOfMonth = new DateTime(year, month, 1);
+                    //    var lastDay = new DateTime(year, month, DateTime.DaysInMonth(year, month));
+                    //    var st1 = pr.FPPeriodicReport(0, startOfMonth, lastDay);
+                    //    var st2 = pr.FPPeriodicReportShort(0, startOfMonth, lastDay);
+                    //    Console.WriteLine(new String('=', 30));
+                    //    Console.WriteLine("{0} month={1} - {2}+{3}", row.FPNumber, month, st1.statusOperation, st2.statusOperation);
+                    //}
+                    var startOfMonth = new DateTime(year, 1, 1);
+                    var lastDay = new DateTime(year, 12, DateTime.DaysInMonth(year, 12));
+                    var st1 = pr.FPPeriodicReport(0, startOfMonth, lastDay);
+                    var st2 = pr.FPPeriodicReportShort(0, startOfMonth, lastDay);
+                    Console.WriteLine(new String('=', 30));
+                    Console.WriteLine("{0} - {1}+{2}", row.FPNumber, st1.statusOperation, st2.statusOperation);
+                    //Console.ReadKey();
+                    pr.Dispose();
+                    pr = null;
+                }
+                Console.WriteLine(new String('=', 30));
+                Console.WriteLine(new String('=', 30));
+                Console.ReadKey();
+            }
+        }
+
+        static string ipServer(string fpnumber)
+        {
+            using (DataClassesFocusADataContext focus = new DataClassesFocusADataContext())
+            {
+                var search = (from con in focus.GetTable<tbl_Connection>()
+                              where con.FPNumber == int.Parse(fpnumber)
+                              select con).FirstOrDefault();
+                return search.DataServerIP;
+            }
+        }
 
         static string SearchServer(string fpnumber)
         {

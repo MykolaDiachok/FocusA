@@ -931,37 +931,42 @@ namespace CentralLib.Protocols
                 tst = tst + 3;
                 if (tTax.MaxGroup > 0)
                 {
-                    tTax.TaxA.TaxGroup = (byte)FPTaxgroup.A;
-                    tTax.TaxA.TaxNumber = 1;
-                    tTax.TaxA.TaxRate = BitConverter.ToUInt16(answer, tst);
+                    tTax.TaxA = new Tax((byte)FPTaxgroup.A, 1, BitConverter.ToUInt16(answer, tst),0,false,false);
+                    //tTax.TaxA.TaxGroup = ;
+                    //tTax.TaxA.TaxNumber = 1;
+                    //tTax.TaxA.TaxRate = ;
                     tst = tst + 2;
                 }
                 if (tTax.MaxGroup > 1)
                 {
-                    tTax.TaxB.TaxGroup = (byte)FPTaxgroup.B;
-                    tTax.TaxB.TaxNumber = 2;
-                    tTax.TaxB.TaxRate = BitConverter.ToUInt16(answer, tst);
+                    tTax.TaxB = new Tax((byte)FPTaxgroup.B, 2, BitConverter.ToUInt16(answer, tst), 0, false, false);
+                    //tTax.TaxB.TaxGroup = (byte)FPTaxgroup.B;
+                    //tTax.TaxB.TaxNumber = 2;
+                    //tTax.TaxB.TaxRate = BitConverter.ToUInt16(answer, tst);
                     tst = tst + 2;
                 }
                 if (tTax.MaxGroup > 2)
                 {
-                    tTax.TaxC.TaxGroup = (byte)FPTaxgroup.C;
-                    tTax.TaxC.TaxNumber = 3;
-                    tTax.TaxC.TaxRate = BitConverter.ToUInt16(answer, tst);
+                    tTax.TaxC = new Tax((byte)FPTaxgroup.C, 3, BitConverter.ToUInt16(answer, tst), 0, false, false);
+                    //tTax.TaxC.TaxGroup = (byte)FPTaxgroup.C;
+                    //tTax.TaxC.TaxNumber = 3;
+                    //tTax.TaxC.TaxRate = BitConverter.ToUInt16(answer, tst);
                     tst = tst + 2;
                 }
                 if (tTax.MaxGroup > 3)
                 {
-                    tTax.TaxD.TaxGroup = (byte)FPTaxgroup.D;
-                    tTax.TaxD.TaxNumber = 4;
-                    tTax.TaxD.TaxRate = BitConverter.ToUInt16(answer, tst);
+                    tTax.TaxD = new Tax((byte)FPTaxgroup.D, 4, BitConverter.ToUInt16(answer, tst), 0, false, false);
+                    //tTax.TaxD.TaxGroup = (byte)FPTaxgroup.D;
+                    //tTax.TaxD.TaxNumber = 4;
+                    //tTax.TaxD.TaxRate = BitConverter.ToUInt16(answer, tst);
                     tst = tst + 2;
                 }
                 if (tTax.MaxGroup > 4)
                 {
-                    tTax.TaxE.TaxGroup = (byte)FPTaxgroup.E;
-                    tTax.TaxE.TaxNumber = 5;
-                    tTax.TaxE.TaxRate = BitConverter.ToUInt16(answer, tst);
+                    tTax.TaxE = new Tax((byte)FPTaxgroup.E, 5, BitConverter.ToUInt16(answer, tst), 0, false, false);
+                    //tTax.TaxE.TaxGroup = (byte)FPTaxgroup.E;
+                    //tTax.TaxE.TaxNumber = 5;
+                    //tTax.TaxE.TaxRate = BitConverter.ToUInt16(answer, tst);
                     tst = tst + 2;
                 }
                 byte tByteStatus = answer[tst];
@@ -1152,5 +1157,10 @@ namespace CentralLib.Protocols
         }
         #endregion
 
+
+        public override KleffInfo getKleff()
+        {
+            return new KleffInfo();
+        }
     }
 }
