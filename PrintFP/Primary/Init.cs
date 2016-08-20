@@ -266,7 +266,7 @@ namespace PrintFP.Primary
                                                   && tableSales.FRECNUM == headCheck.FRECNUM
                                                   && tableSales.SAREAID == headCheck.SAREAID
                                                   && tableSales.SESSID == headCheck.SESSID
-                                                  && tableSales.SRECNUM == headCheck.SRECNUM                                                  
+                                                  && tableSales.SRECNUM == headCheck.SRECNUM
                                                   select tableSales);
                                 //logger.Trace("Check begin #{0}", headCheck.id);
                                 //List<string, int> listGoodsName = new List<string, int>();
@@ -394,6 +394,16 @@ namespace PrintFP.Primary
                                 }
                                 //logger.Trace("Check close #{0}", headCheck.id);
                                 //pr.FPPayment();
+
+                                if (initRow.Version.ToUpper() == "ЕП-11".ToUpper())
+                                {                                    
+                                        try
+                                        {
+                                            pr.FPLineFeed();
+                                        }
+                                        catch { };
+                                }
+
                             }
                             else if (operation.Operation == 5) //payment
                             {
@@ -414,11 +424,7 @@ namespace PrintFP.Primary
                                     throw new ApplicationException(errorinfo);
                                 }
                                 var suminFP = pr.GetMoneyInBox();
-                                if (headCheck.Payment3 > suminFP)
-                                {
-                                    logger.Info("add sum in fp={0} for a payment operation", headCheck.Payment3);
-                                    pr.FPCashIn((uint)headCheck.Payment3);
-                                }
+                                
                                 setStatusFP(string.Format("HEAD CHECK!!!! Operation={0},id={1}, row count={2}", operation.Operation, operation.id, headCheck.RowCount));
                                 headCheck.ForWork = true;
                                 var tableCheck = (from tableSales in tblSales
@@ -556,6 +562,15 @@ namespace PrintFP.Primary
                                 }
                                 //logger.Trace("Check close #{0}", headCheck.id);
                                 //pr.FPPayment();
+                                if (initRow.Version.ToUpper() == "ЕП-11".ToUpper())
+                                {
+                                    try
+                                    {
+                                        pr.FPLineFeed();
+                                    }
+                                    catch { };
+                                }
+
                             }
                             else if (operation.Operation == 35) //X
                             {
@@ -566,7 +581,7 @@ namespace PrintFP.Primary
                             {
                                 //pr.
                                 pr.setFPCplCutter(true);
-                               
+
                                 UInt32 rest = pr.GetMoneyInBox();
                                 if (rest != 0)
                                 {
@@ -675,12 +690,12 @@ namespace PrintFP.Primary
                             }
                             else if (operation.Operation == 41) //periodic report last month
                             {
-                                pr.setFPCplCutter(true);                               
+                                pr.setFPCplCutter(true);
                                 var now = DateTime.Now.AddMonths(-1);
                                 var startOfMonth = new DateTime(now.Year, now.Month, 1);
                                 var DaysInMonth = DateTime.DaysInMonth(now.Year, now.Month);
                                 var lastDay = new DateTime(now.Year, now.Month, DaysInMonth);
-                                pr.FPPeriodicReport(0, startOfMonth, lastDay);                                
+                                pr.FPPeriodicReport(0, startOfMonth, lastDay);
                                 pr.setFPCplCutter(false);
                                 //}
                                 //logger.Trace("print periodic report");
@@ -715,14 +730,17 @@ namespace PrintFP.Primary
                             using (var pr = getProtocol(_focusA, initRow))
                             {
                                 PapStat papstat;
-                                try
+
+                                if (initRow.Version.ToUpper() == "ЕП-11".ToUpper())
                                 {
-                                    if (initRow.Version.ToUpper() == "ЕП-11".ToUpper())
-                                    {
-                                        var returnedInfo = pr.FPLineFeed();                                       
-                                    }
+                                    //for (int x = 0; x < 3; x++)
+                                        try
+                                        {
+                                            pr.FPLineFeed();
+                                        }
+                                        catch { };
                                 }
-                                catch { };
+
                                 updateInitTable(_focusA, initRow, pr, out papstat);
                             }
                         }
@@ -773,7 +791,7 @@ namespace PrintFP.Primary
                 DateTime today = DateTime.Now.AddSeconds(initRow.DeltaTime.GetValueOrDefault());
                 //при проблеме с датой обнуляем время и ждем пока не прийдет наш час.
                 TimeSpan ts = today - timeIn;
-                if ((ts.TotalDays < 0)&&(!status.sessionIsOpened))
+                if ((ts.TotalDays < 0) && (!status.sessionIsOpened))
                 {
                     if (Math.Abs(Math.Round(ts.TotalDays)) >= 1)
                     {
@@ -781,7 +799,7 @@ namespace PrintFP.Primary
                     }
                 }
 
-                    papstatus = pr.papStat;
+                papstatus = pr.papStat;
 
                 if (papstatus != null)
                 {
@@ -808,7 +826,7 @@ namespace PrintFP.Primary
             }
 
 
-            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+           _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
 
             return status;
         }
@@ -1250,7 +1268,7 @@ namespace PrintFP.Primary
                 _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
             }
 
-            if (((operation.Operation == 12)||(operation.Operation == 39)) && (!status.sessionIsOpened))
+            if (((operation.Operation == 12) || (operation.Operation == 39)) && (!status.sessionIsOpened))
             {
                 logger.Trace("FPNullCheck");
                 pr.FPNullCheck();

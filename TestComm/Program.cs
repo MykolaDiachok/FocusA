@@ -67,19 +67,48 @@ namespace TestComm
 
             //return;
 
-            //20160426163835
-            //4001 = 10011172 
-            //4002 = 10011171 
-            //4003 = 10014223 
+
+            //10013289 - 192.168.254.184:4003
+            //10013294 - 192.168.254.2:4001
 
             //byteHelper = new ByteHelper();
             //ConsecutiveNumber = 1;
-            int fpnumber = 0;
-            string server = "10.143.6.1";
-            int port = 4002;
+            //int fpnumber = 0;
+            //string server = "192.168.254.184";
+            //int port = 4003;
 
             ////string setDataServer = SearchServer("10011171");
-            BaseProtocol pr = SingletonProtocol.Instance(server, port, fpnumber).GetProtocols();
+            //BaseProtocol pr = SingletonProtocol.Instance(1,0).GetProtocols();
+            Console.WriteLine("Begin set protocol");
+            BaseProtocol pr = new Protocol_EP06(new DefaultPortCom(1),1);
+            Console.WriteLine("End set protocol");
+            var st = pr.status;
+            Console.WriteLine(st.VersionOfSWOfECR);
+            Console.WriteLine(st.fiscalNumber);
+            Console.WriteLine(st.fiscalNumber);
+            pr.FPNullCheck();
+            pr.FPPeriodicReport(0, new DateTime(2016, 8, 1, 0, 0, 0), new DateTime(2016, 8, 19, 23, 59, 59));
+            pr.FPPeriodicReportShort(0, new DateTime(2016, 8, 1, 0, 0, 0), new DateTime(2016, 8, 19, 23, 59, 59));
+            var B2 = pr.FPSaleEx(1, 0, false, 670, 2, false, "БатХл8Дор400г", 464);
+            var discount = pr.Discount(FPDiscount.AbsoluteDiscountMarkupAtIntermediateSum, 75,"");
+            var com = pr.FPCommentLine("ЗНИЖКА: -0.75");
+            var p3 = pr.FPPayment(3, 600, true, true);
+            var s = pr.FPOpenBox(200);
+            var x = pr.FPDayReport(0);
+            pr.FPDayClrReport(0);
+            //var taxes = pr.FPGetTaxRate();
+            //var newTaxes = new Taxes();
+            //newTaxes.TaxA = new Tax(128,1,2000,0,false,false);
+            //newTaxes.TaxB = new Tax(129, 2, 0, 0, false, false);
+            //newTaxes.TaxC = new Tax(130, 3, 0, 0, false, false);
+            //newTaxes.TaxD = new Tax(131, 4, 700, 0, false, false);
+            //newTaxes.ChargeRateOfGroupЕ = 0;
+            //newTaxes.MaxGroup = 4;
+            //newTaxes.quantityOfDecimalDigitsOfMoneySum = 2;
+            //newTaxes.ToProgramChargeRates = false;
+            //newTaxes.VAT = false;
+            //var stSetTax = pr.FPSetTaxRate(0, newTaxes);
+            //var taxes1 = pr.FPGetTaxRate();
             ////pr.setTime(0, 1, 1);
             //DateTime dt = pr.fpDateTime;
             //for (int x = 0; x < 3; x++)
@@ -89,119 +118,122 @@ namespace TestComm
             //    pr.FPDayReport(0);
             //}
             //pr.FPCashIn(5000);
-            pr.FPDayClrReport(0);
+            //pr.FPDayReport(0);
+            //pr.FPDayClrReport(0);
+            //for (int x = 0; x < 3; x++)
+            //    pr.FPLineFeed();
             return;
-            using (DataClassesFocusADataContext focus = new DataClassesFocusADataContext())
-            {
+            //using (DataClassesFocusADataContext focus = new DataClassesFocusADataContext())
+            //{
 
 
-                //var st1 = pr.status;
+            //    //var st1 = pr.status;
 
-                //var tmp = pr.GetMemmory(0x3000, 16, 1);
-
-
-                var st = pr.status;
-                //var bbb = pr.dayReport;
-                //var ddd = pr.FPDayReport();
-                //var st2 = pr.status;
-                //pr.FPRegisterCashier(0, "Yoda");
-                //var st3 = pr.status;
-                //pr.FPCashIn(30000);
-                //var st4 = pr.status;
-                //pr.FPCashOut(30000);
-                //bool i = true;
-                Table<tbl_ComInit> tbl_ComInit = focus.GetTable<tbl_ComInit>();
-                tbl_ComInit init = new tbl_ComInit()
-                {
-
-                    CompName = "FOCUS-A",
-                    Port = 0,
-                    Init = true,
-                    Error = true,
-                    WorkOff = false,
-                    auto = true,
-                    FPNumber = 867,
-                    RealNumber = "10014209",
-                    SerialNumber = st.serialNumber,
-                    DateTimeBegin = long.Parse(DateTime.Now.ToString("yyyyMMdd") + "000000"),
-                    //DateTimeBegin = 20160506220746,
-                    DateTimeStop = long.Parse(DateTime.Now.ToString("yyyyMMdd") + "235959"),
-                    DeltaTime = -600,
-                    DataServer = "172.22.30.124",
-                    DataBaseName = "CashDesk_OS",
-                    MinSumm = 0,
-                    MaxSumm = Int32.MaxValue,
-                    TypeEvery = false,
-                    PrintEvery = 0,
-                    MoxaIP = server,
-                    MoxaPort = port,
-                    Version = st.VersionOfSWOfECR
-                };
-                focus.tbl_ComInits.InsertOnSubmit(init);
-                focus.SubmitChanges();
-
-                //tbl_Operation op = new tbl_Operation
-                //{
-                //    Operation=39,
-                //    DateTime = 20160427193730,
-                //    CurentDateTime = DateTime.Now,
-                //    DateTimeCreate = DateTime.Now,
-                //    FPNumber = int.Parse(st.serialNumber),
-                //    InWork = false,
-                //    Closed =false,
-                //    Error=false,
-                //    Disable=false
-                //};
-                //focus.tbl_Operations.InsertOnSubmit(op);
-                //focus.SubmitChanges();
-                //var dayReport = pr.dayReport;
-
-                //pr.FPResetOrder();
-                //var A = pr.FPSaleEx(1, 0, false, 2000, 0, false, "tA", 450);
-
-                //var discount = pr.Discount(FPDiscount.AbsoluteDiscountMarkupAtIntermediateSum, 100, "Bonus");
-                ////var E = pr.FPSaleEx(1, 0, false, 50000, 5, false, "tE", 464);
-                ////var F = pr.FPSaleEx(1, 0, false, 60000, 6, false, "tF", 465);
-
-                //var p3 = pr.FPPayment(3, 5000, true, true);
-
-                //var _A = pr.FPPayMoneyEx(1, 0, false, 100, 0, false, "tA", 450);
-                //var _B = pr.FPPayMoneyEx(1, 0, false, 100, 1, false, "tB", 451);
-                //var _C = pr.FPPayMoneyEx(1, 0, false, 100, 2, false, "tC", 452);
-                //var _D = pr.FPPayMoneyEx(1, 0, false, 100, 3, false, "tD", 453);
-                ////var E = pr.FPSaleEx(1, 0, false, 50000, 5, false, "tE", 464);
-                ////var F = pr.FPSaleEx(1, 0, false, 60000, 6, false, "tF", 465);
-                //var _p0 = pr.FPPayment(0, 1, false, true);
-                //var _p1 = pr.FPPayment(1, 2, false, true);
-                //var _p2 = pr.FPPayment(2, 3, false, true);
-                //var _p4 = pr.FPPayment(4, 4, false, true);
-                //var _p5 = pr.FPPayment(5, 5, false, true);
-                //var _p6 = pr.FPPayment(6, 6, false, true);
-                //var _p7 = pr.FPPayment(7, 7, false, true);
-                //var _p8 = pr.FPPayment(8, 8, false, true);
-                //var _p9 = pr.FPPayment(9, 9, false, true);
-                //var _p3 = pr.FPPayment(3, 500, true, true);
+            //    //var tmp = pr.GetMemmory(0x3000, 16, 1);
 
 
-                ////pr.FPDayClrReport();
-                //var tmp  = pr.GetMemmory(0x301D, 16, 80);
-                //var tmp1 = pr.GetMemmory(0x3079, 16, 80);
-                //var tmp2 = pr.GetMemmory(0x2A, 0, 2);
+            //    //var st = pr.status;
+            //    //var bbb = pr.dayReport;
+            //    //var ddd = pr.FPDayReport();
+            //    //var st2 = pr.status;
+            //    //pr.FPRegisterCashier(0, "Yoda");
+            //    //var st3 = pr.status;
+            //    //pr.FPCashIn(30000);
+            //    //var st4 = pr.status;
+            //    //pr.FPCashOut(30000);
+            //    //bool i = true;
+            //    Table<tbl_ComInit> tbl_ComInit = focus.GetTable<tbl_ComInit>();
+            //    tbl_ComInit init = new tbl_ComInit()
+            //    {
 
-                ////var tmp = pr.GetMemmory()
-                //var tstatus = pr.dayReport;
-                //var ts = pr.getDayReport(false);
-                //pr.setFPCplCutter(false);
-                //pr.FPNullCheck();
-                //pr.FPDayClrReport();
-                pr.Dispose();
+            //        CompName = "FOCUS-A",
+            //        Port = 0,
+            //        Init = true,
+            //        Error = true,
+            //        WorkOff = false,
+            //        auto = true,
+            //        FPNumber = 867,
+            //        RealNumber = "10014209",
+            //        SerialNumber = st.serialNumber,
+            //        DateTimeBegin = long.Parse(DateTime.Now.ToString("yyyyMMdd") + "000000"),
+            //        //DateTimeBegin = 20160506220746,
+            //        DateTimeStop = long.Parse(DateTime.Now.ToString("yyyyMMdd") + "235959"),
+            //        DeltaTime = -600,
+            //        DataServer = "172.22.30.124",
+            //        DataBaseName = "CashDesk_OS",
+            //        MinSumm = 0,
+            //        MaxSumm = Int32.MaxValue,
+            //        TypeEvery = false,
+            //        PrintEvery = 0,
+            //        MoxaIP = server,
+            //        MoxaPort = port,
+            //        Version = st.VersionOfSWOfECR
+            //    };
+            //    focus.tbl_ComInits.InsertOnSubmit(init);
+            //    focus.SubmitChanges();
 
-                Console.WriteLine("Enter....");
-                Console.ReadKey();
+            //    //tbl_Operation op = new tbl_Operation
+            //    //{
+            //    //    Operation=39,
+            //    //    DateTime = 20160427193730,
+            //    //    CurentDateTime = DateTime.Now,
+            //    //    DateTimeCreate = DateTime.Now,
+            //    //    FPNumber = int.Parse(st.serialNumber),
+            //    //    InWork = false,
+            //    //    Closed =false,
+            //    //    Error=false,
+            //    //    Disable=false
+            //    //};
+            //    //focus.tbl_Operations.InsertOnSubmit(op);
+            //    //focus.SubmitChanges();
+            //    //var dayReport = pr.dayReport;
+
+            //    //pr.FPResetOrder();
+            //    //var A = pr.FPSaleEx(1, 0, false, 2000, 0, false, "tA", 450);
+
+            //    //var discount = pr.Discount(FPDiscount.AbsoluteDiscountMarkupAtIntermediateSum, 100, "Bonus");
+            //    ////var E = pr.FPSaleEx(1, 0, false, 50000, 5, false, "tE", 464);
+            //    ////var F = pr.FPSaleEx(1, 0, false, 60000, 6, false, "tF", 465);
+
+            //    //var p3 = pr.FPPayment(3, 5000, true, true);
+
+            //    //var _A = pr.FPPayMoneyEx(1, 0, false, 100, 0, false, "tA", 450);
+            //    //var _B = pr.FPPayMoneyEx(1, 0, false, 100, 1, false, "tB", 451);
+            //    //var _C = pr.FPPayMoneyEx(1, 0, false, 100, 2, false, "tC", 452);
+            //    //var _D = pr.FPPayMoneyEx(1, 0, false, 100, 3, false, "tD", 453);
+            //    ////var E = pr.FPSaleEx(1, 0, false, 50000, 5, false, "tE", 464);
+            //    ////var F = pr.FPSaleEx(1, 0, false, 60000, 6, false, "tF", 465);
+            //    //var _p0 = pr.FPPayment(0, 1, false, true);
+            //    //var _p1 = pr.FPPayment(1, 2, false, true);
+            //    //var _p2 = pr.FPPayment(2, 3, false, true);
+            //    //var _p4 = pr.FPPayment(4, 4, false, true);
+            //    //var _p5 = pr.FPPayment(5, 5, false, true);
+            //    //var _p6 = pr.FPPayment(6, 6, false, true);
+            //    //var _p7 = pr.FPPayment(7, 7, false, true);
+            //    //var _p8 = pr.FPPayment(8, 8, false, true);
+            //    //var _p9 = pr.FPPayment(9, 9, false, true);
+            //    //var _p3 = pr.FPPayment(3, 500, true, true);
+
+
+            //    ////pr.FPDayClrReport();
+            //    //var tmp  = pr.GetMemmory(0x301D, 16, 80);
+            //    //var tmp1 = pr.GetMemmory(0x3079, 16, 80);
+            //    //var tmp2 = pr.GetMemmory(0x2A, 0, 2);
+
+            //    ////var tmp = pr.GetMemmory()
+            //    //var tstatus = pr.dayReport;
+            //    //var ts = pr.getDayReport(false);
+            //    //pr.setFPCplCutter(false);
+            //    //pr.FPNullCheck();
+            //    //pr.FPDayClrReport();
+            //    pr.Dispose();
+
+            //    Console.WriteLine("Enter....");
+            //    Console.ReadKey();
 
 
 
-            }
+            //}
 
 
         }

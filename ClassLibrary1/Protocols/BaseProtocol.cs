@@ -588,7 +588,7 @@ namespace CentralLib.Protocols
             {
                 connFP.Close();
             }
-            if ((tPr == "ЕП-11")||(tPr == "ЕП-09"))
+            if ((tPr == "ЕП-11")||(tPr == "ЕП-09")||(tPr == "MG-08"))
             {
                 this.useCRC16 = true;
                 this.currentProtocol = WorkProtocol.EP11;

@@ -1,0 +1,27 @@
+﻿@section Scripts{
+    <script src="~/Scripts/angular.min.js"></script>
+    }
+<div >
+    <script type="text/javascript">
+        var app = angular.module('myApp', []);
+        app.controller('MyCtrl', function ($scope, $http) {
+            $http.get('/api/tbl_ComInit').success(function (data) {
+                $scope.products = data;
+            });
+        });
+    </script>
+
+
+    <div class="jumbotron">
+        Init table
+
+    </div>
+
+   
+
+
+    <div class="row" ng-app="myApp" ng-controller="MyCtrl">
+        {{fpnumber}}
+    </div>
+
+</div>
