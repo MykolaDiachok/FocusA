@@ -19,31 +19,31 @@ namespace Tools
             bool automatic = false;
             string fpnumber="";
             int setFPnumber=0;
-            int setRealNumber = 0;
-            string setDataServer = "";
-            string setDataBaseName = "";
+            int setRealNumber = 412;
+            string setDataServer = "chameleonserver";
+            string setDataBaseName = "chameleonserver";
 
-            var os = new OptionSet()
-               .Add("fp|fpnumber=", "Set fpnumber", fp => fpnumber = fp)
-               .Add("rn|realnumber=", "Set real number", rn => setRealNumber = int.Parse(rn))
-               .Add("a|auto", "automatic service mode", a => automatic = a != null)
-               .Add("sr|server=", "set server name, if not set - system will take current system server name", s => setDataServer = s)
-               .Add("db|database=", "set data base name", db => setDataBaseName = db)
-               .Add("?|h|help", "show help", h => showHelp = h != null);
-            try
-            {
-                var p = os.Parse(args);
-                if (showHelp)
-                    DisplayHelp(os);
-                setFPnumber = int.Parse(fpnumber);
-            }
-            catch (Exception e)
-            {
-                logger.Error(e.Message);
-                logger.Info("Try '--help' for more information.");
-                DisplayHelp(os);
-                return;
-            }
+            //var os = new OptionSet()
+            //   .Add("fp|fpnumber=", "Set fpnumber", fp => fpnumber = fp)
+            //   .Add("rn|realnumber=", "Set real number", rn => setRealNumber = int.Parse(rn))
+            //   .Add("a|auto", "automatic service mode", a => automatic = a != null)
+            //   .Add("sr|server=", "set server name, if not set - system will take current system server name", s => setDataServer = s)
+            //   .Add("db|database=", "set data base name", db => setDataBaseName = db)
+            //   .Add("?|h|help", "show help", h => showHelp = h != null);
+            //try
+            //{
+            //    var p = os.Parse(args);
+            //    if (showHelp)
+            //        DisplayHelp(os);
+            //    setFPnumber = int.Parse(fpnumber);
+            //}
+            //catch (Exception e)
+            //{
+            //    logger.Error(e.Message);
+            //    logger.Info("Try '--help' for more information.");
+            //    DisplayHelp(os);
+            //    return;
+            //}
 
 
             
@@ -53,7 +53,7 @@ namespace Tools
             bool typeEvery = false;
             int printEvery = 10;
             string ip = "192.168.255.132";
-            int ipPort = 4008;
+            int ipPort = 4012;
             using (DataClassesFocusADataContext focusA = new DataClassesFocusADataContext())
             {
                 

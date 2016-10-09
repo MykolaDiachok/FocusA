@@ -35,8 +35,8 @@ namespace TestComm
         static void Main(string[] args)
         {
             //printPeriodicReport();
-            //AddFPAttika();
-            //return;
+            AddFPAttika();
+            return;
 
             //DateTime infpDT = new DateTime(2016,06,10,22,54,00).AddSeconds(-600);
             //DateTime today = DateTime.Now.AddSeconds(-600);
@@ -78,24 +78,26 @@ namespace TestComm
             //int port = 4003;
 
             ////string setDataServer = SearchServer("10011171");
-            //BaseProtocol pr = SingletonProtocol.Instance(1,0).GetProtocols();
-            Console.WriteLine("Begin set protocol");
-            BaseProtocol pr = new Protocol_EP06(new DefaultPortCom(1),1);
-            Console.WriteLine("End set protocol");
-            var st = pr.status;
-            Console.WriteLine(st.VersionOfSWOfECR);
-            Console.WriteLine(st.fiscalNumber);
-            Console.WriteLine(st.fiscalNumber);
-            pr.FPNullCheck();
-            pr.FPPeriodicReport(0, new DateTime(2016, 8, 1, 0, 0, 0), new DateTime(2016, 8, 19, 23, 59, 59));
-            pr.FPPeriodicReportShort(0, new DateTime(2016, 8, 1, 0, 0, 0), new DateTime(2016, 8, 19, 23, 59, 59));
-            var B2 = pr.FPSaleEx(1, 0, false, 670, 2, false, "БатХл8Дор400г", 464);
-            var discount = pr.Discount(FPDiscount.AbsoluteDiscountMarkupAtIntermediateSum, 75,"");
-            var com = pr.FPCommentLine("ЗНИЖКА: -0.75");
-            var p3 = pr.FPPayment(3, 600, true, true);
-            var s = pr.FPOpenBox(200);
-            var x = pr.FPDayReport(0);
-            pr.FPDayClrReport(0);
+            BaseProtocol pr = SingletonProtocol.Instance("192.168.254.180", 4007, 10001264).GetProtocols();
+            var status = pr.getStatus();
+
+            //Console.WriteLine("Begin set protocol");
+            //BaseProtocol pr = new Protocol_EP06(new DefaultPortCom(1),1);
+            //Console.WriteLine("End set protocol");
+            //var st = pr.status;
+            //Console.WriteLine(st.VersionOfSWOfECR);
+            //Console.WriteLine(st.fiscalNumber);
+            //Console.WriteLine(st.fiscalNumber);
+            //pr.FPNullCheck();
+            //pr.FPPeriodicReport(0, new DateTime(2016, 8, 1, 0, 0, 0), new DateTime(2016, 8, 19, 23, 59, 59));
+            //pr.FPPeriodicReportShort(0, new DateTime(2016, 8, 1, 0, 0, 0), new DateTime(2016, 8, 19, 23, 59, 59));
+            //var B2 = pr.FPSaleEx(1, 0, false, 670, 2, false, "БатХл8Дор400г", 464);
+            //var discount = pr.Discount(FPDiscount.AbsoluteDiscountMarkupAtIntermediateSum, 75,"");
+            //var com = pr.FPCommentLine("ЗНИЖКА: -0.75");
+            //var p3 = pr.FPPayment(3, 600, true, true);
+            //var s = pr.FPOpenBox(200);
+            //var x = pr.FPDayReport(0);
+            //pr.FPDayClrReport(0);
             //var taxes = pr.FPGetTaxRate();
             //var newTaxes = new Taxes();
             //newTaxes.TaxA = new Tax(128,1,2000,0,false,false);
@@ -243,8 +245,8 @@ namespace TestComm
         {
             //ConsecutiveNumber = 1;
             int fpnumber = 0;
-            string server = "192.168.255.132";
-            int port = 4010;
+            string server = "192.168.254.4";
+            int port = 4012;
 
             ////string setDataServer = SearchServer("10011171");
             BaseProtocol pr = SingletonProtocol.Instance(server, port, fpnumber).GetProtocols();
@@ -263,7 +265,7 @@ namespace TestComm
                     WorkOff = false,
                     auto = true,
                     FPNumber = int.Parse(st.serialNumber),
-                    RealNumber = "867",
+                    RealNumber = "412",
                     SerialNumber = st.serialNumber,
                     DateTimeBegin = long.Parse(DateTime.Now.ToString("yyyyMMdd") + "000000"),
                     //DateTimeBegin = 20160506220746,
