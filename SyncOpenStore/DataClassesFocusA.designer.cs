@@ -3859,6 +3859,10 @@ namespace SyncOpenStore
 		
 		private string _DiscountComment;
 		
+		private System.Nullable<bool> _GiftCard;
+		
+		private System.Nullable<int> _GiftSum;
+		
 		private EntitySet<tbl_SALE> _tbl_SALEs;
 		
     #region Extensibility Method Definitions
@@ -3947,6 +3951,10 @@ namespace SyncOpenStore
     partial void OnDiscountChanged();
     partial void OnDiscountCommentChanging(string value);
     partial void OnDiscountCommentChanged();
+    partial void OnGiftCardChanging(System.Nullable<bool> value);
+    partial void OnGiftCardChanged();
+    partial void OnGiftSumChanging(System.Nullable<int> value);
+    partial void OnGiftSumChanged();
     #endregion
 		
 		public tbl_Payment()
@@ -4771,6 +4779,46 @@ namespace SyncOpenStore
 					this._DiscountComment = value;
 					this.SendPropertyChanged("DiscountComment");
 					this.OnDiscountCommentChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_GiftCard", DbType="Bit")]
+		public System.Nullable<bool> GiftCard
+		{
+			get
+			{
+				return this._GiftCard;
+			}
+			set
+			{
+				if ((this._GiftCard != value))
+				{
+					this.OnGiftCardChanging(value);
+					this.SendPropertyChanging();
+					this._GiftCard = value;
+					this.SendPropertyChanged("GiftCard");
+					this.OnGiftCardChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_GiftSum", DbType="Int")]
+		public System.Nullable<int> GiftSum
+		{
+			get
+			{
+				return this._GiftSum;
+			}
+			set
+			{
+				if ((this._GiftSum != value))
+				{
+					this.OnGiftSumChanging(value);
+					this.SendPropertyChanging();
+					this._GiftSum = value;
+					this.SendPropertyChanged("GiftSum");
+					this.OnGiftSumChanged();
 				}
 			}
 		}

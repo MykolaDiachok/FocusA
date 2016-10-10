@@ -285,6 +285,28 @@ namespace SyncOpenStore.DBHelper
                                && root.CLNTID == header.CLNTID
                                select root).FirstOrDefault();
 
+                    bool giftCard=false;
+                    int giftSum = 0;
+                    var SALESH9_0 = (from headers2 in OS.GetTable<SALE>()
+                                     where headers2.PACKNAME == sRealNumber
+                                     && (((headers2.SALESBARC.Substring(0, 3) == "291")|| (headers2.SALESBARC.Substring(0, 3) == "029")) && (headers2.SALESBARC.Length == 14))
+                                     && headers2.SALESTAG == 1
+                                     && headers2.SALESTYPE == 1
+                                     && headers2.DELFLAG == 0
+                                     && headers2.SESSID == header.SESSID
+                                     && headers2.SALESTIME == header.SALESTIME
+                                     && headers2.SYSTEMID == header.SYSTEMID
+                                     && headers2.SAREAID == header.SAREAID
+                                     && headers2.FRECNUM == header.FRECNUM
+                                     && headers2.SRECNUM == header.SRECNUM
+                                     select headers2
+                                         ).Sum(x => x.SALESSUM);
+                    if (SALESH9_0 != 0)
+                    {
+                        giftCard = true;
+                        giftSum = Convert.ToInt32(SALESH9_0);
+                    };
+
                     tbl_Payment newpay = new tbl_Payment()
                     {
                         DATETIME = Int64.Parse(header.SALESTIME),
@@ -310,7 +332,10 @@ namespace SyncOpenStore.DBHelper
                         Comment = "",
                         CommentUp = "Касса N " + header.SYSTEMID.ToString(),
                         Discount = Convert.ToInt32(header.SALESDISC),
-                        DiscountComment = ""
+                        DiscountComment = "",
+                        GiftCard = giftCard,
+                        GiftSum = giftSum
+
 
                     };
                     string accOPENTIME = acc == null ? DateTime.Now.ToString("yyyyMMddHHmmss") : acc.OPENTIME.ToString();

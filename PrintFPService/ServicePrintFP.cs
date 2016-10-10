@@ -63,7 +63,7 @@ namespace PrintFPService
                 logger.Trace("Next step 1");
                 var os = new OptionSet()
                         .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumbers.Add(int.Parse(a)))
-                       .Add("cn|compname=", "set computer name", cn => compname = cn);
+                       .Add("sr|servername=", "set computer name", sr => compname = sr);
                 try
                 {
                     var p = os.Parse(args);
@@ -88,7 +88,7 @@ namespace PrintFPService
 
                 var os = new OptionSet()
                         .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumbers.Add(int.Parse(a)))
-                       .Add("cn|compname=", "set computer name", cn => compname = cn);
+                       .Add("sr|servername=", "set computer name", sr => compname = sr);
                 try
                 {
                     var p = os.Parse(this.args);
@@ -207,7 +207,7 @@ namespace PrintFPService
 
                     if (!listApp.ContainsKey(rowinit.FPNumber.GetValueOrDefault()))//(listApp[rowinit.FPNumber.GetValueOrDefault()]==null)
                     {                       
-                        StartApp newApp = new StartApp(Guid.NewGuid(), new string[] { string.Format("--fp={0}", rowinit.FPNumber) });
+                        StartApp newApp = new StartApp(Guid.NewGuid(), new string[] {$"--fp={rowinit.FPNumber}", $"--sr={compname}" });
                         listApp.Add(rowinit.FPNumber.GetValueOrDefault(), newApp);
                         newApp.OnStart();
                         Thread.Sleep(500);
@@ -433,11 +433,12 @@ namespace PrintFPService
         //    eventLog1.WriteEntry("On init:" + fpnumber, EventLogEntryType.Information);
         //}
 
-        public StartApp(Guid inGuid, int inFPNumber)
+        public StartApp(Guid inGuid, int inFPNumber, string incompname)
         {
             appGuid = inGuid;
-            fpnumber = inFPNumber.ToString();
-            FPNumber = inFPNumber;
+            this.fpnumber = inFPNumber.ToString();
+            this.FPNumber = inFPNumber;
+            this.compname = incompname;
             NLog.GlobalDiagnosticsContext.Set("FPNumber", fpnumber);
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             // baseInit();
@@ -452,7 +453,7 @@ namespace PrintFPService
             //baseInit();
             var os = new OptionSet()
                 .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumber = a)
-                       .Add("cn|compname=", "set computer name", cn => compname = cn);
+                       .Add("sr|servername=", "set computer name", sr => compname = sr);
             try
             {
                 var p = os.Parse(args);
@@ -478,7 +479,7 @@ namespace PrintFPService
                 //UseShellExecute = false, // change value to false
                 UseShellExecute = false,
                 FileName = AppDomain.CurrentDomain.BaseDirectory + @"PrintFp.exe",
-                Arguments = string.Format("-a --fp={0} --g={1}", fpnumber, appGuid),
+                Arguments = $"-a --fp={fpnumber} --sr={compname} --g={appGuid}",
                 //RedirectStandardError = true,
                 //RedirectStandardInput = true,
                 //RedirectStandardOutput = true,

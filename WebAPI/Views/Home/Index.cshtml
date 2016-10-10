@@ -4,11 +4,11 @@
 <div >
     <script type="text/javascript">
         var app = angular.module('myApp', []);
-        app.controller('MyCtrl', function ($scope, $http) {
-            $http.get('/api/tbl_ComInit').success(function (data) {
-                $scope.products = data;
-            });
-        });
+        //app.controller('MyCtrl', function ($scope, $http) {
+        //    $http.get('/api/tbl_ComInit').success(function (data) {
+        //        this.products = data;
+        //    });
+        //});
     </script>
 
 
@@ -17,11 +17,8 @@
 
     </div>
 
-   
-
-
     <div class="row" ng-app="myApp" ng-controller="MyCtrl">
-        {{fpnumber}}
+        {{1+1}}
     </div>
 
 </div>

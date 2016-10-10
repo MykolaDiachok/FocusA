@@ -73,6 +73,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataClassesFocusA.cs">
+      <DependentUpon>DataClassesFocusA.dbml</DependentUpon>
+    </Compile>
     <Compile Include="DataClassesFocusA.designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

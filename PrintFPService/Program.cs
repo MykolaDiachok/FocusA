@@ -82,8 +82,8 @@ namespace PrintFPService
                        .Add("p|stop", "Stop service", p => stopService())
                        .Add("?|h|help", "Show this screen", h => showHelp = h != null)
                        .Add("d|debug", "Debug service", d => debugservice = d!=null)
-                       .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumbers.Add(int.Parse(a)))
-                       .Add("cn|compname=", "set computer name", cn => compname = cn);
+                       .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumbers.Add(int.Parse(a)))                       
+                        .Add("sr|servername=", "set server name", sr => compname = sr);
                 try
                 {
                     var p = os.Parse(args);
@@ -145,9 +145,9 @@ namespace PrintFPService
                 if (debugservice)
                 {
                     List<string> newargs = new List<string>();
-                    newargs.Add(string.Format("--cn={0}", compname));
+                    newargs.Add($"--sr={compname}");
                     foreach (var fpn in fpnumbers)
-                        newargs.Add(string.Format("--fp={0}", fpn));
+                        newargs.Add($"--fp={fpn}");
                     ServicePrintFP app = new ServicePrintFP();
                     app.onDebug(newargs.ToArray());
                     Console.WriteLine("For Stop - press \"Enter\" key!");
