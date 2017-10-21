@@ -1,74 +1,60 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 14.375, 13.75" name="DataClassesFocusA">
+<ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 14.75, 15.75" name="DataClassesFocusA">
   <DataContextMoniker Name="/DataClassesFocusADataContext" />
   <nestedChildShapes>
-    <classShape Id="9ee40c2a-d038-4408-8f1b-223e15263f73" absoluteBounds="7, 4, 2, 3.3093082682291666">
-      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_Operation" />
-      <nestedChildShapes>
-        <elementListCompartment Id="ca902544-fb11-486e-9f32-f489bb953ecb" absoluteBounds="7.015, 4.46, 1.9700000000000002, 2.7493082682291665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
-      </nestedChildShapes>
-    </classShape>
-    <classShape Id="f0f0e4f6-a2ef-4bf8-96d3-c717d05e07db" absoluteBounds="6.625, 0.625, 2, 3.1170068359375">
-      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_Cashier" />
-      <nestedChildShapes>
-        <elementListCompartment Id="2ac36a28-fa8e-48fa-907a-31db44d40bcd" absoluteBounds="6.64, 1.085, 1.9700000000000002, 2.5570068359375" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
-      </nestedChildShapes>
-    </classShape>
-    <associationConnector edgePoints="[(8.15625 : 3.7420068359375); (8.15625 : 4)]" fixedFrom="NotFixed" fixedTo="NotFixed">
-      <AssociationMoniker Name="/DataClassesFocusADataContext/tbl_Cashier/tbl_Cashier_tbl_Operation" />
-      <nodes>
-        <classShapeMoniker Id="f0f0e4f6-a2ef-4bf8-96d3-c717d05e07db" />
-        <classShapeMoniker Id="9ee40c2a-d038-4408-8f1b-223e15263f73" />
-      </nodes>
-    </associationConnector>
-    <classShape Id="b5bd4b4c-1131-43b0-8e43-6077c0f02df8" absoluteBounds="4.125, 3.375, 2, 8.3091455078125">
-      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_Payment" />
-      <nestedChildShapes>
-        <elementListCompartment Id="9b5f4b4e-9803-4e69-bb93-a2d3f7c0381f" absoluteBounds="4.14, 3.835, 1.9700000000000002, 7.7491455078125009" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
-      </nestedChildShapes>
-    </classShape>
-    <associationConnector edgePoints="[(6.125 : 10.6673404947917); (8 : 10.6673404947917); (8 : 7.30930826822917)]" fixedFrom="NotFixed" fixedTo="NotFixed">
-      <AssociationMoniker Name="/DataClassesFocusADataContext/tbl_Payment/tbl_Payment_tbl_Operation" />
-      <nodes>
-        <classShapeMoniker Id="b5bd4b4c-1131-43b0-8e43-6077c0f02df8" />
-        <classShapeMoniker Id="9ee40c2a-d038-4408-8f1b-223e15263f73" />
-      </nodes>
-    </associationConnector>
-    <classShape Id="5641946f-9101-4116-9f9b-4dac48183b6e" absoluteBounds="1.375, 2.375, 2, 6.9630354817708326">
+    <classShape Id="2747669d-3fb1-4e0a-89eb-6ec8088d56de" absoluteBounds="1.25, 1.5, 2, 7.3476383463541657">
       <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_SALE" />
       <nestedChildShapes>
-        <elementListCompartment Id="a2684bc0-2b9f-410d-bdcf-75c45e841b77" absoluteBounds="1.3899999999999997, 2.835, 1.9700000000000002, 6.403035481770833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+        <elementListCompartment Id="f119e877-497d-4e78-825c-ecc00ad8bc35" absoluteBounds="1.2650000000000001, 1.96, 1.9700000000000002, 6.7876383463541661" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <associationConnector edgePoints="[(4.125 : 6.35651774088542); (3.375 : 6.35651774088542)]" fixedFrom="NotFixed" fixedTo="NotFixed">
+    <classShape Id="985aac56-379f-4ff3-ae14-0fca438bf262" absoluteBounds="4.375, 3.875, 2, 9.0783512369791648">
+      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_Payment" />
+      <nestedChildShapes>
+        <elementListCompartment Id="0596c359-06fe-47a6-8cce-4e895ce20d86" absoluteBounds="4.39, 4.335, 1.9700000000000002, 8.5183512369791661" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <associationConnector edgePoints="[(4.375 : 6.36131917317708); (3.25 : 6.36131917317708)]" fixedFrom="Algorithm" fixedTo="Algorithm">
       <AssociationMoniker Name="/DataClassesFocusADataContext/tbl_Payment/tbl_Payment_tbl_SALE" />
       <nodes>
-        <classShapeMoniker Id="b5bd4b4c-1131-43b0-8e43-6077c0f02df8" />
-        <classShapeMoniker Id="5641946f-9101-4116-9f9b-4dac48183b6e" />
+        <classShapeMoniker Id="985aac56-379f-4ff3-ae14-0fca438bf262" />
+        <classShapeMoniker Id="2747669d-3fb1-4e0a-89eb-6ec8088d56de" />
       </nodes>
     </associationConnector>
-    <classShape Id="a81ad965-9e67-474b-8fe1-fcd8bb3ceb65" absoluteBounds="12.125, 5.375, 2, 8.1168440755208326">
-      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_ComInit" />
-      <nestedChildShapes>
-        <elementListCompartment Id="fba350f3-fa92-447b-8339-5383d513ff33" absoluteBounds="12.14, 5.835, 1.9700000000000002, 7.556844075520833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
-      </nestedChildShapes>
-    </classShape>
-    <classShape Id="7cd3419c-a963-4c8e-bede-6b017ec26df3" absoluteBounds="9.625, 0.75, 2, 2.9247054036458331">
-      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_CashIO" />
-      <nestedChildShapes>
-        <elementListCompartment Id="5a15f936-df28-4811-925d-dad4d01490d7" absoluteBounds="9.64, 1.21, 1.9700000000000002, 2.364705403645833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
-      </nestedChildShapes>
-    </classShape>
-    <classShape Id="a731b754-0e1c-486a-ad9b-2011aa08f7fe" absoluteBounds="9.5, 4.375, 2, 2.9247054036458331">
-      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_SyncDB" />
-      <nestedChildShapes>
-        <elementListCompartment Id="1a257c60-5b7f-4943-983d-c5d15133a0ed" absoluteBounds="9.515, 4.835, 1.9700000000000002, 2.364705403645833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
-      </nestedChildShapes>
-    </classShape>
-    <classShape Id="763255e7-c255-47b2-8e69-29f429880ffc" absoluteBounds="4.375, 0.875, 2, 2.1554996744791666">
+    <classShape Id="608719bf-5ebc-4ebd-906c-7d04f348de71" absoluteBounds="4.5, 1.125, 2, 2.1554996744791666">
       <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_SyncDBStatus" />
       <nestedChildShapes>
-        <elementListCompartment Id="8766529c-4a42-4877-802b-66d8716c43bb" absoluteBounds="4.39, 1.335, 1.9700000000000002, 1.5954996744791665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+        <elementListCompartment Id="08090a4c-e42b-4bf8-ad13-f9ae8288d1cc" absoluteBounds="4.515, 1.585, 1.9700000000000002, 1.5954996744791665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="47393503-8b2a-4748-815a-59ade2d6eab2" absoluteBounds="6.75, 0.5, 2, 3.1170068359375">
+      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_Cashier" />
+      <nestedChildShapes>
+        <elementListCompartment Id="c6522819-35a4-4ca4-9333-8fb6d31707ad" absoluteBounds="6.765, 0.96, 1.9700000000000002, 2.5570068359375" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="78e8d7c8-b460-4453-8ae3-e3cf5cf43e38" absoluteBounds="6.75, 4.25, 2, 3.6939111328124996">
+      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_Operation" />
+      <nestedChildShapes>
+        <elementListCompartment Id="c51ce52f-ed32-4c07-b546-071861f62e1b" absoluteBounds="6.765, 4.71, 1.9700000000000002, 3.1339111328125" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="b88e6cc6-5614-4a6e-9185-30f8aae92aab" absoluteBounds="9.25, 0.625, 2, 2.9247054036458331">
+      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_CashIO" />
+      <nestedChildShapes>
+        <elementListCompartment Id="e1b23103-c781-49be-8a8b-ebc29d16d366" absoluteBounds="9.265, 1.085, 1.9700000000000002, 2.364705403645833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="456bd2be-12dc-42a0-a240-fe68290b1af7" absoluteBounds="9.625, 4.5, 2, 2.9247054036458331">
+      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_SyncDB" />
+      <nestedChildShapes>
+        <elementListCompartment Id="21076103-5f2d-4d87-9d04-3c6b620f1125" absoluteBounds="9.64, 4.96, 1.9700000000000002, 2.364705403645833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="77dfea9e-f4ba-40f6-905b-3e9f318e798e" absoluteBounds="12.5, 7.25, 2, 8.3091455078125">
+      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_ComInit" />
+      <nestedChildShapes>
+        <elementListCompartment Id="93a1b991-f569-49cc-8765-996654d0f26a" absoluteBounds="12.515, 7.71, 1.9700000000000002, 7.7491455078125009" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
   </nestedChildShapes>

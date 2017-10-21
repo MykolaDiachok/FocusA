@@ -13,7 +13,7 @@ namespace SyncOpenStore
     {
         
         private static string fpnumber, server;
-        private static int FPnumber;
+        private static long FPnumber;
         private static Logger logger = LogManager.GetCurrentClassLogger();
         private static DateTime startJob;
         //private static System.Timers.Timer _timer;
@@ -37,7 +37,7 @@ namespace SyncOpenStore
             try
             {
                 var p = os.Parse(args);
-                FPnumber = int.Parse(fpnumber);
+                FPnumber = long.Parse(fpnumber);
             }
             catch (Exception e)
             {

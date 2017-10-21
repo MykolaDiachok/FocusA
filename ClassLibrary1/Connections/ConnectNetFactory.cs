@@ -17,7 +17,7 @@ namespace CentralLib.Connections
     public class ConnectNetFactory : IConnectFactory, IDisposable
     {
         private NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        private int FPNumber;
+        private Int64 FPNumber;
         public byte[] bytesBegin = { (byte)WorkByte.DLE, (byte)WorkByte.STX };
         public byte[] bytesEnd = { (byte)WorkByte.DLE, (byte)WorkByte.ETX };
 
@@ -46,7 +46,7 @@ namespace CentralLib.Connections
             }
         }
 
-        public ConnectNetFactory(string IpAdress, int port, int waiting, int inFPnumber)
+        public ConnectNetFactory(string IpAdress, int port, int waiting, Int64 inFPnumber)
         {
             this.FPNumber = inFPnumber;
             NLog.GlobalDiagnosticsContext.Set("FPNumber", inFPnumber);

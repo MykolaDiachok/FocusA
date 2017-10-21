@@ -16,7 +16,7 @@ namespace SyncOpenStore.DBHelper
     {
         private Logger logger = LogManager.GetCurrentClassLogger();
         public string inFpNumber { get; private set; }
-        public int iFPNumber { get; private set; }
+        public long iFPNumber { get; private set; }
         private bool automatic, manual;
         private static ManualResetEvent shutdownEvent;
         private System.Object lockThis = new System.Object();
@@ -26,7 +26,7 @@ namespace SyncOpenStore.DBHelper
             NLog.GlobalDiagnosticsContext.Set("FPNumber", inFpNumber);
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             this.inFpNumber = inFpNumber;
-            this.iFPNumber = int.Parse(inFpNumber);
+            this.iFPNumber = long.Parse(inFpNumber);
             this.automatic = automatic;
             this.manual = manual;
         }
@@ -118,7 +118,7 @@ namespace SyncOpenStore.DBHelper
                    && cominit.FPNumber == iFPNumber)
                     select cominit).FirstOrDefault();
 
-                if (init!=null)
+                if ((init!=null)&&(init.DataServer.ToString().Length>0))
                 {
                     //TODO TRY CATCH
                     string connstr = Properties.Settings.Default.CashDesk_OSConnectionString;

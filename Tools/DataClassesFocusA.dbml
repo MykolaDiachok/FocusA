@@ -15,54 +15,6 @@
       <Column Name="PrintEvery" Type="System.Int32" DbType="Int" CanBeNull="true" />
     </Type>
   </Table>
-  <Table Name="dbo.tbl_ART" Member="tbl_ARTs">
-    <Type Name="tbl_ART">
-      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="Code" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="ARTNAME" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
-      <Column Name="PackCode" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="PackGuid" Type="System.Guid" DbType="UniqueIdentifier" CanBeNull="true" />
-      <Column Name="NalogGroup" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="NameForCheck" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
-    </Type>
-  </Table>
-  <Table Name="dbo.tbl_SALES" Member="tbl_SALEs">
-    <Type Name="tbl_SALE">
-      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="NumPayment" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
-      <Column Name="DATETIME" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
-      <Column Name="FPNumber" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="SESSID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="SYSTEMID" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
-      <Column Name="SAREAID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="SORT" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
-      <Column Name="Type" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="FRECNUM" Type="System.String" DbType="NVarChar(30) NOT NULL" CanBeNull="false" />
-      <Column Name="SRECNUM" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
-      <Column Name="Amount" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="Amount_Status" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="IsOneQuant" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
-      <Column Name="Price" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="NalogGroup" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="MemoryGoodName" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
-      <Column Name="GoodName" Type="System.String" DbType="NVarChar(75) NOT NULL" CanBeNull="false" />
-      <Column Name="CommentUp" Type="System.String" DbType="NVarChar(27)" CanBeNull="true" />
-      <Column Name="CommentDown" Type="System.String" DbType="NVarChar(27)" CanBeNull="true" />
-      <Column Name="StrCode" Type="System.String" DbType="NChar(10) NOT NULL" CanBeNull="false" />
-      <Column Name="Error" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
-      <Column Name="ByteStatus" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="ByteResult" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="ByteReserv" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="Old_Price" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="packname" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="PackGuid" Type="System.Guid" DbType="UniqueIdentifier" CanBeNull="true" />
-      <Column Name="RowSum" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="FPSum" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="ForWork" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
-      <Column Name="discount" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="exchange" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
-    </Type>
-  </Table>
   <Table Name="dbo.tbl_ComInit" Member="tbl_ComInits">
     <Type Name="tbl_ComInit">
       <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
@@ -74,7 +26,7 @@
       <Column Name="auto" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
       <Column Name="ErrorCode" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="ErrorInfo" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
-      <Column Name="FPNumber" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="FPNumber" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
       <Column Name="RealNumber" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
       <Column Name="SerialNumber" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
       <Column Name="FiscalNumber" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
@@ -104,6 +56,56 @@
       <Column Name="DateTimeSyncDB" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="MoxaIP" Type="System.String" DbType="NVarChar(1024)" CanBeNull="true" />
       <Column Name="MoxaPort" Type="System.Int32" DbType="Int" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.tbl_ART" Member="tbl_ARTs">
+    <Type Name="tbl_ART">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="Code" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ARTNAME" Type="System.String" DbType="NVarChar(75)" CanBeNull="true" />
+      <Column Name="PackCode" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="PackGuid" Type="System.Guid" DbType="UniqueIdentifier" CanBeNull="true" />
+      <Column Name="NalogGroup" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="NameForCheck" Type="System.String" DbType="NVarChar(75)" CanBeNull="true" />
+      <Column Name="FPNumber" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+    </Type>
+  </Table>
+  <Table Name="dbo.tbl_SALES" Member="tbl_SALEs">
+    <Type Name="tbl_SALE">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="NumPayment" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="DATETIME" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="FPNumber" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="SESSID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="SYSTEMID" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="SAREAID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="SORT" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="Type" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="FRECNUM" Type="System.String" DbType="NVarChar(30) NOT NULL" CanBeNull="false" />
+      <Column Name="SRECNUM" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="Amount" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="Amount_Status" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="IsOneQuant" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="Price" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="NalogGroup" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="MemoryGoodName" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="GoodName" Type="System.String" DbType="NVarChar(75) NOT NULL" CanBeNull="false" />
+      <Column Name="CommentUp" Type="System.String" DbType="NVarChar(27)" CanBeNull="true" />
+      <Column Name="CommentDown" Type="System.String" DbType="NVarChar(27)" CanBeNull="true" />
+      <Column Name="StrCode" Type="System.String" DbType="NChar(10) NOT NULL" CanBeNull="false" />
+      <Column Name="Error" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="ByteStatus" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ByteResult" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ByteReserv" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Old_Price" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="packname" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="PackGuid" Type="System.Guid" DbType="UniqueIdentifier" CanBeNull="true" />
+      <Column Name="RowSum" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="FPSum" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ForWork" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="discount" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="exchange" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="DiscountComment" Type="System.String" DbType="NVarChar(25)" CanBeNull="true" />
     </Type>
   </Table>
 </Database>

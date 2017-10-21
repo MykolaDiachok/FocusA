@@ -12,7 +12,7 @@ namespace PrintFP
     {
         private static Logger logger = LogManager.GetCurrentClassLogger();
 
-        public static void setStatusFP(int FPnumber, string infoStatus)
+        public static void setStatusFP(long FPnumber, string infoStatus)
         {
             using (DataClasses1DataContext focusA = new DataClasses1DataContext())
             {

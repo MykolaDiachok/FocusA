@@ -617,6 +617,10 @@ namespace SyncOpenStore.DBHelper
                         else
                             rowPayment.Disable = true;
                     }
+                    if (index<=10)
+                    {
+                        rowPayment.Disable = false;
+                    }
                     if (!rowPayment.ForWork.GetValueOrDefault()) // если ТКС отменяем
                     {
                         rowPayment.Disable = true;

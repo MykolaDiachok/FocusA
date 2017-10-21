@@ -50,7 +50,7 @@ namespace SyncOpenStoreService
         {
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             string compname = "";
-            List<int> fpnumbers = new List<int>();
+            List<long> fpnumbers = new List<long>();
             List<string> databases = new List<string>();
             List<string> dataservers = new List<string>();
 
@@ -58,7 +58,7 @@ namespace SyncOpenStoreService
             {
                 logger.Trace("Next step 1");
                 var os = new OptionSet()
-                        .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumbers.Add(int.Parse(a)))
+                        .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumbers.Add(long.Parse(a)))
                        .Add("cn|compname=", "set computer name", cn => compname = cn)
                        .Add("ds|dataserver=", "set data server name", ds => dataservers.Add(ds))
                        .Add("db|database=", "set database name", db => databases.Add(db));
@@ -85,7 +85,7 @@ namespace SyncOpenStoreService
                 }
 
                 var os = new OptionSet()
-                        .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumbers.Add(int.Parse(a)))
+                        .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumbers.Add(long.Parse(a)))
                        .Add("cn|compname=", "set computer name", cn => compname = cn)
                        .Add("ds|dataserver=", "set data server name", ds => dataservers.Add(ds))
                        .Add("db|database=", "set database name", db => databases.Add(db));
@@ -121,9 +121,9 @@ namespace SyncOpenStoreService
 
     public class SmartApps
     {
-        private Dictionary<int, StartApp> listApp;
+        private Dictionary<long, StartApp> listApp;
         private string compname;
-        private List<int> fpnumbers = new List<int>();
+        private List<long> fpnumbers = new List<long>();
         private List<string> dataservers = new List<string>();
         private List<string> databases = new List<string>();
         private System.Timers.Timer _timer;
@@ -133,10 +133,10 @@ namespace SyncOpenStoreService
 
 
 
-        public SmartApps(string compname, List<int> fpnumbers, List<string> dataservers, List<string> databases)
+        public SmartApps(string compname, List<long> fpnumbers, List<string> dataservers, List<string> databases)
         {
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
-            listApp = new Dictionary<int, StartApp>();
+            listApp = new Dictionary<long, StartApp>();
             this.compname = compname;
             this.fpnumbers = fpnumbers;
             this.dataservers = dataservers;
@@ -191,7 +191,7 @@ namespace SyncOpenStoreService
                            && table.WorkOff != true
                            && table.auto == true
                            && table.CompName.ToLower() == compname.ToLower()
-                           && ((fpnumbers.Count > 0 && fpnumbers.Contains((int)table.FPNumber)) || fpnumbers.Count == 0)
+                           && ((fpnumbers.Count > 0 && fpnumbers.Contains((long)table.FPNumber)) || fpnumbers.Count == 0)
                            && ((dataservers.Count > 0 && dataservers.Contains(table.DataServer)) || dataservers.Count == 0)
                             && ((databases.Count > 0 && databases.Contains(table.DataBaseName)) || databases.Count == 0)
                            select table).ToList();
@@ -235,7 +235,7 @@ namespace SyncOpenStoreService
             using (DataClassesFocusADataContext _focusA = new DataClassesFocusADataContext())
             {
                 Table<tbl_ComInit> tblComInit = _focusA.GetTable<tbl_ComInit>();
-                List<int> forDelete = new List<int>();
+                List<long> forDelete = new List<long>();
                 foreach (var app in listApp)
                 {
                     tbl_ComInit comInit;
@@ -325,7 +325,7 @@ namespace SyncOpenStoreService
             {
                 var getApp = listApp
                     .Where(x => x.Value.Active() && x.Value.proccesId == theprocess.Id)
-                    .Select(e => (KeyValuePair<int, StartApp>?)e)
+                    .Select(e => (KeyValuePair<long, StartApp>?)e)
                     .FirstOrDefault();
                 if (getApp == null)
                 {
@@ -405,7 +405,7 @@ namespace SyncOpenStoreService
         private bool active;
         //private SyncHameleon.Postrgres post;
         public string fpnumber { get; private set; }
-        public int FPNumber { get; private set; }
+        public long FPNumber { get; private set; }
         public string compname { get; private set; }
         ///private System.Diagnostics.EventLog eventLog1;
 
@@ -422,7 +422,7 @@ namespace SyncOpenStoreService
         //    eventLog1.WriteEntry("On init:" + fpnumber, EventLogEntryType.Information);
         //}
 
-        public StartApp(Guid inGuid, int inFPNumber)
+        public StartApp(Guid inGuid, long inFPNumber)
         {
             appGuid = inGuid;
             fpnumber = inFPNumber.ToString();
@@ -446,7 +446,7 @@ namespace SyncOpenStoreService
             {
                 var p = os.Parse(args);
                 NLog.GlobalDiagnosticsContext.Set("FPNumber", fpnumber);
-                FPNumber = int.Parse(fpnumber);
+                FPNumber = long.Parse(fpnumber);
                 logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
                 //baseInit();
             }

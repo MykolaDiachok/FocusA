@@ -74,7 +74,7 @@ namespace PrintFPService
             {
 
                 bool showHelp = false;
-                List<int> fpnumbers = new List<int>();
+                List<Int64> fpnumbers = new List<Int64>();
                 var os = new OptionSet()
                        .Add("i|install", "Install service", i => installService())
                        .Add("u|uninstall", "Uninstall service", u => uninstallService())
@@ -82,7 +82,7 @@ namespace PrintFPService
                        .Add("p|stop", "Stop service", p => stopService())
                        .Add("?|h|help", "Show this screen", h => showHelp = h != null)
                        .Add("d|debug", "Debug service", d => debugservice = d!=null)
-                       .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumbers.Add(int.Parse(a)))                       
+                       .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumbers.Add(Int64.Parse(a)))                       
                         .Add("sr|servername=", "set server name", sr => compname = sr);
                 try
                 {

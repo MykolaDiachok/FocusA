@@ -41,5 +41,23 @@ namespace PrintFP.Properties {
                 return ((int)(this["TimerIntervalSec"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2017-09-03")]
+        public global::System.DateTime DateTimeStartReport {
+            get {
+                return ((global::System.DateTime)(this["DateTimeStartReport"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2017-09-20")]
+        public global::System.DateTime DateTimeEndReport {
+            get {
+                return ((global::System.DateTime)(this["DateTimeEndReport"]));
+            }
+        }
     }
 }

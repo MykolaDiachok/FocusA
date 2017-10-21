@@ -95,7 +95,7 @@ namespace DbHelperSQL
 		
 		private string _CompName;
 		
-		private int _FPNumber;
+		private long _FPNumber;
 		
 		private string _DataServer;
 		
@@ -121,7 +121,7 @@ namespace DbHelperSQL
     partial void OnidChanged();
     partial void OnCompNameChanging(string value);
     partial void OnCompNameChanged();
-    partial void OnFPNumberChanging(int value);
+    partial void OnFPNumberChanging(long value);
     partial void OnFPNumberChanged();
     partial void OnDataServerChanging(string value);
     partial void OnDataServerChanged();
@@ -186,8 +186,8 @@ namespace DbHelperSQL
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="Int NOT NULL")]
-		public int FPNumber
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="BigInt NOT NULL")]
+		public long FPNumber
 		{
 			get
 			{
@@ -397,7 +397,7 @@ namespace DbHelperSQL
 		
 		private string _CompName;
 		
-		private System.Nullable<int> _FPNumber;
+		private System.Nullable<long> _FPNumber;
 		
 		private string _DataServer;
 		
@@ -415,7 +415,7 @@ namespace DbHelperSQL
     partial void OnidChanged();
     partial void OnCompNameChanging(string value);
     partial void OnCompNameChanged();
-    partial void OnFPNumberChanging(System.Nullable<int> value);
+    partial void OnFPNumberChanging(System.Nullable<long> value);
     partial void OnFPNumberChanged();
     partial void OnDataServerChanging(string value);
     partial void OnDataServerChanged();
@@ -472,8 +472,8 @@ namespace DbHelperSQL
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="Int")]
-		public System.Nullable<int> FPNumber
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="BigInt")]
+		public System.Nullable<long> FPNumber
 		{
 			get
 			{
@@ -532,7 +532,7 @@ namespace DbHelperSQL
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Status", DbType="NVarChar(50)")]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Status", DbType="NVarChar(MAX)")]
 		public string Status
 		{
 			get

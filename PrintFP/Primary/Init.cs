@@ -17,7 +17,7 @@ namespace PrintFP.Primary
     {
         private Logger logger = LogManager.GetCurrentClassLogger();
         private string fpnumber, server;
-        private int FPnumber;
+        private long FPnumber;
         //private static MyEventLog eventLog1;
         private System.Object lockThis = new System.Object();
         private bool automatic, manual;
@@ -29,7 +29,7 @@ namespace PrintFP.Primary
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             //logger.Trace("Init");
             this.fpnumber = fpnumber;
-            this.FPnumber = int.Parse(fpnumber);
+            this.FPnumber = long.Parse(fpnumber);
             this.server = server;
             //eventLog1 = new MyEventLog(automatic, fpnumber);
             this.automatic = automatic;
@@ -80,7 +80,7 @@ namespace PrintFP.Primary
                     using (DataClasses1DataContext focus = new DataClasses1DataContext())
                     {
                         var rowinit = (from tinit in focus.GetTable<tbl_ComInit>()
-                                       where tinit.FPNumber == int.Parse(fpnumber)
+                                       where tinit.FPNumber == long.Parse(fpnumber)
                                        select tinit).FirstOrDefault();
                         if (rowinit == null || !rowinit.auto.GetValueOrDefault())
                         {
@@ -147,8 +147,8 @@ namespace PrintFP.Primary
                     //logger.Trace("start tbl_Operation");
                     Table<tbl_Operation> tableOperation = _focusA.GetTable<tbl_Operation>();
                     var operation = (from op in tableOperation
-                                     where op.FPNumber == (int)initRow.FPNumber
-                                     && !op.Closed && !(bool)op.Disable
+                                     where op.FPNumber == (long)initRow.FPNumber
+                                     && op.Closed!=true && op.Disable!=true
                                      //&& op.DateTime >= initRow.DateTimeBegin && op.DateTime <= initRow.DateTimeStop
                                      && op.DateTime >= getintDateTime(tBegin) && op.DateTime <= initRow.DateTimeStop
                                       && op.DateTime <= getintDateTime(worktime)
@@ -241,6 +241,7 @@ namespace PrintFP.Primary
                             }
                             else if (operation.Operation == 12) //check
                             {
+                                
                                 Table<tbl_Payment> tblPayment = _focusA.GetTable<tbl_Payment>();
                                 Table<tbl_SALE> tblSales = _focusA.GetTable<tbl_SALE>();
                                 var headCheck = (from table in tblPayment
@@ -324,6 +325,7 @@ namespace PrintFP.Primary
                                         rowCheck.Error = !pr.statusOperation;
                                         rowCheck.FPSum = suminfp - suminfpdisc;
                                         headCheck.FPSumm = SumAtReceipt;
+                                       
                                         var razn = (rowCheck.RowSum.GetValueOrDefault()) - (suminfp - suminfpdisc);
                                         if (Math.Abs(razn) > 5)
                                         {
@@ -390,6 +392,9 @@ namespace PrintFP.Primary
                                     headCheck.ByteResult = pr.ByteResult;
                                     headCheck.ByteStatus = pr.ByteStatus;
                                     headCheck.Error = !pr.statusOperation;
+                                    var dayreport = pr.dayReport;
+                                    headCheck.NumZReport = dayreport.CurrentNumberOfZReport;
+
                                     headCheck.CheckClose = true;
                                 }
                                 //logger.Trace("Check close #{0}", headCheck.id);
@@ -559,6 +564,8 @@ namespace PrintFP.Primary
                                     headCheck.ByteStatus = pr.ByteStatus;
                                     headCheck.Error = !pr.statusOperation;
                                     headCheck.CheckClose = true;
+                                    var dayreport = pr.dayReport;
+                                    headCheck.NumZReport = dayreport.CurrentNumberOfZReport;
                                 }
                                 //logger.Trace("Check close #{0}", headCheck.id);
                                 //pr.FPPayment();
@@ -581,7 +588,7 @@ namespace PrintFP.Primary
                             {
                                 //pr.
                                 pr.setFPCplCutter(true);
-
+                                pr.FPLineFeed();
                                 UInt32 rest = pr.GetMoneyInBox();
                                 if (rest != 0)
                                 {
@@ -622,7 +629,7 @@ namespace PrintFP.Primary
                                     _focusA.tbl_Operations.InsertOnSubmit(newop);
                                     _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
                                 }
-                                pr.FPDayReport();
+                                //pr.FPDayReport();
                                 var info = setInfo(pr, operation.Operation, operation.DateTime);
                                 var status = pr.status;
                                 if (!status.sessionIsOpened
@@ -661,7 +668,7 @@ namespace PrintFP.Primary
                                     }
                                 }
                                 PrintPeriodicReport(_focusA, pr);
-
+                                pr.FPLineFeed();
                                 pr.setFPCplCutter(false);
                                 deleteArt();
                             }
@@ -681,7 +688,7 @@ namespace PrintFP.Primary
                                 {
                                     var now = DateTime.Now;
                                     var startOfMonth = new DateTime(now.Year, now.Month, 1);
-                                    var lastDay = new DateTime(now.Year, now.Month, 10);
+                                    var lastDay = new DateTime(now.Year, now.Month, now.Day);
                                     pr.FPPeriodicReport(0, startOfMonth, lastDay);
                                 }
                                 pr.setFPCplCutter(false);
@@ -696,6 +703,31 @@ namespace PrintFP.Primary
                                 var DaysInMonth = DateTime.DaysInMonth(now.Year, now.Month);
                                 var lastDay = new DateTime(now.Year, now.Month, DaysInMonth);
                                 pr.FPPeriodicReport(0, startOfMonth, lastDay);
+                                pr.setFPCplCutter(false);
+                                //}
+                                //logger.Trace("print periodic report");
+                            }
+                            else if (operation.Operation == 42) //periodic report month
+                            {
+                                pr.setFPCplCutter(true);
+                                var now = DateTime.Now;
+                                var minusMonth = DateTime.Now.AddMonths(-1);
+                                var startOfReport = new DateTime(minusMonth.Year, minusMonth.Month, minusMonth.Day);
+                                var endOfReport = new DateTime(now.Year, now.Month, now.Day);                                
+                                pr.FPPeriodicReport(0, startOfReport, endOfReport);
+                                pr.setFPCplCutter(false);
+                                //}
+                                //logger.Trace("print periodic report");
+                            }
+                            else if (operation.Operation == 43) //periodic report date from config
+                            {
+
+                                pr.setFPCplCutter(true);
+                                var now = DateTime.Now;
+                                var minusMonth = DateTime.Now.AddMonths(-1);
+                                DateTime startOfReport = Properties.Settings.Default?.DateTimeStartReport ?? (DateTime.Now);
+                                DateTime endOfReport = Properties.Settings.Default?.DateTimeEndReport ?? (DateTime.Now);
+                                pr.FPPeriodicReport(0, startOfReport, endOfReport);
                                 pr.setFPCplCutter(false);
                                 //}
                                 //logger.Trace("print periodic report");
@@ -1045,7 +1077,7 @@ namespace PrintFP.Primary
             using (DataClasses1DataContext focusA = new DataClasses1DataContext())
             {
                 Table<tbl_ART> tbl_ART = focusA.GetTable<tbl_ART>();
-                tbl_ART.DeleteAllOnSubmit(tbl_ART.AsEnumerable().Where(r => r.FPNumber == int.Parse(fpnumber)).ToList());
+                tbl_ART.DeleteAllOnSubmit(tbl_ART.AsEnumerable().Where(r => r.FPNumber == long.Parse(fpnumber)).ToList());
                 focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
             }
         }
@@ -1108,6 +1140,8 @@ namespace PrintFP.Primary
             tOp.ByteReserv = pr.ByteReserv;
             tOp.ByteResult = pr.ByteResult;
             tOp.Error = !pr.statusOperation;
+            if (tOp.Error==true)
+                tOp.ErrorCounter= tOp.ErrorCounter + 1;
             if (pr.statusOperation)
                 tOp.Closed = true;
             tOp.InWork = true;
@@ -1141,7 +1175,7 @@ namespace PrintFP.Primary
 
             strByteStatus sStatus = pr.structStatus;
             //#if (!DEBUG)
-            //                            initRow.FPNumber = Int32.Parse(status.fiscalNumber);
+            //                            initRow.FPNumber = long.Parse(status.fiscalNumber);
             //#endif
 
 

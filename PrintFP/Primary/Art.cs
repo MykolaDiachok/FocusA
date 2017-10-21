@@ -19,12 +19,12 @@ namespace PrintFP.Primary
         public Guid PackGuid { get;  }
         public ushort NalogGroup { get; private set; }
         public string NameForCheck { get;  }
-        public int FPNumber { get;  }
+        public long FPNumber { get;  }
         private DataClasses1DataContext _focusA;
         private Logger logger = LogManager.GetCurrentClassLogger();
 
 
-        public Art(int Code, string ARTNAME, ulong PackCode, ushort NalogGroup, int FPNumber, DataClasses1DataContext _focusA)
+        public Art(int Code, string ARTNAME, ulong PackCode, ushort NalogGroup, long FPNumber, DataClasses1DataContext _focusA)
         {
             NLog.GlobalDiagnosticsContext.Set("FPNumber", FPNumber);
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);

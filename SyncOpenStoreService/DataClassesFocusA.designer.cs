@@ -30,15 +30,15 @@ namespace SyncOpenStoreService
 		
     #region Extensibility Method Definitions
     partial void OnCreated();
+    partial void Inserttbl_SyncDBStatus(tbl_SyncDBStatus instance);
+    partial void Updatetbl_SyncDBStatus(tbl_SyncDBStatus instance);
+    partial void Deletetbl_SyncDBStatus(tbl_SyncDBStatus instance);
     partial void Inserttbl_ComInit(tbl_ComInit instance);
     partial void Updatetbl_ComInit(tbl_ComInit instance);
     partial void Deletetbl_ComInit(tbl_ComInit instance);
     partial void Inserttbl_SyncDB(tbl_SyncDB instance);
     partial void Updatetbl_SyncDB(tbl_SyncDB instance);
     partial void Deletetbl_SyncDB(tbl_SyncDB instance);
-    partial void Inserttbl_SyncDBStatus(tbl_SyncDBStatus instance);
-    partial void Updatetbl_SyncDBStatus(tbl_SyncDBStatus instance);
-    partial void Deletetbl_SyncDBStatus(tbl_SyncDBStatus instance);
     #endregion
 		
 		public DataClassesFocusADataContext() : 
@@ -71,6 +71,14 @@ namespace SyncOpenStoreService
 			OnCreated();
 		}
 		
+		public System.Data.Linq.Table<tbl_SyncDBStatus> tbl_SyncDBStatus
+		{
+			get
+			{
+				return this.GetTable<tbl_SyncDBStatus>();
+			}
+		}
+		
 		public System.Data.Linq.Table<tbl_ComInit> tbl_ComInits
 		{
 			get
@@ -86,12 +94,210 @@ namespace SyncOpenStoreService
 				return this.GetTable<tbl_SyncDB>();
 			}
 		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.tbl_SyncDBStatus")]
+	public partial class tbl_SyncDBStatus : INotifyPropertyChanging, INotifyPropertyChanged
+	{
 		
-		public System.Data.Linq.Table<tbl_SyncDBStatus> tbl_SyncDBStatus
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private long _id;
+		
+		private string _CompName;
+		
+		private System.Nullable<long> _FPNumber;
+		
+		private string _DataServer;
+		
+		private string _DataBaseName;
+		
+		private string _Status;
+		
+		private System.Nullable<System.DateTime> _DateTimeSyncDB;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnidChanging(long value);
+    partial void OnidChanged();
+    partial void OnCompNameChanging(string value);
+    partial void OnCompNameChanged();
+    partial void OnFPNumberChanging(System.Nullable<long> value);
+    partial void OnFPNumberChanged();
+    partial void OnDataServerChanging(string value);
+    partial void OnDataServerChanged();
+    partial void OnDataBaseNameChanging(string value);
+    partial void OnDataBaseNameChanged();
+    partial void OnStatusChanging(string value);
+    partial void OnStatusChanged();
+    partial void OnDateTimeSyncDBChanging(System.Nullable<System.DateTime> value);
+    partial void OnDateTimeSyncDBChanged();
+    #endregion
+		
+		public tbl_SyncDBStatus()
+		{
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_id", AutoSync=AutoSync.OnInsert, DbType="BigInt NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public long id
 		{
 			get
 			{
-				return this.GetTable<tbl_SyncDBStatus>();
+				return this._id;
+			}
+			set
+			{
+				if ((this._id != value))
+				{
+					this.OnidChanging(value);
+					this.SendPropertyChanging();
+					this._id = value;
+					this.SendPropertyChanged("id");
+					this.OnidChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CompName", DbType="NVarChar(256)")]
+		public string CompName
+		{
+			get
+			{
+				return this._CompName;
+			}
+			set
+			{
+				if ((this._CompName != value))
+				{
+					this.OnCompNameChanging(value);
+					this.SendPropertyChanging();
+					this._CompName = value;
+					this.SendPropertyChanged("CompName");
+					this.OnCompNameChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="BigInt")]
+		public System.Nullable<long> FPNumber
+		{
+			get
+			{
+				return this._FPNumber;
+			}
+			set
+			{
+				if ((this._FPNumber != value))
+				{
+					this.OnFPNumberChanging(value);
+					this.SendPropertyChanging();
+					this._FPNumber = value;
+					this.SendPropertyChanged("FPNumber");
+					this.OnFPNumberChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DataServer", DbType="NVarChar(1024)")]
+		public string DataServer
+		{
+			get
+			{
+				return this._DataServer;
+			}
+			set
+			{
+				if ((this._DataServer != value))
+				{
+					this.OnDataServerChanging(value);
+					this.SendPropertyChanging();
+					this._DataServer = value;
+					this.SendPropertyChanged("DataServer");
+					this.OnDataServerChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DataBaseName", DbType="NVarChar(1024)")]
+		public string DataBaseName
+		{
+			get
+			{
+				return this._DataBaseName;
+			}
+			set
+			{
+				if ((this._DataBaseName != value))
+				{
+					this.OnDataBaseNameChanging(value);
+					this.SendPropertyChanging();
+					this._DataBaseName = value;
+					this.SendPropertyChanged("DataBaseName");
+					this.OnDataBaseNameChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Status", DbType="NVarChar(MAX)")]
+		public string Status
+		{
+			get
+			{
+				return this._Status;
+			}
+			set
+			{
+				if ((this._Status != value))
+				{
+					this.OnStatusChanging(value);
+					this.SendPropertyChanging();
+					this._Status = value;
+					this.SendPropertyChanged("Status");
+					this.OnStatusChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DateTimeSyncDB", DbType="DateTime")]
+		public System.Nullable<System.DateTime> DateTimeSyncDB
+		{
+			get
+			{
+				return this._DateTimeSyncDB;
+			}
+			set
+			{
+				if ((this._DateTimeSyncDB != value))
+				{
+					this.OnDateTimeSyncDBChanging(value);
+					this.SendPropertyChanging();
+					this._DateTimeSyncDB = value;
+					this.SendPropertyChanged("DateTimeSyncDB");
+					this.OnDateTimeSyncDBChanged();
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
 			}
 		}
 	}
@@ -120,7 +326,7 @@ namespace SyncOpenStoreService
 		
 		private string _ErrorInfo;
 		
-		private System.Nullable<int> _FPNumber;
+		private System.Nullable<long> _FPNumber;
 		
 		private string _RealNumber;
 		
@@ -202,7 +408,7 @@ namespace SyncOpenStoreService
     partial void OnErrorCodeChanged();
     partial void OnErrorInfoChanging(string value);
     partial void OnErrorInfoChanged();
-    partial void OnFPNumberChanging(System.Nullable<int> value);
+    partial void OnFPNumberChanging(System.Nullable<long> value);
     partial void OnFPNumberChanged();
     partial void OnRealNumberChanging(string value);
     partial void OnRealNumberChanged();
@@ -449,8 +655,8 @@ namespace SyncOpenStoreService
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="Int")]
-		public System.Nullable<int> FPNumber
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="BigInt")]
+		public System.Nullable<long> FPNumber
 		{
 			get
 			{
@@ -1080,7 +1286,7 @@ namespace SyncOpenStoreService
 		
 		private string _CompName;
 		
-		private int _FPNumber;
+		private long _FPNumber;
 		
 		private string _DataServer;
 		
@@ -1106,7 +1312,7 @@ namespace SyncOpenStoreService
     partial void OnidChanged();
     partial void OnCompNameChanging(string value);
     partial void OnCompNameChanged();
-    partial void OnFPNumberChanging(int value);
+    partial void OnFPNumberChanging(long value);
     partial void OnFPNumberChanged();
     partial void OnDataServerChanging(string value);
     partial void OnDataServerChanged();
@@ -1171,8 +1377,8 @@ namespace SyncOpenStoreService
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="Int NOT NULL")]
-		public int FPNumber
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="BigInt NOT NULL")]
+		public long FPNumber
 		{
 			get
 			{
@@ -1347,212 +1553,6 @@ namespace SyncOpenStoreService
 					this._DataAddDateTime = value;
 					this.SendPropertyChanged("DataAddDateTime");
 					this.OnDataAddDateTimeChanged();
-				}
-			}
-		}
-		
-		public event PropertyChangingEventHandler PropertyChanging;
-		
-		public event PropertyChangedEventHandler PropertyChanged;
-		
-		protected virtual void SendPropertyChanging()
-		{
-			if ((this.PropertyChanging != null))
-			{
-				this.PropertyChanging(this, emptyChangingEventArgs);
-			}
-		}
-		
-		protected virtual void SendPropertyChanged(String propertyName)
-		{
-			if ((this.PropertyChanged != null))
-			{
-				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-			}
-		}
-	}
-	
-	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.tbl_SyncDBStatus")]
-	public partial class tbl_SyncDBStatus : INotifyPropertyChanging, INotifyPropertyChanged
-	{
-		
-		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
-		
-		private long _id;
-		
-		private string _CompName;
-		
-		private System.Nullable<int> _FPNumber;
-		
-		private string _DataServer;
-		
-		private string _DataBaseName;
-		
-		private string _Status;
-		
-		private System.Nullable<System.DateTime> _DateTimeSyncDB;
-		
-    #region Extensibility Method Definitions
-    partial void OnLoaded();
-    partial void OnValidate(System.Data.Linq.ChangeAction action);
-    partial void OnCreated();
-    partial void OnidChanging(long value);
-    partial void OnidChanged();
-    partial void OnCompNameChanging(string value);
-    partial void OnCompNameChanged();
-    partial void OnFPNumberChanging(System.Nullable<int> value);
-    partial void OnFPNumberChanged();
-    partial void OnDataServerChanging(string value);
-    partial void OnDataServerChanged();
-    partial void OnDataBaseNameChanging(string value);
-    partial void OnDataBaseNameChanged();
-    partial void OnStatusChanging(string value);
-    partial void OnStatusChanged();
-    partial void OnDateTimeSyncDBChanging(System.Nullable<System.DateTime> value);
-    partial void OnDateTimeSyncDBChanged();
-    #endregion
-		
-		public tbl_SyncDBStatus()
-		{
-			OnCreated();
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_id", AutoSync=AutoSync.OnInsert, DbType="BigInt NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
-		public long id
-		{
-			get
-			{
-				return this._id;
-			}
-			set
-			{
-				if ((this._id != value))
-				{
-					this.OnidChanging(value);
-					this.SendPropertyChanging();
-					this._id = value;
-					this.SendPropertyChanged("id");
-					this.OnidChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CompName", DbType="NVarChar(256)")]
-		public string CompName
-		{
-			get
-			{
-				return this._CompName;
-			}
-			set
-			{
-				if ((this._CompName != value))
-				{
-					this.OnCompNameChanging(value);
-					this.SendPropertyChanging();
-					this._CompName = value;
-					this.SendPropertyChanged("CompName");
-					this.OnCompNameChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="Int")]
-		public System.Nullable<int> FPNumber
-		{
-			get
-			{
-				return this._FPNumber;
-			}
-			set
-			{
-				if ((this._FPNumber != value))
-				{
-					this.OnFPNumberChanging(value);
-					this.SendPropertyChanging();
-					this._FPNumber = value;
-					this.SendPropertyChanged("FPNumber");
-					this.OnFPNumberChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DataServer", DbType="NVarChar(1024)")]
-		public string DataServer
-		{
-			get
-			{
-				return this._DataServer;
-			}
-			set
-			{
-				if ((this._DataServer != value))
-				{
-					this.OnDataServerChanging(value);
-					this.SendPropertyChanging();
-					this._DataServer = value;
-					this.SendPropertyChanged("DataServer");
-					this.OnDataServerChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DataBaseName", DbType="NVarChar(1024)")]
-		public string DataBaseName
-		{
-			get
-			{
-				return this._DataBaseName;
-			}
-			set
-			{
-				if ((this._DataBaseName != value))
-				{
-					this.OnDataBaseNameChanging(value);
-					this.SendPropertyChanging();
-					this._DataBaseName = value;
-					this.SendPropertyChanged("DataBaseName");
-					this.OnDataBaseNameChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Status", DbType="NVarChar(MAX)")]
-		public string Status
-		{
-			get
-			{
-				return this._Status;
-			}
-			set
-			{
-				if ((this._Status != value))
-				{
-					this.OnStatusChanging(value);
-					this.SendPropertyChanging();
-					this._Status = value;
-					this.SendPropertyChanged("Status");
-					this.OnStatusChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_DateTimeSyncDB", DbType="DateTime")]
-		public System.Nullable<System.DateTime> DateTimeSyncDB
-		{
-			get
-			{
-				return this._DateTimeSyncDB;
-			}
-			set
-			{
-				if ((this._DateTimeSyncDB != value))
-				{
-					this.OnDateTimeSyncDBChanging(value);
-					this.SendPropertyChanging();
-					this._DateTimeSyncDB = value;
-					this.SendPropertyChanged("DateTimeSyncDB");
-					this.OnDateTimeSyncDBChanged();
 				}
 			}
 		}

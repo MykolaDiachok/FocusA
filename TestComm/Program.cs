@@ -35,7 +35,9 @@ namespace TestComm
         static void Main(string[] args)
         {
             //printPeriodicReport();
-            AddFPAttika();
+            updateFP();
+          //AddFPDigma();
+          //AddFPAttika();
             return;
 
             //DateTime infpDT = new DateTime(2016,06,10,22,54,00).AddSeconds(-600);
@@ -78,9 +80,25 @@ namespace TestComm
             //int port = 4003;
 
             ////string setDataServer = SearchServer("10011171");
-            BaseProtocol pr = SingletonProtocol.Instance("192.168.254.180", 4007, 10001264).GetProtocols();
-            var status = pr.getStatus();
+            //for (int x = 4010; x <= 4016; x++)
+            //{
+            //    try
+            //    {
+            //        BaseProtocol pr = SingletonProtocol.Instance("192.168.250.246", 4006, 0).GetProtocols();
+            //        pr.FPDayReport(0);
+            //        var status = pr.getStatus();
+            //        var st = pr.status;
+            //        Console.WriteLine("port:{0}, fiscalNumber:{1}", 4003, st.fiscalNumber);
+            //        var stSAles = pr.FPSaleEx(2, 0, false, 1340, 0, false, "29677-Суміш молочно-зернова 2,0% ГРЕЧКА 0,200 кг ст.пляш", 29677);
+            //        var stPay = pr.FPPayment(3, 500000, false, true);
+            //pr.Dispose();
+            //    }
+            //    catch
+            //    {
 
+            //    }
+            //    //pr.FPResetOrder();
+            //}
             //Console.WriteLine("Begin set protocol");
             //BaseProtocol pr = new Protocol_EP06(new DefaultPortCom(1),1);
             //Console.WriteLine("End set protocol");
@@ -91,7 +109,9 @@ namespace TestComm
             //pr.FPNullCheck();
             //pr.FPPeriodicReport(0, new DateTime(2016, 8, 1, 0, 0, 0), new DateTime(2016, 8, 19, 23, 59, 59));
             //pr.FPPeriodicReportShort(0, new DateTime(2016, 8, 1, 0, 0, 0), new DateTime(2016, 8, 19, 23, 59, 59));
-            //var B2 = pr.FPSaleEx(1, 0, false, 670, 2, false, "БатХл8Дор400г", 464);
+            //var B2 = pr.FPSaleEx(1, 0, false, 670, 2, false, "38962-Цукаты 150г (Сто пудов)", 38962);            
+            //var B2 = pr.FPSaleEx(1, 0, false, 670, 2, false, "38962-Цукаты ", 38962);
+            //pr.FPResetOrder();
             //var discount = pr.Discount(FPDiscount.AbsoluteDiscountMarkupAtIntermediateSum, 75,"");
             //var com = pr.FPCommentLine("ЗНИЖКА: -0.75");
             //var p3 = pr.FPPayment(3, 600, true, true);
@@ -240,15 +260,49 @@ namespace TestComm
 
         }
 
+        static bool updateFP()
+        {
+            using (DataClassesFocusADataContext focus = new DataClassesFocusADataContext())
+            {
 
-        static bool AddFPAttika()
+                Table<tbl_ComInit> tbl_ComInit = focus.GetTable<tbl_ComInit>();
+                var selectTable = (from st in tbl_ComInit
+                                   where st.Init && st.Version== "ЕП-11"
+                                   //&& st.FPNumber!= Int64.Parse(st.FiscalNumber)
+                                   orderby st.FPNumber
+                                   select st
+                                      );
+                foreach (var row in selectTable)
+                {
+                    if ((row.FPNumber != Int64.Parse(row.FiscalNumber))&&(row.RealNumber.Length==10)) //MS80006493
+                    {
+                        var pr = new Protocol_EP11(row.MoxaIP, row.MoxaPort.GetValueOrDefault(), row.FPNumber.GetValueOrDefault());
+                        var st = pr.status;
+                        row.FPNumber = Int64.Parse(st.fiscalNumber);
+                        row.FiscalNumber = st.fiscalNumber;
+                        row.RealNumber = st.serialNumber;
+                        row.SerialNumber = st.serialNumber;
+                        
+                    }
+                }
+                focus.SubmitChanges(ConflictMode.ContinueOnConflict);
+            }
+            return true;
+        }
+
+        static bool AddFPDigma()
         {
             //ConsecutiveNumber = 1;
             int fpnumber = 0;
-            string server = "192.168.254.4";
-            int port = 4012;
+            string server = "192.168.250.251";
+            int port = 4011;
+            string setDataServer = "";
+            //string setDataServer = "10.153.11.108";
+            //string setDataBaseName = "dataserver";
+            string setDataBaseName = "CashDesk_OS";
+            //string setDataBaseName = "";
 
-            ////string setDataServer = SearchServer("10011171");
+            //string setDataServer = SearchServer("10011171");
             BaseProtocol pr = SingletonProtocol.Instance(server, port, fpnumber).GetProtocols();
 
             using (DataClassesFocusADataContext focus = new DataClassesFocusADataContext())
@@ -264,8 +318,57 @@ namespace TestComm
                     Error = true,
                     WorkOff = false,
                     auto = true,
-                    FPNumber = int.Parse(st.serialNumber),
-                    RealNumber = "412",
+                    FPNumber = Int64.Parse(st.fiscalNumber),
+                    RealNumber = st.serialNumber,
+                    SerialNumber = st.serialNumber,
+                    DateTimeBegin = long.Parse(DateTime.Now.ToString("yyyyMMdd") + "000000"),
+                    //DateTimeBegin = 20160506220746,
+                    DateTimeStop = long.Parse(DateTime.Now.ToString("yyyyMMdd") + "235959"),
+                    DeltaTime = -300,
+                    DataServer = setDataServer,
+                    DataBaseName = setDataBaseName,
+                    MinSumm = 0,
+                    MaxSumm = Int32.MaxValue,
+                    TypeEvery = false,
+                    PrintEvery = 12,
+                    MoxaIP = server,
+                    MoxaPort = port,
+                    Version = st.VersionOfSWOfECR
+                };
+                focus.tbl_ComInits.InsertOnSubmit(init);
+                focus.SubmitChanges();
+                //return true;
+            }
+
+            return true;
+        }
+
+
+        static bool AddFPAttika()
+        {
+            //ConsecutiveNumber = 1;
+            //var fpnumber = 3000268559;
+            string server = "192.168.249.247";
+            int port = 4003;
+
+            ////string setDataServer = SearchServer("10011171");
+            BaseProtocol pr = SingletonProtocol.Instance(server, port, 0).GetProtocols();
+
+            using (DataClassesFocusADataContext focus = new DataClassesFocusADataContext())
+            {
+                var st = pr.status;
+                Table<tbl_ComInit> tbl_ComInit = focus.GetTable<tbl_ComInit>();
+                tbl_ComInit init = new tbl_ComInit()
+                {
+
+                    CompName = "FOCUS-A",
+                    Port = 0,
+                    Init = true,
+                    Error = true,
+                    WorkOff = false,
+                    auto = true,
+                    FPNumber = Int64.Parse(st.fiscalNumber),
+                    RealNumber = "432",
                     SerialNumber = st.serialNumber,
                     DateTimeBegin = long.Parse(DateTime.Now.ToString("yyyyMMdd") + "000000"),
                     //DateTimeBegin = 20160506220746,
@@ -297,7 +400,7 @@ namespace TestComm
             StringBuilder sb = new StringBuilder();
             using (DataClassesFocusADataContext focus = new DataClassesFocusADataContext())
             {
-                List<int> testFP = new List<int>();
+                List<Int64> testFP = new List<Int64>();
                 //testFP.Add(10014357);
                 //testFP.Add(10014361);
                 //testFP.Add(10014209);
@@ -397,7 +500,7 @@ namespace TestComm
             using (DataClassesFocusADataContext focus = new DataClassesFocusADataContext())
             {
                 var search = (from con in focus.GetTable<tbl_Connection>()
-                              where con.FPNumber == int.Parse(fpnumber)
+                              where con.FPNumber == long.Parse(fpnumber)
                               select con).FirstOrDefault();
                 return search.DataServerIP;
             }

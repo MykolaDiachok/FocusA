@@ -13,14 +13,14 @@ namespace DbHelperSQL
     public class DbHelperSQL
     {
         public string CompName { get; private set; }
-        public int FPNumber { get; private set; }
+        public long FPNumber { get; private set; }
         public string DataServer { get; private set; }
         public string DataBaseName { get; private set; }
         public int port { get; private set; }
         public string MoxaIP { get; private set; }
         public int MoxaPort { get; private set; }
 
-        public  DbHelperSQL(string CompName, int FPNumber, string DataServer, string DataBaseName, int port, string MoxaIP, int MoxaPort)
+        public  DbHelperSQL(string CompName, long FPNumber, string DataServer, string DataBaseName, int port, string MoxaIP, int MoxaPort)
         {
             this.CompName = CompName;
             this.FPNumber = FPNumber;

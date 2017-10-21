@@ -22,8 +22,10 @@ namespace PrintFP.Primary
             long ldatetime = long.Parse(DateTime.Now.ToString("yyyyMMddHHmmss"));
             setInfo(pr, 39, ldatetime); // обновляем инфо по смене....
             pr.setFPCplCutter(true);
-            pr.FPDayReport();
+            pr.FPLineFeed();
+            //pr.FPDayReport();
             var returnpr = pr.FPDayClrReport();
+            pr.FPLineFeed();
             pr.setFPCplCutter(false);
             using (DataClasses1DataContext focus = new DataClasses1DataContext())
             {

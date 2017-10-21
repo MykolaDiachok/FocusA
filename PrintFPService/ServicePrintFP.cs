@@ -57,12 +57,12 @@ namespace PrintFPService
         {
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
             string compname = "";
-            List<int> fpnumbers = new List<int>();
+            List<Int64> fpnumbers = new List<Int64>();
             if (args.Length != 0)
             {
                 logger.Trace("Next step 1");
                 var os = new OptionSet()
-                        .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumbers.Add(int.Parse(a)))
+                        .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumbers.Add(Int64.Parse(a)))
                        .Add("sr|servername=", "set computer name", sr => compname = sr);
                 try
                 {
@@ -87,7 +87,7 @@ namespace PrintFPService
                 }
 
                 var os = new OptionSet()
-                        .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumbers.Add(int.Parse(a)))
+                        .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumbers.Add(Int64.Parse(a)))
                        .Add("sr|servername=", "set computer name", sr => compname = sr);
                 try
                 {
@@ -117,9 +117,9 @@ namespace PrintFPService
 
     public class SmartApps
     {
-        private Dictionary<int, StartApp> listApp;
+        private Dictionary<Int64, StartApp> listApp;
         private string compname;
-        private List<int> fpnumbers = new List<int>();
+        private List<Int64> fpnumbers = new List<Int64>();
         private System.Timers.Timer _timer;
         private System.Object lockThis = new System.Object();
         private static Logger logger = LogManager.GetCurrentClassLogger();
@@ -128,16 +128,16 @@ namespace PrintFPService
         public SmartApps(string compname)
         {
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
-            listApp = new Dictionary<int, StartApp>();
+            listApp = new Dictionary<Int64, StartApp>();
             this.compname = compname;
             logger.Trace("SmartApps=>{0}", compname);
 
         }
 
-        public SmartApps(string compname, List<int> fpnumbers)
+        public SmartApps(string compname, List<Int64> fpnumbers)
         {
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
-            listApp = new Dictionary<int, StartApp>();
+            listApp = new Dictionary<Int64, StartApp>();
             this.compname = compname;
             this.fpnumbers = fpnumbers;
             logger.Trace("SmartApps=>{0} =>{1}", compname, fpnumbers.ToString());
@@ -210,7 +210,7 @@ namespace PrintFPService
                         StartApp newApp = new StartApp(Guid.NewGuid(), new string[] {$"--fp={rowinit.FPNumber}", $"--sr={compname}" });
                         listApp.Add(rowinit.FPNumber.GetValueOrDefault(), newApp);
                         newApp.OnStart();
-                        Thread.Sleep(500);
+                        Thread.Sleep(100);
                         //init.Init = true;
                         if (!rowinit.WorkOff.HasValue)
                         {
@@ -241,7 +241,7 @@ namespace PrintFPService
             using (DataClassesFocusADataContext _focusA = new DataClassesFocusADataContext())
             {
                 Table<tbl_ComInit> tblComInit = _focusA.GetTable<tbl_ComInit>();
-                List<int> forDelete = new List<int>();
+                List<Int64> forDelete = new List<Int64>();
                 foreach (var app in listApp)
                 {
                     tbl_ComInit comInit;
@@ -336,7 +336,7 @@ namespace PrintFPService
             {
                 var getApp = listApp
                     .Where(x => x.Value.Active() && x.Value.proccesId == theprocess.Id)
-                    .Select(e => (KeyValuePair<int, StartApp>?)e)
+                    .Select(e => (KeyValuePair<Int64, StartApp>?)e)
                     .FirstOrDefault();
                 if (getApp == null)
                 {
@@ -416,7 +416,7 @@ namespace PrintFPService
         private bool active;
         //private SyncHameleon.Postrgres post;
         public string fpnumber { get; private set; }
-        public int FPNumber { get; private set; }
+        public Int64 FPNumber { get; private set; }
         public string compname { get; private set; }
         ///private System.Diagnostics.EventLog eventLog1;
 
@@ -458,7 +458,7 @@ namespace PrintFPService
             {
                 var p = os.Parse(args);
                 NLog.GlobalDiagnosticsContext.Set("FPNumber", fpnumber);
-                FPNumber = int.Parse(fpnumber);
+                FPNumber = Int64.Parse(fpnumber);
                 logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
                 //baseInit();
             }

@@ -104,6 +104,22 @@ namespace SyncChameleonService
         private SyncHameleon.Postrgres post;
         private static string fpnumber;
         private static string sqlserver;
+        private static System.Diagnostics.EventLog eventLog1 = returnEventLog();
+
+
+
+        private static System.Diagnostics.EventLog returnEventLog()
+        {
+            System.Diagnostics.EventLog eventLog1 = new System.Diagnostics.EventLog();
+            if (!System.Diagnostics.EventLog.SourceExists("SyncChameleonService"))
+            {
+                System.Diagnostics.EventLog.CreateEventSource(
+                    "SyncChameleonService", "SyncChameleonServiceLog");
+            }
+            eventLog1.Source = "SyncChameleonService";
+            eventLog1.Log = "SyncChameleonServiceLog";
+            return eventLog1;
+        }
 
         public StartApp(params string[] args)
         {
@@ -112,9 +128,15 @@ namespace SyncChameleonService
                 .Add("fp=|fpnumber=", fp => fpnumber = fp)
                 .Add("s=|sqlserver=", s => sqlserver = s)                
                 .Parse(args);
-
-            post = new Postrgres(sqlserver, fpnumber);
-            post.startSync();
+            try
+            {
+                post = new Postrgres(sqlserver, fpnumber);
+                post.startSync();
+            }
+            catch(Exception ex)
+            {
+                eventLog1.WriteEntry("Error in app:"+ex.Message);
+            }
         //    info = new ProcessStartInfo(@".\SyncHameleon.exe");
         //    info.Arguments = args[0];
         //    info.UseShellExecute = false;

@@ -8,7 +8,7 @@ namespace CentralLib.Connections
 {
     public class ConnectNetFP_EP06 :ConnectNetFactory
     {
-        public ConnectNetFP_EP06(string IpAdress, int port, int inFPnumber) :base(IpAdress, port, 400, inFPnumber)
+        public ConnectNetFP_EP06(string IpAdress, int port, Int64 inFPnumber) :base(IpAdress, port, 400, inFPnumber)
         {
             
             base.useCRC16 = false;

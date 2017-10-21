@@ -18,7 +18,7 @@ namespace PrintFPService
 
         protected override void OnBeforeInstall(IDictionary savedState)
         {
-            string parameter = "--cn=FOCUS-A";
+            string parameter = "--sr=FOCUS-A";
 
             Context.Parameters["assemblypath"] = "\"" + Context.Parameters["assemblypath"] + "\" " + parameter + "";
             base.OnBeforeInstall(savedState);

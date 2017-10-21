@@ -4,7 +4,7 @@
     <Type Name="tbl_Connection">
       <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsDbGenerated="true" CanBeNull="false" />
       <Column Name="GroupName" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
-      <Column Name="FPNumber" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="FPNumber" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
       <Column Name="DataServer" Type="System.String" DbType="NVarChar(1024) NOT NULL" CanBeNull="false" />
       <Column Name="DataServerIP" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
       <Column Name="DataBaseName" Type="System.String" DbType="NVarChar(1024) NOT NULL" CanBeNull="false" />
@@ -23,7 +23,7 @@
       <Column Name="auto" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
       <Column Name="ErrorCode" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="ErrorInfo" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
-      <Column Name="FPNumber" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="FPNumber" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
       <Column Name="RealNumber" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
       <Column Name="SerialNumber" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
       <Column Name="FiscalNumber" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
@@ -60,7 +60,7 @@
       <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
       <Column Name="NumSlave" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
       <Column Name="DateTime" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
-      <Column Name="FPNumber" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="FPNumber" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
       <Column Name="Operation" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="InWork" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
       <Column Name="Closed" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
@@ -77,7 +77,7 @@
     <Type Name="tbl_Info">
       <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
       <Column Name="DateTime" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
-      <Column Name="FPNumber" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="FPNumber" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
       <Column Name="DateTimeOfEndOfShift" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="Operation" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="MoneyInBox" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
@@ -119,7 +119,7 @@
     <Type Name="tbl_SyncDB">
       <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
       <Column Name="CompName" Type="System.String" DbType="NVarChar(256) NOT NULL" CanBeNull="false" />
-      <Column Name="FPNumber" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="FPNumber" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
       <Column Name="DataServer" Type="System.String" DbType="NVarChar(1024) NOT NULL" CanBeNull="false" />
       <Column Name="DataBaseName" Type="System.String" DbType="NVarChar(1024) NOT NULL" CanBeNull="false" />
       <Column Name="Port" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
@@ -134,7 +134,7 @@
     <Type Name="tbl_SyncDBStatus">
       <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
       <Column Name="CompName" Type="System.String" DbType="NVarChar(256)" CanBeNull="true" />
-      <Column Name="FPNumber" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="FPNumber" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
       <Column Name="DataServer" Type="System.String" DbType="NVarChar(1024)" CanBeNull="true" />
       <Column Name="DataBaseName" Type="System.String" DbType="NVarChar(1024)" CanBeNull="true" />
       <Column Name="Status" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
@@ -144,7 +144,7 @@
   <Table Name="dbo.tbl_SyncFP" Member="tbl_SyncFPs">
     <Type Name="tbl_SyncFP">
       <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="FPNumber" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="FPNumber" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
       <Column Name="DateTimeSync" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="Status" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
     </Type>

@@ -97,10 +97,17 @@ namespace SyncHameleon
 
         public void LongMethod()
         {
-            changeStatus.setStatusOnLine();
-            SelectChecksOperation();
-            SelectLogOperation();
-            changeStatus.setStatusWaiting();
+            try
+            {
+                changeStatus.setStatusOnLine();
+                SelectChecksOperation();
+                SelectLogOperation();
+                changeStatus.setStatusWaiting();
+            }
+            catch(Exception ex)
+            {
+                logger.Fatal("Error in LongMethod():" + ex.Message);
+            }
         }
 
         public void ImpatientMethod()
@@ -190,20 +197,20 @@ namespace SyncHameleon
                     setDisableHeadChecks(_focusA, initRow, tablePayment);
 
                     var allOp = (from tOperation in _focusA.GetTable<tbl_Operation>()
-                                 where tOperation.FPNumber == (int)initRow.FPNumber
+                                 where tOperation.FPNumber == (long)initRow.FPNumber
                                                   // && tOperation.DateTime >= initRow.DateTimeBegin && tOperation.DateTime < initRow.DateTimeStop
                                                   && tOperation.DateTime >= tBegin.getintDateTime() && tOperation.DateTime <= tEnd.getintDateTime()
                                  select tOperation);
 
                     var allPayment = (from list1 in _focusA.GetTable<tbl_Payment>()
-                                      where list1.FPNumber == (int)initRow.FPNumber
+                                      where list1.FPNumber == (long)initRow.FPNumber
                                           //&& list1.DATETIME >= initRow.DateTimeBegin && list1.DATETIME < initRow.DateTimeStop
                                           && list1.DATETIME >= tBegin.getintDateTime() && list1.DATETIME <= tEnd.getintDateTime()
                                           && !((bool)list1.Disable)
                                       select list1);
 
                     var preOp = (from list1 in _focusA.GetTable<tbl_Payment>()
-                                 where list1.FPNumber == (int)initRow.FPNumber
+                                 where list1.FPNumber == (long)initRow.FPNumber
                                      //&& list1.DATETIME >= initRow.DateTimeBegin && list1.DATETIME < initRow.DateTimeStop
                                      && list1.DATETIME >= tBegin.getintDateTime() && list1.DATETIME <= tEnd.getintDateTime()
                                      && !((bool)list1.Disable)
@@ -243,7 +250,7 @@ namespace SyncHameleon
         {
             StopwatchHelper.Start("Set Disable:" + initRow.RealNumber);
             var preparePayment = (from list in tablePayment
-                                  where list.FPNumber == (int)initRow.FPNumber
+                                  where list.FPNumber == (long)initRow.FPNumber
                                    && list.DATETIME >= initRow.DateTimeBegin && list.DATETIME < initRow.DateTimeStop
                                    && (((list.Payment - list.Payment3) == 0) || (list.Type != 0))
                                   select list).OrderBy(x => x.DATETIME);
@@ -268,6 +275,10 @@ namespace SyncHameleon
                         disable = false;
                     else
                         disable = true;
+                }
+                if (index <= 10)
+                {
+                    rowPayment.Disable = false;
                 }
                 if (rowPayment.Disable != disable)
                 {
@@ -326,7 +337,7 @@ namespace SyncHameleon
 
                 var linked = (from lC in listChecks
                               join lP in (from list in tablePayment
-                                          where list.FPNumber == (int)initRow.FPNumber
+                                          where list.FPNumber == (long)initRow.FPNumber
                                           && list.DATETIME >= tBegin.getintDateTime() && list.DATETIME < tEnd.getintDateTime()
                                           select list)
                               on new { Operation = lC.Operation, DATETIME = lC.DATETIME, id_workplace = lC.id_workplace, id_session = lC.id_session, id_scheck = (int)lC.id_scheck, id_check = lC.id_check }
@@ -406,7 +417,7 @@ namespace SyncHameleon
 
                     var forAddChekLines = (from tCheckLines in (listChecks_Lines.Except((from tListCheckLines in listChecks_Lines
                                                                                          join tPayment in (from list in tablePayment
-                                                                                                           where list.FPNumber == (int)initRow.FPNumber
+                                                                                                           where list.FPNumber == (long)initRow.FPNumber
                                                                                                            //&& list.DATETIME >= initRow.DateTimeBegin && list.DATETIME < initRow.DateTimeStop
                                                                                                            && list.DATETIME >= tBegin.getintDateTime() && list.DATETIME < tEnd.getintDateTime()
                                                                                                            && list.RowCount > 0
@@ -416,7 +427,7 @@ namespace SyncHameleon
                                                                                                    new { id_check = tPayment.SYSTEMID }
                                                                                          select tListCheckLines)))
                                            join tPayment in (from list in tablePayment
-                                                             where list.FPNumber == (int)initRow.FPNumber
+                                                             where list.FPNumber == (long)initRow.FPNumber
                                                              //&& list.DATETIME >= initRow.DateTimeBegin && list.DATETIME < initRow.DateTimeStop
                                                              && list.DATETIME >= tBegin.getintDateTime() && list.DATETIME < tEnd.getintDateTime()
                                                              select list)
@@ -445,7 +456,7 @@ namespace SyncHameleon
                         tbl_SALE sale = new tbl_SALE
                         {
                             NumPayment = rowCheckLines.tPayment.id,
-                            FPNumber = (int)initRow.FPNumber,
+                            FPNumber = (long)initRow.FPNumber,
                             DATETIME = rowCheckLines.tPayment.DATETIME,
                             SESSID = rowCheckLines.tPayment.SESSID,
                             SYSTEMID = rowCheckLines.tPayment.SYSTEMID,
@@ -501,7 +512,7 @@ namespace SyncHameleon
             tbl_Payment payment = new tbl_Payment
             {
                 //NumOperation
-                FPNumber = (int)initRow.FPNumber,
+                FPNumber = (long)initRow.FPNumber,
                 DATETIME = check.DATETIME,
                 Operation = check.Operation,
                 SESSID = check.id_session,
@@ -592,7 +603,7 @@ namespace SyncHameleon
                                 while (reader.Read())
                                 {
                                     long _dt = getintDateTime((DateTime)reader["time_sales"]);
-                                    int _fp = (int)initRow.FPNumber;
+                                    long _fp = (long)initRow.FPNumber;
 
                                     switch ((int)reader["id_action"])
                                     {
@@ -623,7 +634,7 @@ namespace SyncHameleon
                                         case (int)LogOperations.Xreport: // Х отчет = 35
                                             {
                                                 var trow = _focusA.GetTable<tbl_Operation>().FirstOrDefault(i => i.FPNumber == _fp && i.DateTime == _dt && i.Operation == 35);
-                                                if (trow != null) break;
+                                                if ((trow != null)||(initRow.Version!= "ЕП-06")) break;
 
                                                 tbl_Operation op = new tbl_Operation
                                                 {
@@ -695,7 +706,7 @@ namespace SyncHameleon
         /// <param name="inName_Cashier">Имя кассира 15 символов</param>
         /// <param name="_dt">дата и время в int<</param>
         /// <param name="_fp">фискальный регистратор</param>
-        private void InsertCashier(DataClassesFocusADataContext _focusA, string inName_Cashier, long _dt, int _fp)
+        private void InsertCashier(DataClassesFocusADataContext _focusA, string inName_Cashier, long _dt, long _fp)
         {
             var trow = _focusA.GetTable<tbl_Cashier>().FirstOrDefault(i => i.FPNumber == _fp && i.DATETIME == _dt && i.Operation == 3);
             if (trow != null)
@@ -769,7 +780,7 @@ namespace SyncHameleon
         /// <param name="_fp">фискальный регистратор</param>
         /// <param name="TypeOfMoney">тип денег</param>
         /// <param name="TypeOfOperation">тип операции</param>
-        private void insertCashIO(DataClassesFocusADataContext _focusA, object tAttrs, long _dt, int _fp, bool TypeOfMoney, int TypeOfOperation)
+        private void insertCashIO(DataClassesFocusADataContext _focusA, object tAttrs, long _dt, long _fp, bool TypeOfMoney, int TypeOfOperation)
         {
             var trow = _focusA.GetTable<tbl_CashIO>().FirstOrDefault(i => i.FPNumber == _fp && i.DATETIME == _dt && i.Operation == TypeOfOperation);
             if (trow != null)

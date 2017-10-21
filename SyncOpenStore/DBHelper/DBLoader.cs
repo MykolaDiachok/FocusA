@@ -16,12 +16,12 @@ namespace SyncOpenStore.DBHelper
         /// Номер аппарата в текущей программе и базе
         /// </summary>
         public string sFPNumber { get; set; }
-        public int iFPNumber { get; set; }
+        public long iFPNumber { get; set; }
         /// <summary>
         /// Номер аппарта откуда берем данные
         /// </summary>
         public string sRealNumber { get; set; }
-        public int iRealNumber { get; set; }
+        //public long iRealNumber { get; set; }
         public Int64 DateTimeBegin { get; set; }
         public Int64 DateTimeStop { get; set; }
         public NLog.Logger logger;
@@ -72,8 +72,8 @@ namespace SyncOpenStore.DBHelper
             this.DateTimeBegin = DateTimeBegin;
             this.DateTimeStop = DateTimeStop;
             this.sRealNumber = RealNumber;
-            this.iRealNumber = int.Parse(RealNumber);
-            this.iFPNumber = int.Parse(FPNumber);
+            //this.iRealNumber = (RealNumber);
+            this.iFPNumber = long.Parse(FPNumber);
             this.sFPNumber = FPNumber;
             using (DataClassesFocusADataContext focusA = new DataClassesFocusADataContext())
             {
@@ -98,7 +98,7 @@ namespace SyncOpenStore.DBHelper
 
 
 
-        public void settbl_SyncDBStatus(int fpnumber, string status)
+        public void settbl_SyncDBStatus(long fpnumber, string status)
         {
             using (DataClassesFocusADataContext focus = new DataClassesFocusADataContext())
             {

@@ -1,0 +1,250 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+@*@section Scripts
+    {
+        <script src="~/Scripts/angular.js"></script>
+        <script src="~/Scripts/angular-bootstrap-switch.min.js"></script>
+        <script src="~/Scripts/smart-table.js"></script>
+        <script src="~/Scripts/App.js"></script>
+    }*@
+<h2>Status</h2>
+
+<div ng-controller="MainCtrl">
+
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">ФР {{fpinfo.FPNumber}}:{{Version}}</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form-horizontal">
+                        <div class="form-group">
+                            <label for="DateTimeBegin" class="col-sm-1 control-label">C</label>
+                            <div class="col-sm-5">
+                                <input type="datetime-local" class="form-control" id="DateTimeBegin" ng-readonly="true" ng-model="fpinfo.DateTimeBegin" />
+                            </div>
+                            <label for="DateTimeBegin" class="col-sm-1 control-label">по</label>
+                            <div class="col-sm-5">
+                                <input type="datetime-local" class="form-control" id="DateTimeStop" ng-readonly="true" ng-model="fpinfo.DateTimeStop" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="DeltaTime" class="col-sm-3 control-label">Задержка (сек)</label>
+                            <div class="col-sm-9">
+                                <input type="number" class="form-control" id="DeltaTime" ng-readonly="true" ng-model="fpinfo.DeltaTime" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="CurrentSystemDateTime" class="col-sm-3 control-label">Время на ФР</label>
+                            <div class="col-sm-9">
+                                <input type="datetime-local" class="form-control" id="CurrentSystemDateTime" ng-readonly="true" ng-model="fpinfo.CurrentSystemDateTime" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="DateTimeSyncFP" class="col-sm-3 control-label">Последняя связь</label>
+                            <div class="col-sm-9">
+                                <input type="datetime-local" class="form-control" id="DateTimeSyncFP" ng-readonly="true" ng-model="fpinfo.DateTimeSyncFP" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="DataServer" class="col-sm-3 control-label">Data server</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="DataServer" ng-readonly="true" ng-model="fpinfo.DataServer" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="DataBaseName" class="col-sm-3 control-label">Database</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="DataBaseName" ng-readonly="true" ng-model="fpinfo.DataBaseName" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="Moxa" class="col-sm-3 control-label">Moxa</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="Moxa" ng-readonly="true" ng-model="fpinfo.Moxa" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="SmenaOpened" class="col-sm-3 control-label">Смена</label>
+                            <div class="col-sm-9">
+                                <input type="checkbox" class="form-control" id="SmenaOpened" ng-readonly="true" ng-model="fpinfo.SmenaOpened" disabled />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="PapStat" class="col-sm-3 control-label">Бумага</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="PapStat" ng-readonly="true" ng-model="fpinfo.PapStat" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ByteStatusInfo" class="col-sm-3 control-label">Статус</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="ByteStatusInfo" ng-readonly="true" ng-model="fpinfo.ByteStatusInfo" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="ByteResultInfo" class="col-sm-3 control-label">Результат</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="ByteResultInfo" ng-readonly="true" ng-model="fpinfo.ByteResultInfo" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="ByteReservInfo" class="col-sm-3 control-label">Резерв</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="ByteReservInfo" ng-readonly="true" ng-model="fpinfo.ByteReservInfo" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="MinSumm" class="col-sm-1 control-label">Мин</label>
+                            <div class="col-sm-5">
+                                <input type="text" class="form-control" id="MinSumm" ng-readonly="true" ng-model="fpinfo.MinSumm" />
+                            </div>
+                            <label for="MaxSumm" class="col-sm-1 control-label">Макс</label>
+                            <div class="col-sm-5">
+                                <input type="text" class="form-control" id="MaxSumm" ng-readonly="true" ng-model="fpinfo.MaxSumm" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="TypeEvery" class="col-sm-1 control-label">тип</label>
+                            <div class="col-sm-5">
+                                <input type="checkbox" class="form-control" id="TypeEvery" ng-readonly="true" ng-model="fpinfo.TypeEvery" disabled />
+                            </div>
+                            <label for="PrintEvery" class="col-sm-1 control-label">Кол-во</label>
+                            <div class="col-sm-5">
+                                <input type="text" class="form-control" id="PrintEvery" ng-readonly="true" ng-model="fpinfo.PrintEvery" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="KlefMem" class="col-sm-3 control-label">Клеф</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="KlefMem" ng-readonly="true" ng-model="fpinfo.KlefMem" />
+                            </div>
+                        </div>
+
+
+                    </form>
+                    @*{{currentinfo|json}}*@
+                    @*<ul>
+                            <li ng-repeat="(key, val) in currentinfo">
+                                {{key}}: {{val}}
+                            </li>
+                        </ul>*@
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <table st-set-filter="customFilter" st-table="displayedCollection" st-safe-src="rowCollection" class="table table-striped table-bordered">
+        <thead class="thead-inverse">
+            <tr>
+                <th st-sort="id">#</th>
+                <th st-sort="FPNumber">FP</th>
+                <th st-sort="FiscalNumber">Fiscal</th>
+                <th st-sort="SerialNumber">Serial</th>
+                <th st-sort="Init">Init</th>
+                <th st-sort="WorkOff">Off</th>
+                <th st-sort="auto">auto</th>
+                <th st-sort="Error">Error</th>
+                <th st-sort="ErrorInfo">ErrorInfo</th>
+
+            </tr>
+            <tr>
+                <th></th>
+                <th>
+                    <input st-search="FPNumber" placeholder="search for FPNumber" class="input-sm form-control" type="search" />
+
+                </th>
+                <th>
+                    <input st-search="FiscalNumber" placeholder="search for FiscalNumber" class="input-sm form-control" type="search" />
+                </th>
+                <th>
+                    <input st-search="SerialNumber" placeholder="search for SerialNumber" class="input-sm form-control" type="search" />
+                </th>
+                <th>
+                    <st-select-distinct collection="rowCollection" predicate="Init"></st-select-distinct>
+                </th>
+                <th>
+                    <st-select-distinct collection="rowCollection" predicate="WorkOff"></st-select-distinct>
+                </th>
+                <th>
+                    <st-select-distinct collection="rowCollection" predicate="auto"></st-select-distinct>
+                </th>
+                <th>
+
+                    <st-select-distinct collection="rowCollection" predicate="Error"></st-select-distinct>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr st-select-row="row" ng-repeat="row_cominit in displayedCollection">
+                <td>
+                    {{row_cominit.id}}
+                </td>
+                <td>
+                    <a class="btn btn-default" role="button" data-toggle="modal" data-target="#myModal" ng-click="info(row_cominit)">{{row_cominit.FPNumber}}</a>
+                </td>
+                <td>
+                    {{row_cominit.FiscalNumber}}
+                </td>
+                <td>
+                    {{row_cominit.SerialNumber}}
+                </td>
+                <td>
+                    <label class="switch">
+                        <input type="checkbox" ng-model="row_cominit.Init">
+                        <div class="slider round"></div>
+                    </label>
+                    @*{{row_cominit.Init}}*@
+                </td>
+                <td>
+                    <label class="switch">
+                        <input type="checkbox" ng-model="row_cominit.WorkOff">
+                        <div class="slider round"></div>
+                    </label>
+                    @*{{row_cominit.WorkOff}}*@
+                </td>
+                <td>
+                    <label class="switch">
+                        <input type="checkbox" ng-model="row_cominit.auto">
+                        <div class="slider round"></div>
+                    </label>
+                    @* {{row_cominit.auto}}*@
+                </td>
+                <td>
+                    @*<input type="checkbox" ng-model="row_cominit.Error" bootstrap-switch />*@
+                    <label class="switch">
+                        <input type="checkbox" ng-model="row_cominit.Error" ng-disabled="true">
+                        <div class="slider round"></div>
+                    </label>
+                    @*{{row_cominit.Error}}*@
+                </td>
+                <td>
+                    {{row_cominit.ErrorInfo}}
+                </td>
+
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="8" class="text-center">
+                    <div st-pagination="" st-items-by-page="15" st-displayed-pages="15"></div>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+

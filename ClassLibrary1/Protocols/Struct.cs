@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace CentralLib.Protocols
@@ -71,14 +72,28 @@ namespace CentralLib.Protocols
             this.printerIsFiscalized = _bit[12];
             this.emergentFinishingOfLastCommand = _bit[13];
             this.modeOnLineOfRegistrations = _bit[14];
-            this.serialNumber = SerialAndDate.Substring(0, 19 - 8 - 2);
-            int year = Convert.ToInt16(SerialAndDate.Substring(17, 2));
-            int month = Convert.ToInt16(SerialAndDate.Substring(14, 2));
-            month = Math.Min(Math.Max(month, 1), 12);
-            int day = Convert.ToInt16(SerialAndDate.Substring(11, 2));
-            day = Math.Min(Math.Max(day, 1), 31);
+            Match match = Regex.Match(SerialAndDate, @"([^\s]+)\s+(\d{2})-(\d{2})-(\d{2})");            
+            if (match.Success)
+            {
 
-            this.manufacturingDate = new DateTime(2000 + year, month, day);
+                this.serialNumber = match.Groups[1].Value;
+                int tyear = Convert.ToInt16(match.Groups[4].Value);
+                int tmonth = Convert.ToInt16(match.Groups[3].Value);
+                tmonth = Math.Min(Math.Max(tmonth, 1), 12);
+                int tday = Convert.ToInt16(match.Groups[2].Value);
+                tday = Math.Min(Math.Max(tday, 1), 31);
+                this.manufacturingDate = new DateTime(2000 + tyear, tmonth, tday);
+            }
+
+            //this.serialNumber = SerialAndDate.Substring(0, 19 - 9);
+            
+            //int year = Convert.ToInt16(SerialAndDate.Substring(17, 2));
+            //int month = Convert.ToInt16(SerialAndDate.Substring(14, 2));
+            
+            //int day = Convert.ToInt16(SerialAndDate.Substring(11, 2));
+            //day = Math.Min(Math.Max(day, 1), 31);
+
+            
             this.DateTimeregistration = DateTimeregistration;
             this.fiscalNumber = fiscalNumber;
             //this.LengthOfLine1OfAttributesOfTaxpayer = Line1OfAttributesOfTaxpayer.Length;

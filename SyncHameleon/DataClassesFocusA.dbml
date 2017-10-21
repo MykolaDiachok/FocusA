@@ -1,92 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?><Database Name="FPWork" Class="DataClassesFocusADataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
   <Connection Mode="AppSettings" ConnectionString="Data Source=focus-a;Initial Catalog=FPWork;User ID=sa" SettingsObjectName="SyncHameleon.Properties.Settings" SettingsPropertyName="FPWorkConnectionString" Provider="System.Data.SqlClient" />
-  <Table Name="dbo.tbl_Operations" Member="tbl_Operations">
-    <Type Name="tbl_Operation">
-      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="NumSlave" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
-      <Column Name="DateTime" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
-      <Column Name="FPNumber" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="Operation" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="InWork" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
-      <Column Name="Closed" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
-      <Column Name="Error" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
-      <Column Name="ByteStatus" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="ByteResult" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="ByteReserv" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="CurentDateTime" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
-      <Column Name="Disable" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
-      <Association Name="tbl_Cashier_tbl_Operation" Member="tbl_Cashier" ThisKey="NumSlave" OtherKey="id" Type="tbl_Cashier" IsForeignKey="true" />
-      <Association Name="tbl_Payment_tbl_Operation" Member="tbl_Payment" ThisKey="NumSlave" OtherKey="id" Type="tbl_Payment" IsForeignKey="true" />
-    </Type>
-  </Table>
-  <Table Name="dbo.tbl_Cashiers" Member="tbl_Cashiers">
-    <Type Name="tbl_Cashier">
-      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="DATETIME" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
-      <Column Name="FPNumber" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="Operation" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="Num_Cashier" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="Name_Cashier" Type="System.String" DbType="VarChar(15) NOT NULL" CanBeNull="false" />
-      <Column Name="Pass_Cashier" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="TakeProgName" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
-      <Column Name="Error" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
-      <Column Name="ByteStatus" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="ByteResult" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="ByteReserv" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Association Name="tbl_Cashier_tbl_Operation" Member="tbl_Operations" ThisKey="id" OtherKey="NumSlave" Type="tbl_Operation" />
-    </Type>
-  </Table>
-  <Table Name="dbo.tbl_Payment" Member="tbl_Payments">
-    <Type Name="tbl_Payment">
-      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="NumOperation" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
-      <Column Name="DATETIME" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
-      <Column Name="FPNumber" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="Operation" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="SESSID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="SYSTEMID" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
-      <Column Name="SAREAID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="Type" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="FRECNUM" Type="System.String" DbType="NVarChar(30) NOT NULL" CanBeNull="false" />
-      <Column Name="SRECNUM" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
-      <Column Name="Payment_Status" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="Payment" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="Payment0" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="Payment1" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="Payment2" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="Payment3" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="Payment4" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="Payment5" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="Payment6" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="Payment7" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="CheckClose" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
-      <Column Name="FiscStatus" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
-      <Column Name="CommentUp" Type="System.String" DbType="NVarChar(27) NOT NULL" CanBeNull="false" />
-      <Column Name="Comment" Type="System.String" DbType="NVarChar(27) NOT NULL" CanBeNull="false" />
-      <Column Name="Old_Payment" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="Error" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
-      <Column Name="ByteStatus" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="ByteResult" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="ByteReserv" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="FPSumm" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="CheckSum" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="PayBonus" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="BousInAcc" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="BonusCalc" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="Card" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
-      <Column Name="ForWork" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
-      <Column Name="[RowCount]" Member="RowCount" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="Disable" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
-      <Association Name="tbl_Payment_tbl_Operation" Member="tbl_Operations" ThisKey="id" OtherKey="NumSlave" Type="tbl_Operation" />
-      <Association Name="tbl_Payment_tbl_SALE" Member="tbl_SALEs" ThisKey="id" OtherKey="NumPayment" Type="tbl_SALE" />
-    </Type>
-  </Table>
   <Table Name="dbo.tbl_SALES" Member="tbl_SALEs">
     <Type Name="tbl_SALE">
       <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
       <Column Name="NumPayment" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
       <Column Name="DATETIME" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
-      <Column Name="FPNumber" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="FPNumber" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
       <Column Name="SESSID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="SYSTEMID" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
       <Column Name="SAREAID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
@@ -109,13 +28,139 @@
       <Column Name="ByteResult" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="ByteReserv" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="Old_Price" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="packname" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="packname" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
       <Column Name="PackGuid" Type="System.Guid" DbType="UniqueIdentifier" CanBeNull="true" />
       <Column Name="RowSum" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="FPSum" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="ForWork" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
       <Column Name="discount" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="exchange" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="DiscountComment" Type="System.String" DbType="NVarChar(25)" CanBeNull="true" />
       <Association Name="tbl_Payment_tbl_SALE" Member="tbl_Payment" ThisKey="NumPayment" OtherKey="id" Type="tbl_Payment" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.tbl_Payment" Member="tbl_Payments">
+    <Type Name="tbl_Payment">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="NumOperation" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="DATETIME" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="FPNumber" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="Operation" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="SESSID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="SYSTEMID" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="SAREAID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="Type" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="FRECNUM" Type="System.String" DbType="NVarChar(30) NOT NULL" CanBeNull="false" />
+      <Column Name="SRECNUM" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="Payment_Status" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="Payment" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="Payment0" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="Payment1" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="Payment2" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="Payment3" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="Payment4" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="Payment5" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="Payment6" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="Payment7" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="CheckClose" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="FiscStatus" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="CommentUp" Type="System.String" DbType="NVarChar(27) NOT NULL" CanBeNull="false" />
+      <Column Name="Comment" Type="System.String" DbType="NVarChar(MAX) NOT NULL" CanBeNull="false" />
+      <Column Name="Old_Payment" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Error" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="ByteStatus" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ByteResult" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ByteReserv" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="FPSumm" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="CheckSum" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="PayBonus" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="BousInAcc" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="BonusCalc" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Card" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="ForWork" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="[RowCount]" Member="RowCount" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Disable" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="Discount" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="DiscountComment" Type="System.String" DbType="NVarChar(25)" CanBeNull="true" />
+      <Column Name="GiftCard" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="GiftSum" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Association Name="tbl_Payment_tbl_SALE" Member="tbl_SALEs" ThisKey="id" OtherKey="NumPayment" Type="tbl_SALE" />
+    </Type>
+  </Table>
+  <Table Name="dbo.tbl_SyncDBStatus" Member="tbl_SyncDBStatus">
+    <Type Name="tbl_SyncDBStatus">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="CompName" Type="System.String" DbType="NVarChar(256)" CanBeNull="true" />
+      <Column Name="FPNumber" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="DataServer" Type="System.String" DbType="NVarChar(1024)" CanBeNull="true" />
+      <Column Name="DataBaseName" Type="System.String" DbType="NVarChar(1024)" CanBeNull="true" />
+      <Column Name="Status" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+      <Column Name="DateTimeSyncDB" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.tbl_Cashiers" Member="tbl_Cashiers">
+    <Type Name="tbl_Cashier">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="DATETIME" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="FPNumber" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="Operation" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="Num_Cashier" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="Name_Cashier" Type="System.String" DbType="VarChar(15) NOT NULL" CanBeNull="false" />
+      <Column Name="Pass_Cashier" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="TakeProgName" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="Error" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="ByteStatus" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ByteResult" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ByteReserv" Type="System.Int32" DbType="Int" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.tbl_Operations" Member="tbl_Operations">
+    <Type Name="tbl_Operation">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="NumSlave" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="DateTime" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="FPNumber" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="Operation" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="InWork" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="Closed" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="Error" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="ByteStatus" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ByteResult" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ByteReserv" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="CurentDateTime" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="Disable" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="DateTimeCreate" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="ErrorCounter" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+    </Type>
+  </Table>
+  <Table Name="dbo.tbl_CashIO" Member="tbl_CashIOs">
+    <Type Name="tbl_CashIO">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="DATETIME" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="FPNumber" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="Operation" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="Type" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="Money" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="MoneyFP" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Old_Money" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Error" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="ByteStatus" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ByteResult" Type="System.Int32" DbType="Int" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.tbl_SyncDB" Member="tbl_SyncDBs">
+    <Type Name="tbl_SyncDB">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="CompName" Type="System.String" DbType="NVarChar(256) NOT NULL" CanBeNull="false" />
+      <Column Name="FPNumber" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="DataServer" Type="System.String" DbType="NVarChar(1024) NOT NULL" CanBeNull="false" />
+      <Column Name="DataBaseName" Type="System.String" DbType="NVarChar(1024) NOT NULL" CanBeNull="false" />
+      <Column Name="Port" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="MoxaIP" Type="System.String" DbType="NVarChar(1024)" CanBeNull="true" />
+      <Column Name="MoxaPort" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="TableName" Type="System.String" DbType="NVarChar(1024) NOT NULL" CanBeNull="false" />
+      <Column Name="DateTimeSyncDB" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="DataAddDateTime" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
     </Type>
   </Table>
   <Table Name="dbo.tbl_ComInit" Member="tbl_ComInits">
@@ -126,9 +171,10 @@
       <Column Name="Init" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
       <Column Name="Error" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
       <Column Name="WorkOff" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="auto" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
       <Column Name="ErrorCode" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="ErrorInfo" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
-      <Column Name="FPNumber" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="FPNumber" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
       <Column Name="RealNumber" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
       <Column Name="SerialNumber" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
       <Column Name="FiscalNumber" Type="System.String" DbType="NVarChar(20)" CanBeNull="true" />
@@ -158,47 +204,6 @@
       <Column Name="DateTimeSyncDB" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="MoxaIP" Type="System.String" DbType="NVarChar(1024)" CanBeNull="true" />
       <Column Name="MoxaPort" Type="System.Int32" DbType="Int" CanBeNull="true" />
-    </Type>
-  </Table>
-  <Table Name="dbo.tbl_CashIO" Member="tbl_CashIOs">
-    <Type Name="tbl_CashIO">
-      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="DATETIME" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
-      <Column Name="FPNumber" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="Operation" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="Type" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
-      <Column Name="Money" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="MoneyFP" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="Old_Money" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="Error" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
-      <Column Name="ByteStatus" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="ByteResult" Type="System.Int32" DbType="Int" CanBeNull="true" />
-    </Type>
-  </Table>
-  <Table Name="dbo.tbl_SyncDB" Member="tbl_SyncDBs">
-    <Type Name="tbl_SyncDB">
-      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="CompName" Type="System.String" DbType="NVarChar(256) NOT NULL" CanBeNull="false" />
-      <Column Name="FPNumber" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="DataServer" Type="System.String" DbType="NVarChar(1024) NOT NULL" CanBeNull="false" />
-      <Column Name="DataBaseName" Type="System.String" DbType="NVarChar(1024) NOT NULL" CanBeNull="false" />
-      <Column Name="Port" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="MoxaIP" Type="System.String" DbType="NVarChar(1024)" CanBeNull="true" />
-      <Column Name="MoxaPort" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="TableName" Type="System.String" DbType="NVarChar(1024) NOT NULL" CanBeNull="false" />
-      <Column Name="DateTimeSyncDB" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
-      <Column Name="DataAddDateTime" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
-    </Type>
-  </Table>
-  <Table Name="dbo.tbl_SyncDBStatus" Member="tbl_SyncDBStatus">
-    <Type Name="tbl_SyncDBStatus">
-      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="CompName" Type="System.String" DbType="NVarChar(256)" CanBeNull="true" />
-      <Column Name="FPNumber" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="DataServer" Type="System.String" DbType="NVarChar(1024)" CanBeNull="true" />
-      <Column Name="DataBaseName" Type="System.String" DbType="NVarChar(1024)" CanBeNull="true" />
-      <Column Name="Status" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
-      <Column Name="DateTimeSyncDB" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
     </Type>
   </Table>
 </Database>

@@ -10,11 +10,11 @@ namespace DbHelperSQL
     public class DbHelperSQLStatus
     {
         public string CompName { get; private set; }
-        public int? FPNumber { get; private set; }
+        public long? FPNumber { get; private set; }
         public string DataServer { get; private set; }
         public string DataBaseName { get; private set; }
 
-        public DbHelperSQLStatus(string CompName, int? FPNumber, string DataServer, string DataBaseName)
+        public DbHelperSQLStatus(string CompName, long? FPNumber, string DataServer, string DataBaseName)
         {
             this.CompName = CompName;
             this.FPNumber = FPNumber;
@@ -22,7 +22,7 @@ namespace DbHelperSQL
             this.DataBaseName = DataBaseName;
         }
 
-        public DbHelperSQLStatus(string DataServer, int? FPNumber)
+        public DbHelperSQLStatus(string DataServer, long? FPNumber)
         {
             this.DataServer = DataServer;
             this.FPNumber = FPNumber;
@@ -33,7 +33,7 @@ namespace DbHelperSQL
             this.DataServer = DataServer;
         }
 
-        public DbHelperSQLStatus(int FPNumber)
+        public DbHelperSQLStatus(long FPNumber)
         {
             this.FPNumber = FPNumber;
         }

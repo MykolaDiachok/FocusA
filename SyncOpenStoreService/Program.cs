@@ -68,7 +68,7 @@ namespace SyncOpenStoreService
             {
 
                 bool showHelp = false;
-                List<int> fpnumbers = new List<int>();
+                List<long> fpnumbers = new List<long>();
                 List<string> databases = new List<string>();
                 List<string> dataservers = new List<string>();
                 var os = new OptionSet()
@@ -78,7 +78,7 @@ namespace SyncOpenStoreService
                        .Add("p|stop", "Stop service", p => stopService())
                        .Add("?|h|help", "Show this screen", h => showHelp = h != null)
                        .Add("d|debug", "Debug service", d => debugservice = d != null)
-                       .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumbers.Add(int.Parse(a)))
+                       .Add("fp|fpnumber=", "set fp or ser array fp", a => fpnumbers.Add(long.Parse(a)))
                        .Add("cn|compname=", "set computer name", cn => compname = cn)
                        .Add("ds|dataserver=", "set data server name", ds => dataservers.Add(ds))
                        .Add("db|database=", "set database name", db=>databases.Add(db));

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace CentralLib.Helper
@@ -237,7 +238,14 @@ namespace CentralLib.Helper
             if (InputString == null)
                 InputString = "";
             Encoding cp866 = Encoding.GetEncoding(866);
+            InputString = InputString.Trim();
             InputString = InputString.Replace("№", "N");
+            InputString = InputString.Replace("і", "i");
+            InputString = InputString.Replace("у", "у");
+            //InputString = InputString.Replace("г", "г");
+            Regex rgx = new Regex(@"\s+");
+            InputString = rgx.Replace(InputString, " ");
+
             string tempStr = InputString.Substring(0, Math.Min(MaxVal, InputString.Length));
             //length = (byte)tempStr.Length;
 
@@ -274,20 +282,25 @@ namespace CentralLib.Helper
 
         #region forProtocol
         public byte[] prepareForSend(int ConsecutiveNumber, byte[] BytesForSend, bool useCRC16 = false, bool repeatError = false) // тут передают только код и параметры, получают готовую строку для отправки
-        {
-            //this.glbytesPrepare = BytesForSend;
+        { //this.glbytesPrepare = BytesForSend;
             ConsecutiveNumber++;
             byte[] prBytes = Combine(new byte[] { (byte)WorkByte.DLE, (byte)WorkByte.STX, (byte)ConsecutiveNumber }, BytesForSend);
             prBytes = Combine(prBytes, new byte[] { 0x00, (byte)WorkByte.DLE, (byte)WorkByte.ETX });
             byte chByte = getchecksum(prBytes);
-            
+
             //while (chByte == 0)
             //{
             //    prBytes[2]++;
             //    chByte = getchecksum(prBytes);
             //}
+
+
             prBytes[prBytes.Length - 3] = chByte;
-            for (int pos = 2; pos < prBytes.Length - 2; pos++)
+
+            if (useCRC16)
+                prBytes = returnArrayBytesWithCRC16(prBytes);
+
+            for (int pos = 2; pos < prBytes.Length - 4; pos++)
             //for (int pos = 2; pos <= _out.Count - 3; pos++)
             {
                 if (prBytes[pos] == (byte)WorkByte.DLE)
@@ -300,10 +313,9 @@ namespace CentralLib.Helper
                     pos++;
                 }
             }
-            if (useCRC16)
-                prBytes = returnArrayBytesWithCRC16(prBytes);
-            return prBytes;
 
+
+            return prBytes;
         }
 
 
@@ -439,20 +451,23 @@ namespace CentralLib.Helper
 
         public byte[] returnArrayBytesWithCRC16(byte[] inBytes)
         {
-
             //byte[] bytebegin = { DLE, STX };
             //byte[] byteend = { DLE, ETX };
 
-            byte[] tempb = returnWithOutDublicateDLE(inBytes);
-            var searchBegin = PatternAt(tempb, bytesBegin);
-            if (searchBegin == null)
+            //byte[] tempb = returnWithOutDublicateDLE(inBytes);
+            byte[] tempb = new byte[inBytes.Length];
+            inBytes.CopyTo(tempb, 0);
+            //var searchBegin = PatternAt(tempb, bytesBegin);
+            //if (searchBegin == null)
+            if (!((tempb[0] == (byte)WorkByte.DLE) && (tempb[1] == (byte)WorkByte.STX)))
                 return null;
 
-            var searchEnd = PatternAt(tempb, bytesEnd);
-            if (searchEnd == null)
+            //var searchEnd = PatternAt(tempb, bytesEnd);
+            //if (searchEnd == null)
+            if (!(tempb[tempb.Length - 2] == (byte)WorkByte.DLE) && (tempb[tempb.Length - 1] == (byte)WorkByte.ETX))
                 return null;
 
-            var newArr = tempb.Skip((int)searchBegin + 2).Take((int)searchEnd - 2).ToArray();
+            var newArr = tempb.Skip(2).Take(tempb.Length - 4).ToArray();
 
             byte[] a = new byte[newArr.Length + 1];
             newArr.CopyTo(a, 0);

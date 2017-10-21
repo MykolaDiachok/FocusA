@@ -18,8 +18,8 @@ namespace Tools
             bool showHelp = false;
             bool automatic = false;
             string fpnumber="";
-            int setFPnumber=0;
-            int setRealNumber = 412;
+            long setFPnumber=0;
+            long setRealNumber = 412;
             string setDataServer = "chameleonserver";
             string setDataBaseName = "chameleonserver";
 

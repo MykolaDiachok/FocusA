@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="c4d587fc7eff41f79a3f0aec5c3b0667" Name="Diagram1" ZoomLevel="58">
+        <EntityTypeShape EntityType="FPWorkModel.sysdiagrams" Width="1.5" PointX="5.75" PointY="0.75" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_ART" Width="1.5" PointX="5.75" PointY="3.75" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_Cashiers" Width="1.5" PointX="7.75" PointY="0.75" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_CashIn" Width="1.5" PointX="7.75" PointY="5.75" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_CashIO" Width="1.5" PointX="5.75" PointY="8.75" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_ComInit" Width="1.5" PointX="7.75" PointY="8.75" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_ComInitDefault" Width="1.5" PointX="9.75" PointY="0.75" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_Connections" Width="1.5" PointX="9.75" PointY="4.75" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_exchangeItemsFrom" Width="1.5" PointX="9.75" PointY="8.75" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_exchangeItemsRest" Width="1.5" PointX="2.75" PointY="10.75" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_exchangeItemsTo" Width="1.5" PointX="11.75" PointY="0.75" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_Info" Width="1.5" PointX="11.75" PointY="4.75" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_Log" Width="1.5" PointX="4.75" PointY="12.75" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_Operations" Width="1.5" PointX="13.75" PointY="0.75" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_Payment" Width="1.5" PointX="0.75" PointY="1.25" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_PermittedItems" Width="1.5" PointX="0.75" PointY="13.75" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_SALES" Width="1.5" PointX="3" PointY="2.125" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_SyncDB" Width="1.5" PointX="13.75" PointY="5.75" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_SyncDBStatus" Width="1.5" PointX="13.75" PointY="9.75" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_SyncFP" Width="1.5" PointX="13.75" PointY="13.75" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_Tax" Width="1.5" PointX="9.5" PointY="16.25" />
+        <AssociationConnector Association="FPWorkModel.FK_tbl_SALES_tbl_Payment" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_Firms" Width="1.5" PointX="11.625" PointY="13.375" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_Objects" Width="1.5" PointX="11.5" PointY="15.25" />
+        <EntityTypeShape EntityType="FPWorkModel.tbl_Names" Width="1.5" PointX="9.5" PointY="12.5" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

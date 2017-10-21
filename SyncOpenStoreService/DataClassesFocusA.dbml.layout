@@ -1,23 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 12.625, 11.125" name="DataClassesFocusA">
+<ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 12.375, 10.875" name="DataClassesFocusA">
   <DataContextMoniker Name="/DataClassesFocusADataContext" />
   <nestedChildShapes>
-    <classShape Id="a042987c-b30c-43a7-89d0-3fde3f27366a" absoluteBounds="6.5, 2.625, 2, 8.3091455078125">
-      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_ComInit" />
-      <nestedChildShapes>
-        <elementListCompartment Id="8e42176d-d863-48d2-aba4-1d6cdc62f0df" absoluteBounds="6.515, 3.085, 1.9700000000000002, 7.7491455078125009" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
-      </nestedChildShapes>
-    </classShape>
-    <classShape Id="ef3beddc-7d2b-45b8-beb0-9b719eef477f" absoluteBounds="10.375, 3.125, 2, 2.9247054036458331">
-      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_SyncDB" />
-      <nestedChildShapes>
-        <elementListCompartment Id="60f47411-704b-4857-82ae-49b41c02ee03" absoluteBounds="10.39, 3.585, 1.9700000000000002, 2.364705403645833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
-      </nestedChildShapes>
-    </classShape>
-    <classShape Id="1a2dace6-b074-4469-9f88-9c991cf34cfc" absoluteBounds="4, 2.625, 2, 2.1554996744791666">
+    <classShape Id="87de2403-cda3-4b7e-94bd-df68a7d7e27f" absoluteBounds="3.875, 2, 2, 2.1554996744791666">
       <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_SyncDBStatus" />
       <nestedChildShapes>
-        <elementListCompartment Id="82552d61-4dca-477e-ab20-aa97dab0a4d3" absoluteBounds="4.015, 3.085, 1.9700000000000002, 1.5954996744791665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+        <elementListCompartment Id="972eda24-3b8b-43e7-a9fa-0b080f1d08f3" absoluteBounds="3.89, 2.46, 1.9700000000000002, 1.5954996744791665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="7d3e7436-8107-4f0e-b058-2457c4e69230" absoluteBounds="7, 2.375, 2, 8.3091455078125">
+      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_ComInit" />
+      <nestedChildShapes>
+        <elementListCompartment Id="6e1a7a75-a6a2-4359-8efe-1e4e0970ee5a" absoluteBounds="7.015, 2.835, 1.9700000000000002, 7.7491455078125009" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="a796df14-3f39-42d3-9b79-e8d2458c738f" absoluteBounds="10.125, 3.25, 2, 2.9247054036458331">
+      <DataClassMoniker Name="/DataClassesFocusADataContext/tbl_SyncDB" />
+      <nestedChildShapes>
+        <elementListCompartment Id="9bc42027-84e5-4956-9406-13f13bfc2b38" absoluteBounds="10.14, 3.71, 1.9700000000000002, 2.364705403645833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
   </nestedChildShapes>

@@ -13,7 +13,7 @@ namespace CentralLib.Protocols
     public class BaseProtocol : IDisposable, IProtocols
     {
         public Logger logger = LogManager.GetCurrentClassLogger();
-        public int FPNumber { get; private set; }
+        public Int64 FPNumber { get; private set; }
 
         public virtual UInt16 MaxStringLenght
         {
@@ -22,7 +22,7 @@ namespace CentralLib.Protocols
 
         private DefaultPortCom defaultPortCom;
 
-        public BaseProtocol(DefaultPortCom dComPort, int inFPNumber)
+        public BaseProtocol(DefaultPortCom dComPort, Int64 inFPNumber)
         {
             NLog.GlobalDiagnosticsContext.Set("FPNumber", inFPNumber);
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
@@ -31,7 +31,7 @@ namespace CentralLib.Protocols
             defaultInitial(dComPort);
         }
 
-        public BaseProtocol(int port, int inFPNumber)
+        public BaseProtocol(int port, Int64 inFPNumber)
         {
             NLog.GlobalDiagnosticsContext.Set("FPNumber", inFPNumber);
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
@@ -46,7 +46,7 @@ namespace CentralLib.Protocols
         public string IpAdress { get; private set; }
         public int port { get; private set; }
 
-        public BaseProtocol(string IpAdress, int port, int inFPNumber)
+        public BaseProtocol(string IpAdress, int port, Int64 inFPNumber)
         {
             NLog.GlobalDiagnosticsContext.Set("FPNumber", inFPNumber);
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);

@@ -10,7 +10,7 @@ namespace CentralLib.Protocols
     {
         
 
-        public Protocol_OP02(int serialPort, int inFPNumber) :base(serialPort, inFPNumber)
+        public Protocol_OP02(int serialPort, Int64 inFPNumber) :base(serialPort, inFPNumber)
         {
             MaxStringLenght = 50;
             useCRC16 = false;
@@ -18,13 +18,13 @@ namespace CentralLib.Protocols
             //initial();
         }
 
-        public Protocol_OP02(CentralLib.Connections.DefaultPortCom dComPort, int inFPNumber) :base(dComPort, inFPNumber)
+        public Protocol_OP02(CentralLib.Connections.DefaultPortCom dComPort, Int64 inFPNumber) :base(dComPort, inFPNumber)
         {
             MaxStringLenght = 50;
             useCRC16 = false;
         }
 
-        public Protocol_OP02(string IpAdress, int port, int inFPNumber) :base(IpAdress,port, inFPNumber)
+        public Protocol_OP02(string IpAdress, int port, Int64 inFPNumber) :base(IpAdress,port, inFPNumber)
         {
             MaxStringLenght = 50;
             useCRC16 = false;

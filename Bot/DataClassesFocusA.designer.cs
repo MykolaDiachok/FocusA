@@ -156,7 +156,7 @@ namespace Bot
 		
 		private string _GroupName;
 		
-		private int _FPNumber;
+		private long _FPNumber;
 		
 		private string _DataServer;
 		
@@ -204,8 +204,8 @@ namespace Bot
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="Int NOT NULL")]
-		public int FPNumber
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="BigInt NOT NULL")]
+		public long FPNumber
 		{
 			get
 			{
@@ -325,7 +325,7 @@ namespace Bot
 		
 		private string _ErrorInfo;
 		
-		private System.Nullable<int> _FPNumber;
+		private System.Nullable<long> _FPNumber;
 		
 		private string _RealNumber;
 		
@@ -407,7 +407,7 @@ namespace Bot
     partial void OnErrorCodeChanged();
     partial void OnErrorInfoChanging(string value);
     partial void OnErrorInfoChanged();
-    partial void OnFPNumberChanging(System.Nullable<int> value);
+    partial void OnFPNumberChanging(System.Nullable<long> value);
     partial void OnFPNumberChanged();
     partial void OnRealNumberChanging(string value);
     partial void OnRealNumberChanged();
@@ -654,8 +654,8 @@ namespace Bot
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="Int")]
-		public System.Nullable<int> FPNumber
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="BigInt")]
+		public System.Nullable<long> FPNumber
 		{
 			get
 			{
@@ -1287,7 +1287,7 @@ namespace Bot
 		
 		private long _DateTime;
 		
-		private int _FPNumber;
+		private long _FPNumber;
 		
 		private int _Operation;
 		
@@ -1319,7 +1319,7 @@ namespace Bot
     partial void OnNumSlaveChanged();
     partial void OnDateTimeChanging(long value);
     partial void OnDateTimeChanged();
-    partial void OnFPNumberChanging(int value);
+    partial void OnFPNumberChanging(long value);
     partial void OnFPNumberChanged();
     partial void OnOperationChanging(int value);
     partial void OnOperationChanged();
@@ -1408,8 +1408,8 @@ namespace Bot
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="Int NOT NULL")]
-		public int FPNumber
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="BigInt NOT NULL")]
+		public long FPNumber
 		{
 			get
 			{
@@ -1659,7 +1659,7 @@ namespace Bot
 		
 		private long _DateTime;
 		
-		private int _FPNumber;
+		private long _FPNumber;
 		
 		private System.Nullable<System.DateTime> _DateTimeOfEndOfShift;
 		
@@ -1739,7 +1739,7 @@ namespace Bot
     partial void OnidChanged();
     partial void OnDateTimeChanging(long value);
     partial void OnDateTimeChanged();
-    partial void OnFPNumberChanging(int value);
+    partial void OnFPNumberChanging(long value);
     partial void OnFPNumberChanged();
     partial void OnDateTimeOfEndOfShiftChanging(System.Nullable<System.DateTime> value);
     partial void OnDateTimeOfEndOfShiftChanged();
@@ -1858,8 +1858,8 @@ namespace Bot
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="Int NOT NULL")]
-		public int FPNumber
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="BigInt NOT NULL")]
+		public long FPNumber
 		{
 			get
 			{
@@ -2609,7 +2609,7 @@ namespace Bot
 		
 		private string _CompName;
 		
-		private int _FPNumber;
+		private long _FPNumber;
 		
 		private string _DataServer;
 		
@@ -2635,7 +2635,7 @@ namespace Bot
     partial void OnidChanged();
     partial void OnCompNameChanging(string value);
     partial void OnCompNameChanged();
-    partial void OnFPNumberChanging(int value);
+    partial void OnFPNumberChanging(long value);
     partial void OnFPNumberChanged();
     partial void OnDataServerChanging(string value);
     partial void OnDataServerChanged();
@@ -2700,8 +2700,8 @@ namespace Bot
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="Int NOT NULL")]
-		public int FPNumber
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="BigInt NOT NULL")]
+		public long FPNumber
 		{
 			get
 			{
@@ -2911,7 +2911,7 @@ namespace Bot
 		
 		private string _CompName;
 		
-		private System.Nullable<int> _FPNumber;
+		private System.Nullable<long> _FPNumber;
 		
 		private string _DataServer;
 		
@@ -2929,7 +2929,7 @@ namespace Bot
     partial void OnidChanged();
     partial void OnCompNameChanging(string value);
     partial void OnCompNameChanged();
-    partial void OnFPNumberChanging(System.Nullable<int> value);
+    partial void OnFPNumberChanging(System.Nullable<long> value);
     partial void OnFPNumberChanged();
     partial void OnDataServerChanging(string value);
     partial void OnDataServerChanged();
@@ -2986,8 +2986,8 @@ namespace Bot
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="Int")]
-		public System.Nullable<int> FPNumber
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="BigInt")]
+		public System.Nullable<long> FPNumber
 		{
 			get
 			{
@@ -3115,7 +3115,7 @@ namespace Bot
 		
 		private long _id;
 		
-		private int _FPNumber;
+		private long _FPNumber;
 		
 		private System.DateTime _DateTimeSync;
 		
@@ -3127,7 +3127,7 @@ namespace Bot
     partial void OnCreated();
     partial void OnidChanging(long value);
     partial void OnidChanged();
-    partial void OnFPNumberChanging(int value);
+    partial void OnFPNumberChanging(long value);
     partial void OnFPNumberChanged();
     partial void OnDateTimeSyncChanging(System.DateTime value);
     partial void OnDateTimeSyncChanged();
@@ -3160,8 +3160,8 @@ namespace Bot
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="Int NOT NULL")]
-		public int FPNumber
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_FPNumber", DbType="BigInt NOT NULL")]
+		public long FPNumber
 		{
 			get
 			{

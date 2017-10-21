@@ -392,7 +392,7 @@ namespace Bot
                     pMessage.Chat.SendMessage(DisplayHelp(os));
                     return;
                 }
-                Func<int, bool, bool> setAuto = (fp, value) =>
+                Func<long, bool, bool> setAuto = (fp, value) =>
                  {
                      using (DataClassesFocusADataContext focusa = new DataClassesFocusADataContext())
                      {
@@ -409,9 +409,9 @@ namespace Bot
                      return false;
                  };
                 if (automatic == true)
-                    pMessage.Chat.SendMessage($"Set enable auto on fp={fpnumber}, status={setAuto(int.Parse(fpnumber), automatic.GetValueOrDefault())}");
+                    pMessage.Chat.SendMessage($"Set enable auto on fp={fpnumber}, status={setAuto(long.Parse(fpnumber), automatic.GetValueOrDefault())}");
                 if (automatic == false)
-                    pMessage.Chat.SendMessage($"Set disable auto on fp={fpnumber}, status={setAuto(int.Parse(fpnumber), automatic.GetValueOrDefault())}");
+                    pMessage.Chat.SendMessage($"Set disable auto on fp={fpnumber}, status={setAuto(long.Parse(fpnumber), automatic.GetValueOrDefault())}");
 
                 Func<int, string> ShowStatus = (fp) =>
                 {
