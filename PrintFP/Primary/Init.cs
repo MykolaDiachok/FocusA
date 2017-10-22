@@ -10,6 +10,7 @@ using CentralLib.Protocols;
 using System.Threading;
 using System.Data;
 using System.Transactions;
+using System.Net.NetworkInformation;
 
 namespace PrintFP.Primary
 {
@@ -128,8 +129,8 @@ namespace PrintFP.Primary
                 //_focusA.Transaction = _focusA.Connection.BeginTransaction(IsolationLevel.ReadCommitted);
 
                 //eventLog1.WriteEntry("start tbl_ComInit");
-                Table<tbl_ComInit> tablePayment = _focusA.GetTable<tbl_ComInit>();
-                var initRow = (from list in tablePayment
+                Table<tbl_ComInit> tableComInit = _focusA.GetTable<tbl_ComInit>();
+                var initRow = (from list in tableComInit
                                where list.Init
                                && !list.WorkOff.GetValueOrDefault()
                                && list.CompName.ToLower() == server.ToLower()
@@ -140,6 +141,40 @@ namespace PrintFP.Primary
                 //foreach (var initRow in comInit)
                 if (initRow != null)
                 {
+                    //using (var pr = getProtocol(_focusA, initRow)) //todo вынести в отдельный блок
+                    //{
+                    //
+                    bool pingable = false;
+                    Ping pinger = new Ping();
+                    int pingstatus = 0;
+                    long pingtime = 0;
+                    for (int p = 0; p < 10; p++)
+                    {
+                        try
+                        {
+                            PingReply reply = pinger.Send(initRow.MoxaIP, 300);
+                            pingtime += reply.RoundtripTime;
+                            pingable = reply.Status == IPStatus.Success;
+                            if (pingable)
+                            {
+                                pingstatus++;
+                            }
+                        }
+                        catch (PingException)
+                        {
+                            // Discard PingExceptions and return false;
+                        }                        
+                    }
+                    if(pingstatus<8)
+                    {
+                        PrintFP.UpdateStatusFP.setStatusFPError(initRow.FPNumber.GetValueOrDefault(), string.Format("ping problem count:{0} status:{1}", pingstatus, pingtime));
+                        //setStatusFP(string.Format("ping problem count:{0} status:{1}", pingstatus, pingtime));
+                        return;
+                    }
+
+                    //todo проверку на z
+
+                    //}
                     DateTime tBegin = DateTime.ParseExact(initRow.DateTimeBegin.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture).AddHours(-1);
                     DateTime tEnd = DateTime.ParseExact(initRow.DateTimeStop.ToString(), "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
                     DateTime worktime = DateTime.Now.AddSeconds((double)initRow.DeltaTime);
@@ -148,17 +183,19 @@ namespace PrintFP.Primary
                     Table<tbl_Operation> tableOperation = _focusA.GetTable<tbl_Operation>();
                     var operation = (from op in tableOperation
                                      where op.FPNumber == (long)initRow.FPNumber
-                                     && op.Closed!=true && op.Disable!=true
+                                     && op.Closed != true && op.Disable != true
                                      //&& op.DateTime >= initRow.DateTimeBegin && op.DateTime <= initRow.DateTimeStop
                                      && op.DateTime >= getintDateTime(tBegin) && op.DateTime <= initRow.DateTimeStop
                                       && op.DateTime <= getintDateTime(worktime)
+                                      && op.ErrorCounter < 5 //todo продумать ограничение по количеству ошибок и их сброса
+                                      && !op.InWork.GetValueOrDefault()
                                      //TODO добавить определение текущего времени и разницы
                                      select op).OrderBy(o => o.DateTime).ThenBy(o => o.Operation).FirstOrDefault();
                     //logger.Trace("init:{0}", worktime);
                     //eventLog1.WriteEntry("Get operation");
                     if (operation != null)
                     {
-
+                        
                         operation.InWork = true;
 
                         //try
@@ -166,6 +203,8 @@ namespace PrintFP.Primary
                         //    //using (Protocol_EP11 pr = new Protocol_EP11(initRow.Port))                        
                         using (var pr = getProtocol(_focusA, initRow))
                         {
+                            operation.ErrorCounter++;
+
                             DayReport currentDayReport = null;
                             try
                             {
@@ -188,6 +227,7 @@ namespace PrintFP.Primary
                                 PapStat papstat;
                                 updateInitTable(_focusA, initRow, pr, out papstat);
                             }
+
                             else if (operation.Operation == 3) // set cachier
                             {
 
@@ -241,7 +281,7 @@ namespace PrintFP.Primary
                             }
                             else if (operation.Operation == 12) //check
                             {
-                                
+
                                 Table<tbl_Payment> tblPayment = _focusA.GetTable<tbl_Payment>();
                                 Table<tbl_SALE> tblSales = _focusA.GetTable<tbl_SALE>();
                                 var headCheck = (from table in tblPayment
@@ -249,13 +289,25 @@ namespace PrintFP.Primary
                                                  && table.DATETIME == operation.DateTime
                                                  && table.id == operation.NumSlave
                                                  && table.Operation == operation.Operation
+                                                 && !table.ForWork.GetValueOrDefault()
                                                  select table).FirstOrDefault();
                                 if (headCheck == null)
                                 {
                                     setStatusFP(string.Format("Строка заголовки чека пустая!!!! Operation={0},id=", operation.Operation, operation.id));
                                     string errorinfo = "Строка заголовки чека пустая";
                                     initRow.ErrorInfo = errorinfo;
-                                    _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                    try
+                                    {
+                                        _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                    }
+                                    catch (ChangeConflictException e)
+                                    {
+                                        logger.Trace($"Error sql conflict:{e.Message}");
+                                        foreach (ObjectChangeConflict occ in _focusA.ChangeConflicts)
+                                        {
+                                            occ.Resolve(RefreshMode.OverwriteCurrentValues);
+                                        }
+                                    }
                                     throw new ApplicationException(errorinfo);
                                 }
                                 setStatusFP(string.Format("HEAD CHECK!!!! Operation={0},id={1}, row count={2}", operation.Operation, operation.id, headCheck.RowCount));
@@ -325,14 +377,25 @@ namespace PrintFP.Primary
                                         rowCheck.Error = !pr.statusOperation;
                                         rowCheck.FPSum = suminfp - suminfpdisc;
                                         headCheck.FPSumm = SumAtReceipt;
-                                       
+
                                         var razn = (rowCheck.RowSum.GetValueOrDefault()) - (suminfp - suminfpdisc);
                                         if (Math.Abs(razn) > 5)
                                         {
                                             string errorinfo = String.Format("Отличается сумма по строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
                                             setStatusFP(string.Format("{2}!!!! Operation={0},id={1}", operation.Operation, operation.id, errorinfo));
                                             initRow.ErrorInfo = errorinfo;
-                                            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                            try
+                                            {
+                                                _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                            }
+                                            catch (ChangeConflictException e)
+                                            {
+                                                logger.Trace($"Error sql conflict:{e.Message}");
+                                                foreach (ObjectChangeConflict occ in _focusA.ChangeConflicts)
+                                                {
+                                                    occ.Resolve(RefreshMode.OverwriteCurrentValues);
+                                                }
+                                            }
                                             logger.Error(errorinfo);
                                             throw new ApplicationException(errorinfo);
                                         }
@@ -364,7 +427,18 @@ namespace PrintFP.Primary
                                     {
                                         string errorinfo = String.Format("Отличается сумма чека, нужно {0}, в аппарате {1}. id:{2}", headCheck.CheckSum, headCheck.FPSumm, headCheck.id);
                                         setStatusFP(string.Format("{2}!!!! Operation={0},id={1}", operation.Operation, operation.id, errorinfo));
-                                        _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                        try
+                                        {
+                                            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                        }
+                                        catch (ChangeConflictException e)
+                                        {
+                                            logger.Trace($"Error sql conflict:{e.Message}");
+                                            foreach (ObjectChangeConflict occ in _focusA.ChangeConflicts)
+                                            {
+                                                occ.Resolve(RefreshMode.OverwriteCurrentValues);
+                                            }
+                                        }
                                         logger.Error(errorinfo);
                                         throw new ApplicationException(errorinfo);
                                     }
@@ -394,19 +468,20 @@ namespace PrintFP.Primary
                                     headCheck.Error = !pr.statusOperation;
                                     var dayreport = pr.dayReport;
                                     headCheck.NumZReport = dayreport.CurrentNumberOfZReport;
-
+                                    headCheck.ForWork = false;
                                     headCheck.CheckClose = true;
+                                    
                                 }
                                 //logger.Trace("Check close #{0}", headCheck.id);
                                 //pr.FPPayment();
 
                                 if (initRow.Version.ToUpper() == "ЕП-11".ToUpper())
-                                {                                    
-                                        try
-                                        {
-                                            pr.FPLineFeed();
-                                        }
-                                        catch { };
+                                {
+                                    try
+                                    {
+                                        pr.FPLineFeed();
+                                    }
+                                    catch { };
                                 }
 
                             }
@@ -425,11 +500,22 @@ namespace PrintFP.Primary
                                     setStatusFP(string.Format("Empty header check!!!! Operation={0},id=", operation.Operation, operation.id));
                                     string errorinfo = "Строка заголовки чека пустая";
                                     initRow.ErrorInfo = errorinfo;
-                                    _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                    try
+                                    {
+                                        _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                    }
+                                    catch (ChangeConflictException e)
+                                    {
+                                        logger.Trace($"Error sql conflict:{e.Message}");
+                                        foreach (ObjectChangeConflict occ in _focusA.ChangeConflicts)
+                                        {
+                                            occ.Resolve(RefreshMode.OverwriteCurrentValues);
+                                        }
+                                    }
                                     throw new ApplicationException(errorinfo);
                                 }
                                 var suminFP = pr.GetMoneyInBox();
-                                
+
                                 setStatusFP(string.Format("HEAD CHECK!!!! Operation={0},id={1}, row count={2}", operation.Operation, operation.id, headCheck.RowCount));
                                 headCheck.ForWork = true;
                                 var tableCheck = (from tableSales in tblSales
@@ -503,7 +589,18 @@ namespace PrintFP.Primary
                                             string errorinfo = String.Format("Отличается сумма по строке чека, нужно {0}, в аппарате {1}. Строка:{2} Чек:{3}", rowCheck.RowSum, rowSum.CostOfGoodsOrService, rowCheck.id, rowCheck.NumPayment);
                                             setStatusFP(string.Format("{2}!!!! Operation={0},id={1}", operation.Operation, operation.id, errorinfo));
                                             initRow.ErrorInfo = errorinfo;
-                                            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                            try
+                                            {
+                                                _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                            }
+                                            catch (ChangeConflictException e)
+                                            {
+                                                logger.Trace($"Error sql conflict:{e.Message}");
+                                                foreach (ObjectChangeConflict occ in _focusA.ChangeConflicts)
+                                                {
+                                                    occ.Resolve(RefreshMode.OverwriteCurrentValues);
+                                                }
+                                            }
                                             logger.Error(errorinfo);
                                             throw new ApplicationException(errorinfo);
                                         }
@@ -611,7 +708,18 @@ namespace PrintFP.Primary
 
                                     };
                                     _focusA.tbl_CashIOs.InsertOnSubmit(cashio);
-                                    _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                    try
+                                    {
+                                        _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                    }
+                                    catch (ChangeConflictException e)
+                                    {
+                                        logger.Trace($"Error sql conflict:{e.Message}");
+                                        foreach (ObjectChangeConflict occ in _focusA.ChangeConflicts)
+                                        {
+                                            occ.Resolve(RefreshMode.OverwriteCurrentValues);
+                                        }
+                                    }
 
                                     tbl_Operation newop = new tbl_Operation()
                                     {
@@ -627,7 +735,18 @@ namespace PrintFP.Primary
                                         ByteStatus = pr.ByteStatus
                                     };
                                     _focusA.tbl_Operations.InsertOnSubmit(newop);
-                                    _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                    try
+                                    {
+                                        _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                    }
+                                    catch (ChangeConflictException e)
+                                    {
+                                        logger.Trace($"Error sql conflict:{e.Message}");
+                                        foreach (ObjectChangeConflict occ in _focusA.ChangeConflicts)
+                                        {
+                                            occ.Resolve(RefreshMode.OverwriteCurrentValues);
+                                        }
+                                    }
                                 }
                                 //pr.FPDayReport();
                                 var info = setInfo(pr, operation.Operation, operation.DateTime);
@@ -646,7 +765,18 @@ namespace PrintFP.Primary
                                     operation.Error = true;
                                     operation.Closed = true;
                                     operation.InWork = false;
-                                    _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                    try
+                                    {
+                                        _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                    }
+                                    catch (ChangeConflictException e)
+                                    {
+                                        logger.Trace($"Error sql conflict:{e.Message}");
+                                        foreach (ObjectChangeConflict occ in _focusA.ChangeConflicts)
+                                        {
+                                            occ.Resolve(RefreshMode.OverwriteCurrentValues);
+                                        }
+                                    }
                                 }
                                 else
                                 {
@@ -713,7 +843,7 @@ namespace PrintFP.Primary
                                 var now = DateTime.Now;
                                 var minusMonth = DateTime.Now.AddMonths(-1);
                                 var startOfReport = new DateTime(minusMonth.Year, minusMonth.Month, minusMonth.Day);
-                                var endOfReport = new DateTime(now.Year, now.Month, now.Day);                                
+                                var endOfReport = new DateTime(now.Year, now.Month, now.Day);
                                 pr.FPPeriodicReport(0, startOfReport, endOfReport);
                                 pr.setFPCplCutter(false);
                                 //}
@@ -734,8 +864,19 @@ namespace PrintFP.Primary
                             }
 
                             setStatuses(operation, initRow, pr);
+                            operation.InWork = false;
                             //initRow.DateTimeSyncFP = DateTime.Now;
-                            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                            try
+                            {
+                                _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                            }
+                            catch (ChangeConflictException e)
+                            {
+                                foreach(ObjectChangeConflict occ in _focusA.ChangeConflicts)
+                                {
+                                    occ.Resolve(RefreshMode.OverwriteCurrentValues);
+                                }
+                            }
                             //    if (initRow.Error)
                             //    {
 
@@ -752,8 +893,10 @@ namespace PrintFP.Primary
                         //    _focusA.SubmitChanges();
                         //    //trans.Complete();
                         //}
-
+                        
                     }
+
+
                     else//Если не операции то.....
                     {
                         TimeSpan tTS = DateTime.Now - initRow.DateTimeSyncFP.GetValueOrDefault();
@@ -766,11 +909,11 @@ namespace PrintFP.Primary
                                 if (initRow.Version.ToUpper() == "ЕП-11".ToUpper())
                                 {
                                     //for (int x = 0; x < 3; x++)
-                                        try
-                                        {
-                                            pr.FPLineFeed();
-                                        }
-                                        catch { };
+                                    try
+                                    {
+                                        pr.FPLineFeed();
+                                    }
+                                    catch { };
                                 }
 
                                 updateInitTable(_focusA, initRow, pr, out papstat);
@@ -858,7 +1001,7 @@ namespace PrintFP.Primary
             }
 
 
-           _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
 
             return status;
         }
@@ -1140,8 +1283,9 @@ namespace PrintFP.Primary
             tOp.ByteReserv = pr.ByteReserv;
             tOp.ByteResult = pr.ByteResult;
             tOp.Error = !pr.statusOperation;
-            if (tOp.Error==true)
-                tOp.ErrorCounter= tOp.ErrorCounter + 1;
+            //todo: 123
+            //if (tOp.Error==true)
+            //    tOp.ErrorCounter= tOp.ErrorCounter + 1;
             if (pr.statusOperation)
                 tOp.Closed = true;
             tOp.InWork = true;
