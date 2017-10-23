@@ -11,6 +11,7 @@ using System.Threading;
 using System.Data;
 using System.Transactions;
 using System.Net.NetworkInformation;
+using System.Diagnostics;
 
 namespace PrintFP.Primary
 {
@@ -120,6 +121,12 @@ namespace PrintFP.Primary
         public void Do()
         {
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name);
+            //TODO проверить как работает система при нагрузке процессора.
+            PerformanceCounter cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+            if (cpuCounter.NextValue()>70)
+            {
+                return; //Если нагрузка больше 70 откладываем процедуру
+            }
             setStatusFP("in work");
             using (DataClasses1DataContext _focusA = new DataClasses1DataContext())
             //using (var trans = new TransactionScope(TransactionScopeOption.Required,new TransactionOptions{IsolationLevel = System.Transactions.IsolationLevel.ReadUncommitted,Timeout= new TimeSpan(0,0,25)}))
@@ -196,15 +203,27 @@ namespace PrintFP.Primary
                     if (operation != null)
                     {
                         
-                        operation.InWork = true;
+                        
 
                         //try
                         //{
                         //    //using (Protocol_EP11 pr = new Protocol_EP11(initRow.Port))                        
                         using (var pr = getProtocol(_focusA, initRow))
                         {
+                            operation.InWork = true;
                             operation.ErrorCounter++;
-
+                            try
+                            {
+                                _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                            }
+                            catch (ChangeConflictException e)
+                            {
+                                logger.Trace($"Error sql conflict:{e.Message}");
+                                foreach (ObjectChangeConflict occ in _focusA.ChangeConflicts)
+                                {
+                                    occ.Resolve(RefreshMode.OverwriteCurrentValues);
+                                }
+                            }
                             DayReport currentDayReport = null;
                             try
                             {
@@ -289,7 +308,7 @@ namespace PrintFP.Primary
                                                  && table.DATETIME == operation.DateTime
                                                  && table.id == operation.NumSlave
                                                  && table.Operation == operation.Operation
-                                                 && !table.ForWork.GetValueOrDefault()
+                                                 //&& !table.ForWork.GetValueOrDefault()
                                                  select table).FirstOrDefault();
                                 if (headCheck == null)
                                 {
@@ -794,7 +813,18 @@ namespace PrintFP.Primary
                                         if (rreport.statusOperation)
                                             operation.Closed = true;
                                         operation.InWork = true;
-                                        _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                        try
+                                        {
+                                            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                                        }
+                                        catch (ChangeConflictException e)
+                                        {
+                                            logger.Trace($"Error sql conflict:{e.Message}");
+                                            foreach (ObjectChangeConflict occ in _focusA.ChangeConflicts)
+                                            {
+                                                occ.Resolve(RefreshMode.OverwriteCurrentValues);
+                                            }
+                                        }
                                     }
                                 }
                                 PrintPeriodicReport(_focusA, pr);
@@ -872,7 +902,8 @@ namespace PrintFP.Primary
                             }
                             catch (ChangeConflictException e)
                             {
-                                foreach(ObjectChangeConflict occ in _focusA.ChangeConflicts)
+                                logger.Trace($"Error sql conflict:{e.Message}");
+                                foreach (ObjectChangeConflict occ in _focusA.ChangeConflicts)
                                 {
                                     occ.Resolve(RefreshMode.OverwriteCurrentValues);
                                 }

@@ -1,12 +1,10 @@
 ﻿using CentralLib.Helper;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Net.NetworkInformation;
 
 namespace CentralLib.Connections
@@ -84,28 +82,60 @@ namespace CentralLib.Connections
             logger.Trace(this.GetType().FullName + "." + System.Reflection.MethodBase.GetCurrentMethod().Name+ " host={0}, port={1}", _HostURI, _PortNumber);
             try
             {
-                Ping pingSender = new Ping();
-                PingOptions options = new PingOptions();
 
-                // Use the default Ttl value which is 128,
-                // but change the fragmentation behavior.
-                options.DontFragment = true;
-                
-
-                // Create a buffer of 64 bytes of data to be transmitted.                
-                byte[] buffer = Encoding.ASCII.GetBytes(new String('a', 64));
-                int timeout = 2000;
-                PingReply reply = pingSender.Send(_HostURI, timeout, buffer, options);
-                if (reply.Status == IPStatus.Success)
+                bool pingable = false;
+                Ping pinger = new Ping();
+                int pingstatus = 0;
+                long pingtime = 0;
+                for (int p = 0; p < 10; p++)
                 {
-                    logger.Trace("ping - ok");
-                    return true;
+                    try
+                    {
+                        PingReply reply = pinger.Send(_HostURI, 300);
+                        pingtime += reply.RoundtripTime;
+                        pingable = reply.Status == IPStatus.Success;
+                        if (pingable)
+                        {
+                            pingstatus++;
+                        }
+                    }
+                    catch (PingException)
+                    {
+                        // Discard PingExceptions and return false;
+                    }
                 }
-                else
+                if (pingstatus < 8)
                 {
+                    //PrintFP.UpdateStatusFP.setStatusFPError(initRow.FPNumber.GetValueOrDefault(), string.Format("ping problem count:{0} status:{1}", pingstatus, pingtime));
+                    //setStatusFP(string.Format("ping problem count:{0} status:{1}", pingstatus, pingtime));
                     logger.Trace("ping - bad");
                     return false;
                 }
+                logger.Trace("ping - ok");
+                return true;
+
+                //Ping pingSender = new Ping();
+                //PingOptions options = new PingOptions();
+
+                //// Use the default Ttl value which is 128,
+                //// but change the fragmentation behavior.
+                //options.DontFragment = true;
+
+
+                //// Create a buffer of 64 bytes of data to be transmitted.                
+                //byte[] buffer = Encoding.ASCII.GetBytes(new String('a', 64));
+                //int timeout = 2000;
+                //PingReply reply = pingSender.Send(_HostURI, timeout, buffer, options);
+                //if (reply.Status == IPStatus.Success)
+                //{
+                //    logger.Trace("ping - ok");
+                //    return true;
+                //}
+                //else
+                //{
+                //    logger.Trace("ping - bad");
+                //    return false;
+                //}
             }
             catch (Exception ex)
             {

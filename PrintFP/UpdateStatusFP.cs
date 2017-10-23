@@ -14,6 +14,7 @@ namespace PrintFP
 
         public static void setStatusFP(long FPnumber, string infoStatus)
         {
+            //TODO проверку на работу и доступность SQL
             using (DataClasses1DataContext focusA = new DataClasses1DataContext())
             {
                 var st = (from tblSyncFP in focusA.GetTable<tbl_SyncFP>()

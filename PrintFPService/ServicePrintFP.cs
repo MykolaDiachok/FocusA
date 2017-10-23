@@ -215,7 +215,18 @@ namespace PrintFPService
                         if (!rowinit.WorkOff.HasValue)
                         {
                             rowinit.WorkOff = false;
-                            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                            try
+                            {
+                                _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                            }
+                            catch (ChangeConflictException e)
+                            {
+                                logger.Trace($"Error sql conflict:{e.Message}");
+                                foreach (ObjectChangeConflict occ in _focusA.ChangeConflicts)
+                                {
+                                    occ.Resolve(RefreshMode.OverwriteCurrentValues);
+                                }
+                            }
                         }
                     }
                     else
@@ -304,7 +315,18 @@ namespace PrintFPService
                         comInit.Error = true;
                         comInit.ErrorInfo = "остановка сервиса, завершение процессов";
                         logger.Warn(comInit.ErrorInfo);
-                        _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                        try
+                        {
+                            _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                        }
+                        catch (ChangeConflictException e)
+                        {
+                            logger.Trace($"Error sql conflict:{e.Message}");
+                            foreach (ObjectChangeConflict occ in _focusA.ChangeConflicts)
+                            {
+                                occ.Resolve(RefreshMode.OverwriteCurrentValues);
+                            }
+                        }
                     }
                     var loginfo = (from log in _focusA.GetTable<tbl_SyncFP>()
                                    where log.FPNumber == app.Key
@@ -391,7 +413,18 @@ namespace PrintFPService
                         rowinit.auto = false;
                     }                   
                 }
-                focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                try
+                {
+                    focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                }
+                catch (ChangeConflictException e)
+                {
+                    logger.Trace($"Error sql conflict:{e.Message}");
+                    foreach (ObjectChangeConflict occ in focusA.ChangeConflicts)
+                    {
+                        occ.Resolve(RefreshMode.OverwriteCurrentValues);
+                    }
+                }
             }
         }
 
@@ -558,7 +591,7 @@ namespace PrintFPService
                 if (tinit != null)
                 {
                     tinit.Error = true;
-                    tinit.ErrorInfo = "Завершение процесса";
+                    tinit.ErrorInfo = "myProcess_Exited:tinit:Завершение процесса";
                 }
                 var loginfo = (from log in _focusA.GetTable<tbl_SyncFP>()
                                where log.FPNumber == FPNumber
@@ -566,9 +599,20 @@ namespace PrintFPService
                 if (loginfo != null)
                 {
                     loginfo.DateTimeSync = DateTime.Now;
-                    loginfo.Status = "Завершение процесса";
+                    loginfo.Status = "myProcess_Exited:loginfo:Завершение процесса";
                 }
-                _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                try
+                {
+                    _focusA.SubmitChanges(ConflictMode.ContinueOnConflict);
+                }
+                catch (ChangeConflictException exc)
+                {
+                    logger.Trace($"Error sql conflict:{exc.Message}");
+                    foreach (ObjectChangeConflict occ in _focusA.ChangeConflicts)
+                    {
+                        occ.Resolve(RefreshMode.OverwriteCurrentValues);
+                    }
+                }
             }
 
             logger.Error(e);
